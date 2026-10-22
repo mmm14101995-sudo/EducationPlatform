@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>المنصة التعليمية الشاملة للمرحلة الثانوية</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+            --text-color: #1e293b;
+            --hover-bg: rgba(255, 255, 255, 0.7);
+            --sidebar-width: 280px;
+            --primary-color: #0284c7;
+        }
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(15, 23, 42, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+            --text-color: #f8fafc;
+            --hover-bg: rgba(30, 41, 59, 0.8);
+            --primary-color: #38bdf8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body {
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; height: 100vh; overflow: hidden; position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .bg-pattern {
+            position: fixed; inset: 0; z-index: -1; opacity: 0.04; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='20' y='40' font-size='25'%3E📖%3C/text%3E%3Ctext x='80' y='90' font-size='25'%3E🖋️%3C/text%3E%3Ctext x='10' y='100' font-size='20'%3E📚%3C/text%3E%3C/svg%3E");
+            background-size: 150px 150px;
+        }
+        [data-theme="dark"] .bg-pattern { opacity: 0.1; }
+
+        .glass {
+            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+        }
+
+        /* الشريط الجانبي */
+        .sidebar { width: var(--sidebar-width); display: flex; flex-direction: column; padding: 25px 20px; z-index: 10; }
+        .user-profile { text-align: center; padding-bottom: 15px; border-bottom: 1px solid var(--glass-border); margin-bottom: 15px; }
+        .user-profile h2 { color: var(--primary-color); font-size: 19px; margin-top: 10px; }
+        .user-profile p { font-size: 13px; opacity: 0.8; }
+        .nav-item {
+            padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; white-space: nowrap;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--hover-bg); border-right: 4px solid var(--primary-color); transform: translateX(-5px);
+        }
+        .theme-toggle {
+            margin-top: auto; background: transparent; border: 1px solid var(--primary-color);
+            color: var(--text-color); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+        .theme-toggle:hover { background: var(--primary-color); color: #fff; }
+
+        /* المحتوى الرئيسي */
+        .main-content { flex: 1; min-width: 0; margin: 15px 0 15px 15px; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; }
+        .top-bar { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; }
+        .grade-switcher { display: flex; gap: 10px; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 12px; }
+        [data-theme="dark"] .grade-switcher { background: rgba(255,255,255,0.1); }
+        .grade-btn { padding: 8px 20px; border: none; border-radius: 8px; background: transparent; color: var(--text-color); font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .grade-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+        .view-section { padding: 30px; height: 100%; overflow-y: auto; display: none; }
+        .view-section.active { display: block; }
+        .header-title { margin-bottom: 25px; font-size: 26px; color: var(--primary-color); }
+
+        /* السبورة */
+        .whiteboard-container {
+            display: flex; flex-direction: column; height: 100%; background: #ffffff; border-radius: 15px;
+            overflow: hidden; border: 2px solid var(--glass-border); position: relative;
+        }
+        .whiteboard-container:fullscreen { width: 100vw; height: 100vh; border-radius: 0; border: none; padding: 10px; }
+        .whiteboard-toolbar {
+            padding: 10px 15px; background: rgba(255, 255, 255, 0.55); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.7); display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 12px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .tools-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .pages-group { display: flex; gap: 5px; align-items: center; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 10px; flex-wrap: wrap; }
+        .divider { width: 1px; height: 25px; background: rgba(0,0,0,0.1); margin: 0 2px; }
+        .tool-btn {
+            padding: 8px 14px; border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 10px; cursor: pointer;
+            font-weight: bold; font-size: 13px; transition: all 0.25s ease; background: rgba(255, 255, 255, 0.6);
+            color: #334155; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+        .tool-btn:hover { background: rgba(255, 255, 255, 0.95); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .tool-btn.active { background: var(--primary-color); color: #ffffff; border-color: var(--primary-color); }
+        .color-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+        .color-btn.active { transform: scale(1.2); border-color: #000; box-shadow: 0 0 8px rgba(0,0,0,0.3); }
+        .color-picker-wrapper, .slider-wrapper {
+            display: flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.6); padding: 3px 8px;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.8); font-size: 12px; font-weight: bold; color: #334155;
+        }
+        .page-tab { padding: 5px 12px; background: transparent; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; color: #334155; }
+        .page-tab.active { background: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--primary-color); }
+        #custom-canvas {
+            flex: 1 1 0; min-height: 0; width: 100%; display: block; cursor: crosshair; touch-action: none;
+            background: #ffffff; background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 24px 24px;
+        }
+
+        /* ===== المكتبة (أسلوب مون ريدر) ===== */
+        .lib-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; margin-bottom: 24px; }
+        .lib-toolbar input[type="search"] {
+            flex: 1; min-width: 180px; padding: 9px 12px; border-radius: 10px; font-size: 15px;
+            border: 1px solid var(--glass-border); background: rgba(255,255,255,0.7); color: #1e293b;
+        }
+        [data-theme="dark"] .lib-toolbar input[type="search"] { background: rgba(255,255,255,0.08); color: var(--text-color); }
+        .lib-toolbar select {
+            padding: 9px 10px; border-radius: 10px; font-weight: bold; font-size: 14px;
+            border: 1px solid var(--glass-border); background: rgba(255,255,255,0.7); color: #1e293b;
+        }
+        [data-theme="dark"] .lib-toolbar select { background: #1e293b; color: #f8fafc; }
+        [data-theme="dark"] .lib-toolbar select option { background: #1e293b; color: #f8fafc; }
+
+        .shelf { margin-bottom: 34px; }
+        .shelf-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .shelf-head h2 { font-size: 20px; color: var(--primary-color); }
+        .shelf-count { font-size: 13px; opacity: 0.75; }
+        .shelf-head .tool-btn { margin-inline-start: auto; }
+        body:not(.native) .import-btn { display: none; }
+
+        .shelf-wood {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 28px 22px;
+            padding: 26px 22px 16px; min-height: 200px; border-radius: 12px; position: relative;
+            background: linear-gradient(180deg, #3d2314 0%, #24140b 100%);
+            border-bottom: 20px solid #5a351d;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.6), 0 12px 25px rgba(0,0,0,0.3);
+        }
+        .shelf-wood::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: -20px; height: 6px;
+            background: linear-gradient(90deg, #1d0f07, #7c4826, #1d0f07);
+        }
+        .shelf-empty { grid-column: 1 / -1; color: #d6b98c; text-align: center; padding: 40px 10px; font-size: 15px; line-height: 1.9; }
+
+        .book-card { display: flex; flex-direction: column; gap: 6px; cursor: pointer; color: #f5e6c8; min-width: 0; user-select: none; -webkit-user-select: none; }
+        .cover {
+            position: relative; width: 100%; height: 0; padding-bottom: 138.9%; overflow: hidden; background: #ffffff;
+            border-radius: 4px 10px 10px 4px; box-shadow: -5px 6px 14px rgba(0,0,0,0.55);
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .book-card:hover .cover { transform: translateY(-6px); box-shadow: -7px 12px 20px rgba(0,0,0,0.6); }
+        .cover-fallback {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            padding: 10px; text-align: center; font-weight: bold; font-size: 14px; color: #222;
+        }
+        .cover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .book-title { font-size: 14px; font-weight: bold; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .book-meta { font-size: 12px; opacity: 0.8; }
+        .progress { height: 4px; background: rgba(255,255,255,0.18); border-radius: 4px; overflow: hidden; }
+        .progress i { display: block; height: 100%; background: #38bdf8; }
+        .book-card.done .progress i { background: #22c55e; }
+        .edit-mode .book-card { touch-action: none; }
+        .edit-mode .book-card .cover { outline: 1px dashed rgba(255,255,255,0.5); outline-offset: 3px; }
+        .book-card.dragging { opacity: 0.45; }
+
+        .exam-card { padding: 20px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 15px; cursor: pointer; }
+
+        /* القارئ */
+        .reader-overlay { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; background: #2b2b2b; }
+        .reader-overlay.open { display: flex; }
+        .reader-overlay.paper { background: #ece3cf; }
+        .reader-bar, .reader-foot {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 16px;
+            background: #1e1e1e; color: #eee; flex-wrap: wrap;
+        }
+        .reader-overlay.paper .reader-bar, .reader-overlay.paper .reader-foot { background: #dcd0b3; color: #3d2e1a; }
+        .reader-title { font-weight: bold; font-size: 16px; flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .reader-tools { display: flex; gap: 8px; }
+        .reader-btn {
+            padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; color: inherit;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+        }
+        .reader-overlay.paper .reader-btn { border-color: #8b7355; background: transparent; }
+        .reader-stage {
+            flex: 1; min-height: 0; display: flex; flex-direction: row; direction: rtl; justify-content: center;
+            align-items: center; gap: 12px; padding: 12px; cursor: pointer; overflow: hidden;
+        }
+        .reader-stage canvas { background: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.5); animation: fadeIn 0.25s ease; }
+        .reader-overlay.paper .reader-stage canvas { filter: sepia(0.25) brightness(0.98); }
+        .reader-msg { color: #ccc; font-size: 18px; text-align: center; padding: 20px; line-height: 1.8; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff;
+            padding: 10px 18px; border-radius: 10px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200;
+            max-width: 90vw; text-align: center;
+        }
+        .toast.show { opacity: 1; }
+
+        /* الشاشات الصغيرة (الهاتف) */
+        @media (max-width: 820px) {
+            body { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+            .sidebar { width: 100%; flex-direction: row; align-items: center; gap: 6px; padding: 8px; overflow-x: auto; }
+            .user-profile { display: none; }
+            .nav-item { margin: 0; padding: 10px 12px; font-size: 14px; }
+            .nav-item:hover, .nav-item.active { transform: none; border-right: none; border-bottom: 3px solid var(--primary-color); }
+            .theme-toggle { margin: 0; padding: 8px 10px; white-space: nowrap; font-size: 13px; }
+            .main-content { margin: 8px; }
+            .top-bar { padding: 10px 12px; }
+            .view-section { padding: 14px; height: auto; min-height: 60vh; overflow: visible; }
+            .header-title { font-size: 22px; margin-bottom: 16px; }
+            #whiteboard-view .whiteboard-container { height: 72vh; }
+            .shelf-wood { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); padding: 18px 12px 12px; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="bg-pattern"></div>
+
+    <div class="sidebar glass">
+        <div class="user-profile">
+            <div style="font-size: 45px;">👨‍🏫</div>
+            <h2>أستاذ مصطفى محمد</h2>
+            <p>لغة عربية - دفعة 2027</p>
+        </div>
+        <div class="nav-item active" onclick="switchView('dashboard', this)"><span>🏠</span> الرئيسية</div>
+        <div class="nav-item" onclick="switchView('whiteboard-view', this)"><span>📝</span> السبورة التفاعلية</div>
+        <div class="nav-item" onclick="switchView('bookshelf-view', this)"><span>📚</span> الكتب والملازم</div>
+        <div class="nav-item" onclick="switchView('exams-view', this)"><span>📋</span> الاختبارات</div>
+        <div class="nav-item" onclick="switchView('ai-assistant-view', this)"><span>🤖</span> المساعد الذكي</div>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀️ الوضع النهاري</button>
+    </div>
+
+    <div class="main-content glass">
+        <div class="top-bar glass">
+            <h3>المنصة التعليمية الشاملة</h3>
+            <div class="grade-switcher">
+                <button class="grade-btn active" onclick="setGrade('sec3', this)">٣ ثانوي</button>
+                <button class="grade-btn" onclick="setGrade('sec2', this)">٢ ثانوي (بكالوريا)</button>
+            </div>
+        </div>
+
+        <div id="dashboard" class="view-section active">
+            <h1 class="header-title">أهلاً بك في مساحة عمل: <span id="welcome-grade-text" style="color: var(--text-color);">الصف الثالث الثانوي</span></h1>
+            <p style="font-size: 18px; line-height: 1.8;">كل ما تكتبه أو ترفعه هنا سيكون مستقلاً ومحفوظاً لهذه المرحلة الدراسية فقط.</p>
+        </div>
+
+        <div id="whiteboard-view" class="view-section" style="padding: 12px;">
+            <div class="whiteboard-container" id="wb-container">
+                <div class="whiteboard-toolbar">
+                    <div class="tools-group">
+                        <button class="color-btn" data-color="#0f172a" style="background:#0f172a" onclick="setPenColor('#0f172a')"></button>
+                        <button class="color-btn" data-color="#2563eb" style="background:#2563eb" onclick="setPenColor('#2563eb')"></button>
+                        <button class="color-btn" data-color="#dc2626" style="background:#dc2626" onclick="setPenColor('#dc2626')"></button>
+                        <button class="color-btn" data-color="#16a34a" style="background:#16a34a" onclick="setPenColor('#16a34a')"></button>
+
+                        <div class="color-picker-wrapper">
+                            <span>🎨</span>
+                            <input type="color" id="fullColorPicker" value="#0f172a" oninput="setPenColor(this.value)" style="width:26px; height:26px; border:none; background:none; cursor:pointer;">
+                        </div>
+
+                        <div class="slider-wrapper">
+                            <span>📏 السمك:</span>
+                            <input type="range" id="penSizeSlider" min="1" max="60" value="3" oninput="changeToolSize(this.value)" style="width:75px; cursor:pointer;">
+                            <span id="penSizeVal">3px</span>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <button class="tool-btn pen-style-btn" data-style="normal" onclick="setPenStyle('normal')">🖊️ عادي</button>
+                        <button class="tool-btn pen-style-btn" data-style="feather" onclick="setPenStyle('feather')">✒️ ريشة</button>
+                        <button class="tool-btn pen-style-btn" data-style="broad" onclick="setPenStyle('broad')">🖍️ عريض</button>
+
+                        <button class="tool-btn" id="eraser-btn" onclick="setEraser()">🧽 ممحاة</button>
+                        <button class="tool-btn" id="clear-btn" onclick="clearBoard()" style="color:#dc2626;">🗑️ مسح</button>
+                        <button class="tool-btn" onclick="toggleFullscreen()">🖥️ ملء الشاشة</button>
+                        <button class="tool-btn" onclick="saveBoardAsPDF()" style="background:var(--primary-color); color:#fff;">📄 حفظ PDF</button>
+                    </div>
+                    <div class="pages-group" id="pages-container"></div>
+                </div>
+                <canvas id="custom-canvas"></canvas>
+            </div>
+        </div>
+
+        <div id="bookshelf-view" class="view-section">
+            <h1 class="header-title">المكتبة الرقمية</h1>
+
+            <div class="lib-toolbar glass">
+                <input type="search" id="book-search" placeholder="ابحث عن كتاب..." oninput="renderLibrary()">
+                <select id="book-sort" onchange="onSortChange()">
+                    <option value="manual">الترتيب اليدوي</option>
+                    <option value="name">الاسم</option>
+                    <option value="recent">آخر قراءة</option>
+                    <option value="progress">نسبة التقدم</option>
+                </select>
+                <button class="tool-btn" id="edit-btn" onclick="toggleEditMode()">✋ ترتيب الكتب</button>
+            </div>
+
+            <section class="shelf" id="shelf-continue" style="display:none;">
+                <div class="shelf-head"><h2>📖 متابعة القراءة</h2></div>
+                <div class="shelf-wood" id="grid-continue"></div>
+            </section>
+
+            <section class="shelf">
+                <div class="shelf-head">
+                    <h2>📚 الكتب</h2>
+                    <span class="shelf-count" id="count-books"></span>
+                    <button class="tool-btn import-btn" onclick="importForShelf('books')">➕ إضافة كتاب</button>
+                </div>
+                <div class="shelf-wood" id="grid-books"></div>
+            </section>
+
+            <section class="shelf">
+                <div class="shelf-head">
+                    <h2>📝 الملازم والمراجعات</h2>
+                    <span class="shelf-count" id="count-reviews"></span>
+                    <button class="tool-btn import-btn" onclick="importForShelf('reviews')">➕ إضافة ملزمة</button>
+                </div>
+                <div class="shelf-wood" id="grid-reviews"></div>
+            </section>
+        </div>
+
+        <div id="exams-view" class="view-section">
+            <h1 class="header-title">الاختبارات والتقييمات</h1>
+            <div id="exams-sec3">
+                <div class="exam-card"><h3>اختبار الوحدة الأولى - نحو (الصف الثالث الثانوي)</h3></div>
+            </div>
+            <div id="exams-sec2" style="display:none;">
+                <div class="exam-card"><h3>اختبار البلاغة - الترم الأول (الصف الثاني الثانوي)</h3></div>
+            </div>
+        </div>
+
+        <div id="ai-assistant-view" class="view-section">
+            <h1 class="header-title">مساعد الذكاء الاصطناعي</h1>
+            <div style="display:flex; gap:20px; flex-wrap:wrap;">
+                <div class="exam-card" style="flex:1; min-width:200px; text-align:center;" onclick="api.openExternal('https://chatgpt.com')"><h2 style="font-size:40px;">🤖</h2><h3>ChatGPT</h3></div>
+                <div class="exam-card" style="flex:1; min-width:200px; text-align:center;" onclick="api.openExternal('https://gemini.google.com')"><h2 style="font-size:40px;">✨</h2><h3>Gemini</h3></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- القارئ -->
+    <div id="reader" class="reader-overlay">
+        <div class="reader-bar">
+            <button class="reader-btn" onclick="closeReader()">✕ إغلاق</button>
+            <div id="reader-title" class="reader-title"></div>
+            <div class="reader-tools">
+                <button class="reader-btn" id="spread-btn" onclick="toggleSpread()">صفحتان</button>
+                <button class="reader-btn" onclick="toggleReaderPaper()">🌓 الخلفية</button>
+            </div>
+        </div>
+        <div id="reader-stage" class="reader-stage" onclick="handleReaderTap(event)"></div>
+        <div class="reader-foot">
+            <button class="reader-btn" onclick="prevPage()">➡ الصفحة السابقة</button>
+            <span id="reader-info"></span>
+            <button class="reader-btn" onclick="nextPage()">⬅ الصفحة التالية</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const NATIVE = window.Native || null;   // موجود داخل تطبيق الأندرويد فقط
+
+        if (NATIVE) document.body.classList.add('native');
+
+        // إذا تعذر تحميل pdf.js (لا يوجد إنترنت) تعمل بقية المنصة
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
+
+        function toast(msg) {
+            const t = $('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ==========================================
+        // طبقة التواصل: الكمبيوتر (app.py) أو الأندرويد (الجسر)
+        // ==========================================
+        const api = {
+            async books() {
+                if (NATIVE) return JSON.parse(NATIVE.listBooks());
+                const res = await fetch('/api/books', { cache: 'no-store' });
+                return res.json();
+            },
+            async loadState() {
+                if (NATIVE) return JSON.parse(NATIVE.loadState() || '{}');
+                const res = await fetch('/api/state', { cache: 'no-store' });
+                return res.json();
+            },
+            saveState(data) {
+                const json = JSON.stringify(data);
+                if (NATIVE) {
+                    try { NATIVE.saveState(json); } catch (e) { console.warn('تعذر الحفظ', e); }
+                    return;
+                }
+                fetch('/api/state', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: json
+                }).catch(e => console.warn('تعذر الحفظ', e));
+            },
+            async savePdf(name, base64) {
+                if (NATIVE) return NATIVE.savePdf(name, base64);
+                const res = await fetch('/api/save-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, data: base64 })
+                });
+                const out = await res.json();
+                if (!out.ok) throw new Error('save failed');
+                return out.path;
+            },
+            openExternal(url) {
+                if (NATIVE) { NATIVE.openExternal(url); return; }
+                fetch('/api/open-external', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                }).catch(() => {});
+            },
+            importBook(grade, kind) {
+                if (NATIVE) NATIVE.importBook(grade, kind);
+            }
+        };
+
+        // ==========================================
+        // الحالة المحفوظة
+        // ==========================================
+        const DEFAULT_STATE = {
+            theme: 'dark',
+            whiteboard: {
+                sec3: { pages: [null], currentIndex: 0 },
+                sec2: { pages: [null], currentIndex: 0 }
+            },
+            shelfOrder: {},
+            progress: {}   // progress[bookId] = { page, total, at }
+        };
+        let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+        async function loadAppState() {
+            try {
+                const saved = await api.loadState();
+                appState = { ...appState, ...saved };
+            } catch (e) {
+                console.warn('تعذر تحميل الحفظ', e);
+            }
+            appState.whiteboard ||= {};
+            for (const g of ['sec3', 'sec2']) {
+                const s = appState.whiteboard[g];
+                if (!s || !Array.isArray(s.pages) || !s.pages.length) {
+                    appState.whiteboard[g] = { pages: [null], currentIndex: 0 };
+                } else if (s.currentIndex >= s.pages.length || s.currentIndex < 0) {
+                    s.currentIndex = 0;
+                }
+            }
+            appState.shelfOrder ||= {};
+            appState.progress ||= {};
+        }
+
+        let saveTimer = null;
+        function scheduleSave() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => api.saveState(appState), 300);
+        }
+        window.addEventListener('pagehide', () => api.saveState(appState));
+
+        // ==========================================
+        // المظهر والتنقل
+        // ==========================================
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            $('themeBtn').innerText = theme === 'dark' ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي';
+        }
+
+        function toggleTheme() {
+            appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+            applyTheme(appState.theme);
+            scheduleSave();
+        }
+
+        function switchView(viewId, element) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            $(viewId).classList.add('active');
+            if (viewId === 'whiteboard-view') setTimeout(resizeCanvas, 50);
+            if (viewId === 'bookshelf-view') renderLibrary();
+        }
+
+        let currentGrade = 'sec3';
+
+        function setGrade(grade, btn) {
+            document.querySelectorAll('.grade-btn').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            currentGrade = grade;
+            const is3 = grade === 'sec3';
+            $('welcome-grade-text').innerText = is3 ? 'الصف الثالث الثانوي' : 'الصف الثاني الثانوي (بكالوريا)';
+            $('exams-sec3').style.display = is3 ? 'block' : 'none';
+            $('exams-sec2').style.display = is3 ? 'none' : 'block';
+            renderPageButtons();
+            drawPage(currentPageData());
+            renderLibrary();
+        }
+
+        // ==========================================
+        // السبورة
+        // ==========================================
+        const canvas = $('custom-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        let tool = 'pen';          // 'pen' أو 'eraser'
+        let penColor = '#0f172a';
+        let penWidth = 3;
+        let eraserWidth = 35;
+        let penStyle = 'normal';   // normal | feather | broad
+        let isDrawing = false;
+        let points = [];
+
+        const eraserCursor = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="rgba(255,255,255,0.7)" stroke="%23334155" stroke-width="2"/></svg>') 15 15, auto`;
+
+        function wbGrade() { return appState.whiteboard[currentGrade]; }
+        function currentPageData() { const s = wbGrade(); return s.pages[s.currentIndex]; }
+        function currentSize() { return tool === 'eraser' ? eraserWidth : penWidth; }
+
+        function saveCurrentPageState() {
+            if (!canvas.width || !canvas.height) return;
+            const s = wbGrade();
+            s.pages[s.currentIndex] = canvas.toDataURL('image/png');
+            scheduleSave();
+        }
+
+        let drawToken = 0;
+        function drawPage(dataUrl) {
+            const token = ++drawToken;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            if (!dataUrl) return;
+            const img = new Image();
+            img.onload = () => {
+                if (token !== drawToken) return;
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.drawImage(img, 0, 0);
+                ctx.restore();
+            };
+            img.src = dataUrl;
+        }
+
+        function applyToolState() {
+            ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
+            ctx.strokeStyle = penColor;
+            ctx.lineWidth = currentSize();
+            ctx.lineCap = penStyle === 'normal' ? 'round' : 'square';
+            ctx.lineJoin = penStyle === 'feather' ? 'miter' : (penStyle === 'broad' ? 'bevel' : 'round');
+            canvas.style.cursor = tool === 'eraser' ? eraserCursor : 'crosshair';
+        }
+
+        function refreshToolButtons() {
+            $('eraser-btn').classList.toggle('active', tool === 'eraser');
+            document.querySelectorAll('.pen-style-btn').forEach(b =>
+                b.classList.toggle('active', tool === 'pen' && b.dataset.style === penStyle));
+            document.querySelectorAll('.color-btn').forEach(b =>
+                b.classList.toggle('active', tool === 'pen' && b.dataset.color === penColor));
+        }
+
+        function syncSlider() {
+            const v = currentSize();
+            $('penSizeSlider').value = v;
+            $('penSizeVal').innerText = v + 'px';
+        }
+
+        function setTool(newTool) {
+            tool = newTool;
+            syncSlider();
+            applyToolState();
+            refreshToolButtons();
+        }
+
+        function setPenColor(color) {
+            penColor = color;
+            $('fullColorPicker').value = color;
+            setTool('pen');
+        }
+
+        function setPenStyle(style) {
+            penStyle = style;
+            setTool('pen');
+        }
+
+        function setEraser() { setTool('eraser'); }
+
+        function changeToolSize(size) {
+            size = Number(size);
+            if (tool === 'eraser') eraserWidth = size; else penWidth = size;
+            $('penSizeVal').innerText = size + 'px';
+            applyToolState();
+        }
+
+        function resizeCanvas() {
+            const w = Math.floor(canvas.clientWidth);
+            const h = Math.floor(canvas.clientHeight);
+            if (w <= 0 || h <= 0) return;
+            if (w === canvas.width && h === canvas.height) return;
+            canvas.width = w;
+            canvas.height = h;
+            applyToolState();
+            drawPage(currentPageData());
+        }
+
+        function canvasPoint(e) {
+            const r = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - r.left) * (canvas.width / r.width),
+                y: (e.clientY - r.top) * (canvas.height / r.height)
+            };
+        }
+
+        function drawFeatherSegment() {
+            const angle = Math.PI / 4;
+            const p1 = points[points.length - 2];
+            const p2 = points[points.length - 1];
+            if (!p1 || !p2) return;
+            const nib = penWidth * 3 * (p2.pressure + 0.2);
+            const dx = Math.cos(angle) * nib / 2;
+            const dy = Math.sin(angle) * nib / 2;
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = penColor;
+            ctx.beginPath();
+            ctx.moveTo(p1.x - dx, p1.y - dy);
+            ctx.lineTo(p1.x + dx, p1.y + dy);
+            ctx.lineTo(p2.x + dx, p2.y + dy);
+            ctx.lineTo(p2.x - dx, p2.y - dy);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        canvas.addEventListener('pointerdown', e => {
+            isDrawing = true;
+            const p = canvasPoint(e);
+            points = [{ x: p.x, y: p.y, pressure: 1 }];
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            canvas.setPointerCapture(e.pointerId);
+        });
+
+        canvas.addEventListener('pointermove', e => {
+            if (!isDrawing) return;
+            const p = canvasPoint(e);
+            const pressure = e.pressure > 0 ? e.pressure : 1;
+            points.push({ x: p.x, y: p.y, pressure });
+
+            if (tool === 'pen' && penStyle === 'feather') {
+                drawFeatherSegment();
+                return;
+            }
+            if (points.length > 2) {
+                const [a, b] = points.slice(-2);
+                const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+                ctx.lineWidth = currentSize() * (pressure + 0.2);
+                ctx.quadraticCurveTo(a.x, a.y, mid.x, mid.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(mid.x, mid.y);
+            }
+        });
+
+        function endStroke(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+            points = [];
+            ctx.beginPath();
+            if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) {
+                canvas.releasePointerCapture(e.pointerId);
+            }
+            saveCurrentPageState();
+        }
+        canvas.addEventListener('pointerup', endStroke);
+        canvas.addEventListener('pointercancel', endStroke);
+
+        let clearArmed = false;
+        let clearTimer = null;
+        function clearBoard() {
+            // ضغطة أولى للتأكيد، وثانية خلال 3 ثوانٍ للمسح (بدون نوافذ منبثقة)
+            if (!clearArmed) {
+                clearArmed = true;
+                $('clear-btn').innerText = '⚠️ اضغط مرة أخرى للتأكيد';
+                clearTimer = setTimeout(resetClearButton, 3000);
+                return;
+            }
+            clearTimeout(clearTimer);
+            resetClearButton();
+            drawPage(null);
+            const s = wbGrade();
+            s.pages[s.currentIndex] = null;
+            scheduleSave();
+        }
+        function resetClearButton() {
+            clearArmed = false;
+            $('clear-btn').innerText = '🗑️ مسح';
+        }
+
+        function toggleFullscreen() {
+            const wb = $('wb-container');
+            if (!document.fullscreenElement) { if (wb.requestFullscreen) wb.requestFullscreen(); }
+            else if (document.exitFullscreen) document.exitFullscreen();
+        }
+        document.addEventListener('fullscreenchange', () => setTimeout(resizeCanvas, 80));
+
+        function loadImage(src) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.src = src;
+            });
+        }
+
+        async function saveBoardAsPDF() {
+            if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
+            const { jsPDF } = window.jspdf;
+            const pages = wbGrade().pages;
+            const w = canvas.width, h = canvas.height;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [w, h] });
+
+            for (let i = 0; i < pages.length; i++) {
+                if (i > 0) pdf.addPage([w, h], 'landscape');
+                const tmp = document.createElement('canvas');
+                tmp.width = w; tmp.height = h;
+                const t = tmp.getContext('2d');
+                t.fillStyle = '#ffffff';
+                t.fillRect(0, 0, w, h);
+                if (pages[i]) t.drawImage(await loadImage(pages[i]), 0, 0);
+                pdf.addImage(tmp.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+            }
+
+            const name = `شرح_السبورة_${currentGrade === 'sec3' ? 'ثالثة' : 'ثانية'}_ثانوي_${Date.now()}.pdf`;
+            const base64 = pdf.output('datauristring').split(',').pop();
+            try {
+                const path = await api.savePdf(name, base64);
+                toast(`تم الحفظ في: ${path}`);
+            } catch (e) {
+                toast('تعذر الحفظ');
+            }
+        }
+
+        function switchPage(index) {
+            wbGrade().currentIndex = index;
+            scheduleSave();
+            drawPage(currentPageData());
+            renderPageButtons();
+        }
+
+        function addNewPage() {
+            const s = wbGrade();
+            s.pages.push(null);
+            switchPage(s.pages.length - 1);
+        }
+
+        function renderPageButtons() {
+            const container = $('pages-container');
+            container.innerHTML = '';
+            const s = wbGrade();
+            s.pages.forEach((_, index) => {
+                const btn = document.createElement('button');
+                btn.className = `page-tab ${index === s.currentIndex ? 'active' : ''}`;
+                btn.innerText = `صفحة ${index + 1}`;
+                btn.onclick = () => switchPage(index);
+                container.appendChild(btn);
+            });
+            const addBtn = document.createElement('button');
+            addBtn.className = 'tool-btn';
+            addBtn.style.padding = '4px 10px';
+            addBtn.innerText = '+ صفحة';
+            addBtn.onclick = addNewPage;
+            container.appendChild(addBtn);
+        }
+
+        function initWhiteboard() {
+            renderPageButtons();
+            resizeCanvas();
+            drawPage(currentPageData());
+        }
+
+        // ==========================================
+        // المكتبة: الرفوف والأغلفة والترتيب
+        // ==========================================
+        let booksCache = [];
+        const bookById = new Map();
+        const coverCache = new Map();     // bookId -> dataURL للغلاف
+        const coverPending = new Map();   // bookId -> Promise أثناء التحميل
+        let editMode = false;
+        let dragCard = null;
+
+        function getProgress(id) {
+            const v = appState.progress[id];
+            if (typeof v === 'number') return { page: v, total: 0, at: 0 };   // تنسيق قديم
+            return v || null;
+        }
+        function isDone(p) { return !!(p && p.total && p.page >= p.total); }
+        function pctOf(p) { return p && p.total ? Math.min(100, Math.round(p.page / p.total * 100)) : 0; }
+
+        async function loadBooks() {
+            try {
+                booksCache = await api.books();
+            } catch (e) {
+                console.warn('تعذر تحميل قائمة الكتب', e);
+                booksCache = [];
+            }
+            bookById.clear();
+            booksCache.forEach(b => bookById.set(b.id, b));
+            renderLibrary();
+        }
+
+        function sortBooks(list, sort, shelfKey) {
+            const byName = (a, b) => a.title.localeCompare(b.title, 'ar');
+            const copy = [...list];
+            if (sort === 'name') {
+                copy.sort(byName);
+            } else if (sort === 'recent') {
+                copy.sort((a, b) => ((getProgress(b.id) || {}).at || 0) - ((getProgress(a.id) || {}).at || 0) || byName(a, b));
+            } else if (sort === 'progress') {
+                copy.sort((a, b) => pctOf(getProgress(b.id)) - pctOf(getProgress(a.id)) || byName(a, b));
+            } else {
+                const order = appState.shelfOrder[shelfKey] || [];
+                copy.sort((a, b) => {
+                    const ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+                    if (ia === -1 && ib === -1) return byName(a, b);
+                    if (ia === -1) return 1;
+                    if (ib === -1) return -1;
+                    return ia - ib;
+                });
+            }
+            return copy;
+        }
+
+        function renderLibrary() {
+            if (!$('bookshelf-view')) return;
+            const q = $('book-search').value.trim().toLowerCase();
+            const sort = $('book-sort').value;
+            const grade = currentGrade;
+
+            const inGrade = booksCache.filter(b => b.grade === grade);
+            const books = inGrade.filter(b => b.kind === 'books');
+            const reviews = inGrade.filter(b => b.kind === 'reviews');
+            $('count-books').innerText = `${books.length} كتاب`;
+            $('count-reviews').innerText = `${reviews.length} ملزمة`;
+
+            const matches = b => !q || b.title.toLowerCase().includes(q);
+
+            // متابعة القراءة: كتب بدأتها ولم تنتهِ منها، الأحدث أولاً
+            const reading = inGrade
+                .filter(b => matches(b))
+                .filter(b => { const p = getProgress(b.id); return p && p.page > 1 && !isDone(p); })
+                .sort((a, b) => ((getProgress(b.id) || {}).at || 0) - ((getProgress(a.id) || {}).at || 0));
+            $('shelf-continue').style.display = reading.length ? 'block' : 'none';
+            fillShelf('grid-continue', reading, null, '');
+
+            const manual = sort === 'manual';
+            fillShelf('grid-books', sortBooks(books.filter(matches), sort, `shelf-${grade}-books`),
+                manual, `shelf-${grade}-books`, emptyHint('books', grade));
+            fillShelf('grid-reviews', sortBooks(reviews.filter(matches), sort, `shelf-${grade}-reviews`),
+                manual, `shelf-${grade}-reviews`, emptyHint('reviews', grade));
+        }
+
+        function emptyHint(kind, grade) {
+            if (NATIVE) return 'لا توجد هنا بعد. اضغط زر "إضافة" لاختيار ملف PDF من الجهاز.';
+            const folder = kind === 'reviews' ? `books/${grade.toUpperCase()}/reviews` : `books/${grade.toUpperCase()}`;
+            return `لا توجد هنا بعد. ضع ملفات PDF في المجلد: ${folder}`;
+        }
+
+        function fillShelf(gridId, list, reorderable, shelfKey, hint) {
+            const grid = $(gridId);
+            grid.innerHTML = '';
+            grid.dataset.shelf = shelfKey || '';
+            if (!list.length) {
+                if (hint) {
+                    const p = document.createElement('p');
+                    p.className = 'shelf-empty';
+                    p.innerText = hint;
+                    grid.appendChild(p);
+                }
+                return;
+            }
+            list.forEach(book => {
+                const card = createCard(book);
+                if (reorderable) enableReorder(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function createCard(book) {
+            const card = document.createElement('div');
+            const p = getProgress(book.id);
+            const done = isDone(p);
+            const pct = done ? 100 : pctOf(p);
+            let meta = 'لم يُقرأ بعد';
+            if (done) meta = '✓ مكتمل';
+            else if (p && p.page > 1) meta = `${pct}% — صفحة ${p.page}`;
+
+            card.className = 'book-card' + (done ? ' done' : '');
+            card.dataset.id = book.id;
+            card.title = book.title;
+            card.innerHTML = `
+                <div class="cover">
+                    <div class="cover-fallback">${esc(book.title)}</div>
+                    <img class="cover-img" alt="">
+                </div>
+                <div class="book-title">${esc(book.title)}</div>
+                <div class="book-meta">${meta}</div>
+                <div class="progress"><i style="width:${pct}%"></i></div>`;
+
+            card.addEventListener('click', () => {
+                if (!editMode) openBook(book);
+            });
+
+            const img = card.querySelector('.cover-img');
+            if (coverCache.has(book.id)) {
+                img.src = coverCache.get(book.id);
+            } else if (coverObserver) {
+                coverObserver.observe(card);
+            } else {
+                loadCoverInto(card);
+            }
+            return card;
+        }
+
+        // تحميل الأغلفة عند ظهورها فقط (يسرّع فتح المكتبة)
+        const coverObserver = ('IntersectionObserver' in window)
+            ? new IntersectionObserver(entries => {
+                for (const en of entries) {
+                    if (!en.isIntersecting) continue;
+                    coverObserver.unobserve(en.target);
+                    loadCoverInto(en.target);
+                }
+            }, { rootMargin: '200px' })
+            : null;
+
+        async function loadCoverInto(card) {
+            const book = bookById.get(card.dataset.id);
+            if (!book) return;
+            try {
+                const url = await getCover(book);
+                const img = card.querySelector('.cover-img');
+                if (img) img.src = url;
+            } catch (e) {
+                console.warn('تعذر تحميل غلاف الكتاب:', book.title, e);
+            }
+        }
+
+        function getCover(book) {
+            if (coverCache.has(book.id)) return Promise.resolve(coverCache.get(book.id));
+            if (!coverPending.has(book.id)) {
+                const job = renderCoverImage(book).then(url => {
+                    coverCache.set(book.id, url);
+                    coverPending.delete(book.id);
+                    return url;
+                }, err => {
+                    coverPending.delete(book.id);
+                    throw err;
+                });
+                coverPending.set(book.id, job);
+            }
+            return coverPending.get(book.id);
+        }
+
+        async function renderCoverImage(book) {
+            if (!window.pdfjsLib) throw new Error('pdf.js غير محمّل');
+            const doc = await pdfjsLib.getDocument({ url: book.url }).promise;
+            try {
+                const page = await doc.getPage(1);
+                const base = page.getViewport({ scale: 1 });
+                const vp = page.getViewport({ scale: 360 / base.width });
+                const c = document.createElement('canvas');
+                c.width = Math.floor(vp.width);
+                c.height = Math.floor(vp.height);
+                await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                return c.toDataURL('image/jpeg', 0.85);
+            } finally {
+                doc.destroy();
+            }
+        }
+
+        // ---- الترتيب بالسحب (يعمل بالفأرة وباللمس) ----
+        function onSortChange() {
+            if (editMode && $('book-sort').value !== 'manual') {
+                toggleEditMode();
+            } else {
+                renderLibrary();
+            }
+        }
+
+        function toggleEditMode() {
+            if (!editMode) {
+                $('book-sort').value = 'manual';
+                $('book-search').value = '';
+            }
+            editMode = !editMode;
+            document.body.classList.toggle('edit-mode', editMode);
+            $('edit-btn').innerText = editMode ? '✅ إنهاء الترتيب' : '✋ ترتيب الكتب';
+            renderLibrary();
+        }
+
+        function enableReorder(card) {
+            card.addEventListener('pointerdown', e => {
+                if (!editMode || e.button !== 0) return;
+                e.preventDefault();
+                dragCard = card;
+                card.classList.add('dragging');
+            });
+        }
+
+        document.addEventListener('pointermove', e => {
+            if (!dragCard) return;
+            const under = document.elementFromPoint(e.clientX, e.clientY);
+            const target = under ? under.closest('.book-card') : null;
+            if (!target || target === dragCard || target.parentNode !== dragCard.parentNode) return;
+            // نبدّل المواقع فقط عندما يدخل المؤشر وسط الكتاب، حتى لا يهتز الترتيب
+            const r = target.getBoundingClientRect();
+            const inside =
+                e.clientX > r.left + r.width * 0.25 && e.clientX < r.right - r.width * 0.25 &&
+                e.clientY > r.top + r.height * 0.25 && e.clientY < r.bottom - r.height * 0.25;
+            if (inside) placeBefore(dragCard, target);
+        });
+
+        function endDrag() {
+            if (!dragCard) return;
+            const grid = dragCard.parentNode;
+            dragCard.classList.remove('dragging');
+            dragCard = null;
+            if (grid && grid.dataset.shelf) saveShelfOrder(grid);
+        }
+        document.addEventListener('pointerup', endDrag);
+        document.addEventListener('pointercancel', endDrag);
+
+        function placeBefore(dragged, target) {
+            const parent = target.parentNode;
+            const kids = [...parent.children];
+            if (kids.indexOf(dragged) < kids.indexOf(target)) parent.insertBefore(dragged, target.nextSibling);
+            else parent.insertBefore(dragged, target);
+        }
+
+        function saveShelfOrder(grid) {
+            appState.shelfOrder[grid.dataset.shelf] = [...grid.querySelectorAll('.book-card')].map(c => c.dataset.id);
+            scheduleSave();
+        }
+
+        function importForShelf(kind) {
+            api.importBook(currentGrade, kind);
+        }
+
+        // ==========================================
+        // القارئ (من اليمين إلى اليسار)
+        // ==========================================
+        const reader = { book: null, doc: null, page: 1, total: 0, spread: false, token: 0 };
+        let readerResizeTimer = null;
+
+        function showReaderError() {
+            $('reader-stage').innerHTML = '<p class="reader-msg">تعذر فتح هذا الكتاب. إذا كانت المنصة تعمل لأول مرة، تأكد من وجود اتصال بالإنترنت لتحميل مكتبة القراءة.</p>';
+        }
+
+        async function openBook(book) {
+            const t = ++reader.token;
+            $('reader-title').innerText = book.title;
+            $('reader').classList.add('open');
+            $('reader-stage').innerHTML = '<p class="reader-msg">جارٍ فتح الكتاب...</p>';
+
+            let doc;
+            try {
+                if (!window.pdfjsLib) throw new Error('pdf.js غير محمّل');
+                doc = await pdfjsLib.getDocument({ url: book.url }).promise;
+            } catch (e) {
+                if (t === reader.token) showReaderError();
+                return;
+            }
+            // إذا أغلق المستخدم القارئ أثناء التحميل نتجاهل الكتاب
+            if (t !== reader.token) { doc.destroy(); return; }
+
+            reader.book = book;
+            reader.doc = doc;
+            reader.total = doc.numPages;
+            const saved = getProgress(book.id);
+            reader.page = Math.min(Math.max(1, saved ? saved.page : 1), reader.total);
+            saveProgress();
+            await renderReader();
+        }
+
+        function saveProgress() {
+            if (!reader.book) return;
+            appState.progress[reader.book.id] = { page: reader.page, total: reader.total, at: Date.now() };
+            scheduleSave();
+        }
+
+        async function renderReader() {
+            if (!reader.doc) return;
+            const token = ++reader.token;
+            const stage = $('reader-stage');
+            const count = reader.spread && reader.page < reader.total ? 2 : 1;
+            const dpr = window.devicePixelRatio || 1;
+            const cssW = stage.clientWidth - 24;
+            const cssH = stage.clientHeight - 24;
+            const canvases = [];
+
+            for (let i = 0; i < count; i++) {
+                const page = await reader.doc.getPage(reader.page + i);
+                if (token !== reader.token) return;
+                const base = page.getViewport({ scale: 1 });
+                const fit = Math.min((cssW / count) / base.width, cssH / base.height);
+                const vp = page.getViewport({ scale: fit * dpr });
+                const c = document.createElement('canvas');
+                c.width = Math.floor(vp.width);
+                c.height = Math.floor(vp.height);
+                c.style.width = (vp.width / dpr) + 'px';
+                c.style.height = (vp.height / dpr) + 'px';
+                await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+                if (token !== reader.token) return;
+                canvases.push(c);
+            }
+
+            // الصفحة الحالية تظهر على اليمين والتالية على اليسار
+            stage.innerHTML = '';
+            canvases.forEach(c => stage.appendChild(c));
+            updateReaderInfo();
+        }
+
+        function updateReaderInfo() {
+            const last = reader.spread && reader.page < reader.total ? reader.page + 1 : reader.page;
+            const label = last !== reader.page ? `${reader.page} و ${last}` : `${reader.page}`;
+            $('reader-info').innerText = `الصفحة ${label} من ${reader.total}`;
+        }
+
+        function step(dir) {
+            if (!reader.doc) return;
+            const amount = reader.spread ? 2 : 1;
+            const next = Math.max(1, Math.min(reader.total, reader.page + dir * amount));
+            if (next === reader.page) return;
+            reader.page = next;
+            saveProgress();
+            renderReader();
+        }
+
+        function nextPage() { step(1); }
+        function prevPage() { step(-1); }
+
+        function handleReaderTap(e) {
+            const r = $('reader-stage').getBoundingClientRect();
+            if (e.clientX - r.left < r.width / 2) nextPage();
+            else prevPage();
+        }
+
+        function toggleSpread() {
+            reader.spread = !reader.spread;
+            $('spread-btn').innerText = reader.spread ? 'صفحة واحدة' : 'صفحتان';
+            renderReader();
+        }
+
+        function toggleReaderPaper() {
+            $('reader').classList.toggle('paper');
+        }
+
+        function closeReader() {
+            if (!$('reader').classList.contains('open')) return;
+            $('reader').classList.remove('open');
+            reader.token++;
+            if (reader.doc) reader.doc.destroy();
+            reader.doc = null;
+            reader.book = null;
+            $('reader-stage').innerHTML = '';
+            renderLibrary();
+        }
+
+        // زر الرجوع في الأندرويد يغلق القارئ أولاً
+        function androidBack() {
+            if ($('reader').classList.contains('open')) {
+                closeReader();
+                return true;
+            }
+            return false;
+        }
+        window.androidBack = androidBack;
+
+        document.addEventListener('keydown', e => {
+            if (!$('reader').classList.contains('open')) return;
+            if (e.key === 'ArrowLeft' || e.key === ' ') { e.preventDefault(); nextPage(); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); prevPage(); }
+            else if (e.key === 'Escape') closeReader();
+        });
+
+        window.addEventListener('resize', () => {
+            if ($('whiteboard-view').classList.contains('active')) resizeCanvas();
+            if ($('reader').classList.contains('open')) {
+                clearTimeout(readerResizeTimer);
+                readerResizeTimer = setTimeout(renderReader, 150);
+            }
+        });
+
+        // ==========================================
+        // التشغيل
+        // ==========================================
+        window.addEventListener('load', async () => {
+            await loadAppState();
+            applyTheme(appState.theme);
+            refreshToolButtons();
+            syncSlider();
+            initWhiteboard();
+            await loadBooks();
+        });
+    </script>
+</body>
+</html>
