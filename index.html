@@ -351,8 +351,17 @@
         }
         .toast.show { opacity: 1; }
 
+        .back-btn { display: none; }
+
         /* الشاشات الصغيرة (الهاتف) */
         @media (max-width: 820px) {
+            .back-btn { display: grid; }
+            body.board-active { overflow: hidden; }
+            body.board-active .app { padding: 0; gap: 0; height: 100dvh; }
+            body.board-active .sidebar, body.board-active .topbar { display: none; }
+            body.board-active .main { gap: 0; height: 100%; }
+            body.board-active #view-board.active { height: 100dvh; min-height: 0; padding: 0; }
+            body.board-active .board { height: 100%; border-radius: 0; border: 0; }
             body { overflow: auto; }
             .app { flex-direction: column; height: auto; min-height: 100%; padding: 8px; gap: 10px; }
             .sidebar { width: 100%; flex-direction: row; align-items: center; gap: 4px; padding: 8px; overflow-x: auto; border-radius: 18px; }
@@ -445,6 +454,7 @@
             <section id="view-board" class="view">
                 <div class="board" id="board">
                     <div class="board-bar">
+                        <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
                         <div class="bgrp">
                             <button class="ibtn pen-style-btn" data-style="normal" title="قلم عادي" onclick="setPenStyle('normal')"><i data-icon="pen"></i></button>
                             <button class="ibtn pen-style-btn" data-style="feather" title="ريشة" onclick="setPenStyle('feather')"><i data-icon="feather"></i></button>
@@ -941,11 +951,17 @@
         // ==========================================
         const VIEW_TITLES = { home: 'الرئيسية', board: 'السبورة التفاعلية', books: 'المكتبة الرقمية', exams: 'الاختبارات', ai: 'المساعد الذكي' };
 
+        function backFromBoard() {
+            if ($('board').classList.contains('fs')) setBoardFs(false);
+            switchView('home', document.querySelector('[data-view=home]'));
+        }
+
         function switchView(view, navEl) {
             document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === view));
             document.querySelectorAll('.view').forEach(s => s.classList.remove('active'));
             $('view-' + view).classList.add('active');
             $('view-title').innerText = VIEW_TITLES[view] || '';
+            document.body.classList.toggle('board-active', view === 'board');
             if (view === 'board') setTimeout(resizeCanvas, 50);
             if (view === 'books') renderLibrary();
             if (view === 'exams') renderExams();
