@@ -1320,73 +1320,354 @@
         }
 
         // ==========================================
-        // السبورة
+        // السبورة: الخطوط متخزنة كأشكال (مش صور)، والتكبير بيكبّر كل حاجة مع بعض
         // ==========================================
         const canvas = $('custom-canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        canvas.width = 0;
-        canvas.height = 0;
+        const ctx = canvas.getContext('2d');
+        const stageEl = $('board-stage');
+        const FINGER_ERASES = false;   // true = الإصبع ممحاة والقلم كتابة، false = الإصبع يرسم
 
-        let tool = 'pen';          // 'pen' أو 'eraser'
+        // screen = world * s + t
+        const view = { s: 1, tx: 0, ty: 0 };
+        const VIEW_MIN = 0.1, VIEW_MAX = 8;
+        let tool = 'pen';            // pen | eraser
         let penColor = '#0f172a';
-        let penWidth = 3;
-        let eraserWidth = 35;
-        let penStyle = 'normal';   // normal | feather | broad
-        let isDrawing = false;
-        let points = [];
-        let zoomLevel = 1;
+        let penWidth = 3;            // بالبيكسل على الشاشة
+        let eraserWidth = 35;        // بالبيكسل على الشاشة
+        let penStyle = 'normal';     // normal | feather | broad
+        let cur = null;              // الخط اللي بيترسم دلوقتي
+        let renderPending = false;
         let undoStack = [];
         let redoStack = [];
-        const HISTORY_LIMIT = 10;
+        const HISTORY_LIMIT = 40;
+        const bgCache = new Map();
 
-        const eraserCursor = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="rgba(255,255,255,0.7)" stroke="%23334155" stroke-width="2"/></svg>') 15 15, auto`;
+        (function setupBoardStyles() {
+            stageEl.style.position = 'relative';
+            stageEl.style.overflow = 'hidden';
+            stageEl.style.touchAction = 'none';
+            stageEl.style.backgroundColor = '#ffffff';
+            stageEl.style.backgroundImage = 'radial-gradient(#e2e8f0 1px, transparent 1px)';
+            const paper = $('board-paper');
+            paper.style.position = 'absolute';
+            paper.style.inset = '0';
+            paper.style.width = '100%';
+            paper.style.height = '100%';
+            canvas.style.position = 'absolute';
+            canvas.style.inset = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.background = 'transparent';
+            canvas.style.touchAction = 'none';
+        })();
 
+        function boardDpr() { return Math.min(2, window.devicePixelRatio || 1); }
         function wbGrade() { return appState.whiteboard[currentGrade]; }
-        function currentPageData() { const s = wbGrade(); return s.pages[s.currentIndex]; }
+
+        // صفحة السبورة: {strokes: [...], bg?: dataURL}. الصفحات القديمة (صور) بتتحول تلقائياً
+        function normalizePage(p) {
+            if (p && typeof p === 'object' && Array.isArray(p.strokes)) return p;
+            if (typeof p === 'string') return { strokes: [], bg: p };
+            return { strokes: [] };
+        }
+        function currentPage() {
+            const s = wbGrade();
+            s.pages = s.pages.map(normalizePage);
+            return s.pages[s.currentIndex];
+        }
+        function currentPageData() { return currentPage(); }
         function currentSize() { return tool === 'eraser' ? eraserWidth : penWidth; }
 
-        function saveCurrentPageState() {
+        // ---- الرسم ----
+        function drawStroke(g, st) {
+            const pts = st.pts;
+            if (!pts || !pts.length) return;
+            g.save();
+            g.strokeStyle = st.c;
+            g.lineJoin = 'round';
+            g.lineCap = st.s === 'feather' ? 'square' : 'round';
+            g.globalAlpha = st.t === 'hl' ? 0.35 : 1;
+            g.lineWidth = st.w * (st.t === 'hl' ? 3 : (st.s === 'broad' ? 2.5 : 1));
+            g.beginPath();
+            g.moveTo(pts[0][0], pts[0][1]);
+            // خطوط ناعمة بين النقط
+            for (let i = 1; i < pts.length - 1; i++) {
+                const mx = (pts[i][0] + pts[i + 1][0]) / 2;
+                const my = (pts[i][1] + pts[i + 1][1]) / 2;
+                g.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+            }
+            const last = pts[pts.length - 1];
+            g.lineTo(last[0] + (pts.length === 1 ? 0.01 : 0), last[1]);
+            g.stroke();
+            g.restore();
+        }
+
+        function drawBg(src) {
+            let img = bgCache.get(src);
+            if (!img) {
+                img = new Image();
+                img.onload = () => requestRender();
+                img.src = src;
+                bgCache.set(src, img);
+                return;
+            }
+            if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+        }
+
+        function requestRender() {
+            if (renderPending) return;
+            renderPending = true;
+            requestAnimationFrame(() => {
+                renderPending = false;
+                renderBoard();
+            });
+        }
+
+        function renderBoard() {
             if (!canvas.width || !canvas.height) return;
-            const s = wbGrade();
-            // نحفظ على خلفية بيضا (الممحاة بتبقى بيضا) وبصيغة خفيفة عشان الملف ما يكبرش
-            const flat = document.createElement('canvas');
-            flat.width = canvas.width;
-            flat.height = canvas.height;
-            const g = flat.getContext('2d');
-            g.fillStyle = '#ffffff';
-            g.fillRect(0, 0, flat.width, flat.height);
-            g.drawImage(canvas, 0, 0);
-            s.pages[s.currentIndex] = flat.toDataURL('image/jpeg', 0.92);
+            const d = boardDpr();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+            const page = currentPage();
+            if (page.bg) drawBg(page.bg);
+            for (const st of page.strokes) drawStroke(ctx, st);
+            if (cur) drawStroke(ctx, cur);
+            // نقط الخلفية بتكبر وتصغر مع السبورة
+            const grid = 24 * view.s;
+            stageEl.style.backgroundSize = grid + 'px ' + grid + 'px';
+            stageEl.style.backgroundPosition = (view.tx % grid) + 'px ' + (view.ty % grid) + 'px';
+        }
+
+        function drawPage() { requestRender(); }
+
+        // حجم الكانفاس بيتبع المساحة المرئية بدقة الشاشة. التكبير ما بيغيرش الكانفاس، بس الـ view
+        function resizeCanvas() {
+            const cssW = stageEl.clientWidth, cssH = stageEl.clientHeight;
+            if (cssW <= 0 || cssH <= 0) return;
+            const d = boardDpr();
+            const w = Math.round(cssW * d), h = Math.round(cssH * d);
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+            requestRender();
+        }
+
+        // ---- المكان على الشاشة والسبورة ----
+        function screenPoint(e) {
+            const r = stageEl.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+        function worldPoint(e) {
+            const p = screenPoint(e);
+            return [(p.x - view.tx) / view.s, (p.y - view.ty) / view.s];
+        }
+
+        // ---- التكبير والتصغير ----
+        function updateZoomLabel() {
+            $('zoom-label').innerText = Math.round(view.s * 100) + '%';
+        }
+
+        // تكبير/تصغير حوالين نقطة معينة على الشاشة
+        function zoomAt(cx, cy, factor) {
+            const s0 = view.s;
+            const s1 = Math.max(VIEW_MIN, Math.min(VIEW_MAX, s0 * factor));
+            const wx = (cx - view.tx) / s0, wy = (cy - view.ty) / s0;
+            view.s = s1;
+            view.tx = cx - wx * s1;
+            view.ty = cy - wy * s1;
+            updateZoomLabel();
+            requestRender();
+        }
+
+        function zoomBy(delta) {
+            zoomAt(stageEl.clientWidth / 2, stageEl.clientHeight / 2, delta > 0 ? 1.25 : 0.8);
+        }
+
+        stageEl.addEventListener('wheel', e => {
+            e.preventDefault();
+            const p = screenPoint(e);
+            zoomAt(p.x, p.y, e.deltaY < 0 ? 1.1 : 1 / 1.1);
+        }, { passive: false });
+
+        // ---- التراجع والإعادة ----
+        function pushHistory() {
+            undoStack.push(currentPage().strokes.slice());
+            if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+            redoStack = [];
+            updateHistBtns();
+        }
+        function updateHistBtns() {
+            $('undo-btn').disabled = undoStack.length === 0;
+            $('redo-btn').disabled = redoStack.length === 0;
+        }
+        function afterChange() {
+            updateHistBtns();
+            requestRender();
             scheduleSave();
         }
-
-        let drawToken = 0;
-        function drawPage(dataUrl) {
-            const token = ++drawToken;
-            ctx.save();
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
-            if (!dataUrl) return;
-            const img = new Image();
-            img.onload = () => {
-                if (token !== drawToken) return;
-                ctx.save();
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                ctx.restore();
-            };
-            img.src = dataUrl;
+        function undo() {
+            if (!undoStack.length) return;
+            const page = currentPage();
+            redoStack.push(page.strokes.slice());
+            page.strokes = undoStack.pop();
+            afterChange();
+        }
+        function redo() {
+            if (!redoStack.length) return;
+            const page = currentPage();
+            undoStack.push(page.strokes.slice());
+            page.strokes = redoStack.pop();
+            afterChange();
         }
 
+        // ---- الممحاة: تمسح الجزء اللي بتلمسه بس ----
+        function eraseBoardAt(p) {
+            const R = (eraserWidth / 2) / view.s;
+            const [px, py] = p;
+            const page = currentPage();
+            const out = [];
+            let changed = false;
+            for (const st of page.strokes) {
+                const hit = st.pts.map(q => Math.hypot(q[0] - px, q[1] - py) < R);
+                if (!hit.some(Boolean)) { out.push(st); continue; }
+                changed = true;
+                let seg = [];
+                st.pts.forEach((q, i) => {
+                    if (hit[i]) {
+                        if (seg.length > 1) out.push({ ...st, pts: seg });
+                        seg = [];
+                    } else {
+                        seg.push(q);
+                    }
+                });
+                if (seg.length > 1) out.push({ ...st, pts: seg });
+            }
+            if (changed) {
+                page.strokes = out;
+                requestRender();
+            }
+        }
+
+        // ==========================================
+        // اللمس والقلم
+        // ==========================================
+        const touches = new Map();   // كل لمسة على الشاشة
+        let pinch = null;            // بداية التكبير بإصبعين
+        let activeId = null;         // الـ pointer اللي بيرسم أو بيمسح دلوقتي
+        let activeMode = null;       // 'draw' | 'erase'
+        let lastPenAt = 0;           // آخر مرة القلم اشتغل (عشان نتجاهل كف الإيد)
+
+        function cancelActive() {
+            if (activeMode === 'draw') undoStack.pop();   // نلغي الخط اللي اتبدأ
+            cur = null;
+            activeId = null;
+            activeMode = null;
+            updateHistBtns();
+            requestRender();
+        }
+
+        function applyPinch() {
+            const [a, b] = [...touches.values()];
+            const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+            const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+            const s = Math.max(VIEW_MIN, Math.min(VIEW_MAX, pinch.s0 * (d / pinch.d0)));
+            // النقطة اللي كانت تحت الإصبعين وقت البداية تفضل تحتهم (تكبير + تحريك)
+            const wx = (pinch.c0x - pinch.t0x) / pinch.s0;
+            const wy = (pinch.c0y - pinch.t0y) / pinch.s0;
+            view.s = s;
+            view.tx = cx - wx * s;
+            view.ty = cy - wy * s;
+            updateZoomLabel();
+            requestRender();
+        }
+
+        stageEl.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            if (e.pointerType === 'pen') lastPenAt = Date.now();
+            // كف الإيد أثناء الكتابة بالقلم: نتجاهل اللمس لحظة ما القلم يشتغل
+            if (e.pointerType === 'touch' && Date.now() - lastPenAt < 1500) return;
+            try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+
+            if (e.pointerType === 'touch') {
+                touches.set(e.pointerId, screenPoint(e));
+                if (touches.size >= 2) {
+                    cancelActive();
+                    const [a, b] = [...touches.values()];
+                    pinch = {
+                        s0: view.s, t0x: view.tx, t0y: view.ty,
+                        c0x: (a.x + b.x) / 2, c0y: (a.y + b.y) / 2,
+                        d0: Math.hypot(a.x - b.x, a.y - b.y) || 1
+                    };
+                    return;
+                }
+            }
+
+            const erase = tool === 'eraser' || (e.pointerType === 'touch' && FINGER_ERASES);
+            pushHistory();
+            activeId = e.pointerId;
+            if (erase) {
+                activeMode = 'erase';
+                eraseBoardAt(worldPoint(e));
+            } else {
+                activeMode = 'draw';
+                const [x, y] = worldPoint(e);
+                cur = { t: 'pen', c: penColor, w: penWidth / view.s, s: penStyle, pts: [[x, y]] };
+                requestRender();
+            }
+        });
+
+        stageEl.addEventListener('pointermove', e => {
+            if (e.pointerType === 'touch') {
+                if (!touches.has(e.pointerId)) return;
+                touches.set(e.pointerId, screenPoint(e));
+                if (pinch && touches.size >= 2) {
+                    applyPinch();
+                    return;
+                }
+            }
+            if (e.pointerId !== activeId || !activeMode) return;
+            const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+            const list = evs.length ? evs : [e];
+            for (const ce of list) {
+                const [x, y] = worldPoint(ce);
+                if (activeMode === 'draw' && cur) {
+                    const last = cur.pts[cur.pts.length - 1];
+                    if (Math.hypot(x - last[0], y - last[1]) * view.s > 0.8) cur.pts.push([x, y]);
+                } else if (activeMode === 'erase') {
+                    eraseBoardAt([x, y]);
+                }
+            }
+            if (activeMode === 'draw') requestRender();
+        });
+
+        function endPointer(e) {
+            if (e.pointerType === 'touch') {
+                touches.delete(e.pointerId);
+                if (touches.size < 2) pinch = null;
+            }
+            if (e.pointerId === activeId) {
+                if (activeMode === 'draw' && cur) {
+                    currentPage().strokes = [...currentPage().strokes, cur];
+                }
+                cur = null;
+                activeId = null;
+                activeMode = null;
+                afterChange();
+            }
+            try {
+                if (stageEl.hasPointerCapture && stageEl.hasPointerCapture(e.pointerId)) {
+                    stageEl.releasePointerCapture(e.pointerId);
+                }
+            } catch (err) { /* تجاهل */ }
+        }
+        stageEl.addEventListener('pointerup', endPointer);
+        stageEl.addEventListener('pointercancel', endPointer);
+
+        // ---- الأدوات ----
         function applyToolState() {
-            ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
-            ctx.strokeStyle = penColor;
-            ctx.lineWidth = currentSize() * boardDpr();
-            ctx.lineCap = penStyle === 'normal' ? 'round' : 'square';
-            ctx.lineJoin = penStyle === 'feather' ? 'miter' : (penStyle === 'broad' ? 'bevel' : 'round');
-            canvas.style.cursor = tool === 'eraser' ? eraserCursor : 'crosshair';
+            canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
         }
 
         function refreshToolButtons() {
@@ -1427,233 +1708,9 @@
             size = Number(size);
             if (tool === 'eraser') eraserWidth = size; else penWidth = size;
             $('penSizeVal').innerText = size + 'px';
-            applyToolState();
         }
 
-        // حجم اللوحة = حجم المنطقة × التكبير
-        // الدقة: الكانفاس بيتحسب بدقة الشاشة الحقيقية، والحجم بيتبع المساحة المرئية بالظبط
-        function boardDpr() { return Math.min(2, window.devicePixelRatio || 1); }
-
-        function resizeCanvas() {
-            const stage = $('board-stage');
-            if (!stage) return;
-            const cssW = stage.clientWidth, cssH = stage.clientHeight;
-            if (cssW <= 0 || cssH <= 0) return;
-            const dpr = boardDpr();
-            const w = Math.round(cssW * zoomLevel * dpr);
-            const h = Math.round(cssH * zoomLevel * dpr);
-            if (w === canvas.width && h === canvas.height) return;
-            const snap = canvas.width > 0 ? canvas.toDataURL('image/png') : null;
-            canvas.width = w;
-            canvas.height = h;
-            const paper = $('board-paper');
-            paper.style.width = (cssW * zoomLevel) + 'px';
-            paper.style.height = (cssH * zoomLevel) + 'px';
-            undoStack = [];
-            redoStack = [];
-            updateHistBtns();
-            applyToolState();
-            drawPage(snap || currentPageData());
-        }
-
-        function zoomBy(delta) {
-            zoomLevel = Math.max(0.5, Math.min(3, Math.round((zoomLevel + delta) * 100) / 100));
-            $('zoom-label').innerText = Math.round(zoomLevel * 100) + '%';
-            resizeCanvas();
-        }
-
-        function canvasPoint(e) {
-            const r = canvas.getBoundingClientRect();
-            return {
-                x: (e.clientX - r.left) * (canvas.width / r.width),
-                y: (e.clientY - r.top) * (canvas.height / r.height)
-            };
-        }
-
-        function drawFeatherSegment() {
-            const angle = Math.PI / 4;
-            const p1 = points[points.length - 2];
-            const p2 = points[points.length - 1];
-            if (!p1 || !p2) return;
-            const nib = penWidth * 3 * (p2.pressure + 0.2) * boardDpr();
-            const dx = Math.cos(angle) * nib / 2;
-            const dy = Math.sin(angle) * nib / 2;
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = penColor;
-            ctx.beginPath();
-            ctx.moveTo(p1.x - dx, p1.y - dy);
-            ctx.lineTo(p1.x + dx, p1.y + dy);
-            ctx.lineTo(p2.x + dx, p2.y + dy);
-            ctx.lineTo(p2.x - dx, p2.y - dy);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
-
-        // ---- التراجع والإعادة ----
-        function pushHistory() {
-            if (!canvas.width) return;
-            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-            if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
-            redoStack = [];
-            updateHistBtns();
-        }
-
-        function undo() {
-            if (!undoStack.length) return;
-            redoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-            ctx.putImageData(undoStack.pop(), 0, 0);
-            saveCurrentPageState();
-            updateHistBtns();
-        }
-
-        function redo() {
-            if (!redoStack.length) return;
-            undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-            ctx.putImageData(redoStack.pop(), 0, 0);
-            saveCurrentPageState();
-            updateHistBtns();
-        }
-
-        function updateHistBtns() {
-            $('undo-btn').disabled = undoStack.length === 0;
-            $('redo-btn').disabled = redoStack.length === 0;
-        }
-
-        // ==========================================
-        // اللمس: إصبعين = تكبير/تصغير وتحريك، والرسم بالإيد أو القلم زي ما هو
-        // ==========================================
-        const stageEl = $('board-stage');
-        stageEl.style.direction = 'ltr';
-        const touches = new Map();   // كل لمسة على الشاشة
-        let pinch = null;            // {dist, zoom} وقت بدء التكبير
-        let pinchCenter = null;      // مركز الإصبعين عشان التحريك
-        let strokeOwner = null;      // الـ pointer اللي بيرسم دلوقتي
-        let zoomRaf = 0;
-
-        function centerOfTouches() {
-            const [a, b] = [...touches.values()];
-            return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-        }
-
-        function drawSegment(e) {
-            const p = canvasPoint(e);
-            const pressure = e.pressure > 0 ? e.pressure : 1;
-            points.push({ x: p.x, y: p.y, pressure });
-            if (tool === 'pen' && penStyle === 'feather') {
-                drawFeatherSegment();
-                return;
-            }
-            if (points.length > 2) {
-                const [a, b] = points.slice(-2);
-                const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-                ctx.lineWidth = currentSize() * (pressure + 0.2) * boardDpr();
-                ctx.quadraticCurveTo(a.x, a.y, mid.x, mid.y);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(mid.x, mid.y);
-            }
-        }
-
-        function endStrokeNow() {
-            if (!isDrawing) return;
-            isDrawing = false;
-            points = [];
-            strokeOwner = null;
-            ctx.beginPath();
-            saveCurrentPageState();
-        }
-
-        // لو لمس إصبع تاني وإحنا لسه بنرسم، نلغي الخط اللي اتبدأ عشان ما يتسجلش
-        function cancelStrokeForPinch() {
-            if (!isDrawing) return;
-            isDrawing = false;
-            points = [];
-            strokeOwner = null;
-            ctx.beginPath();
-            const snap = undoStack.pop();
-            if (snap) ctx.putImageData(snap, 0, 0);
-            updateHistBtns();
-        }
-
-        function updatePinch() {
-            if (!pinch || touches.size < 2) return;
-            // تحريك بالإصبعين
-            const c = centerOfTouches();
-            if (pinchCenter) {
-                stageEl.scrollLeft -= (c.x - pinchCenter.x);
-                stageEl.scrollTop -= (c.y - pinchCenter.y);
-            }
-            pinchCenter = c;
-            // تكبير/تصغير
-            const [a, b] = [...touches.values()];
-            const d = Math.hypot(a.x - b.x, a.y - b.y);
-            const target = Math.max(0.5, Math.min(3, Math.round(pinch.zoom * (d / pinch.dist) * 100) / 100));
-            if (Math.abs(target - zoomLevel) < 0.01) return;
-            zoomLevel = target;
-            $('zoom-label').innerText = Math.round(zoomLevel * 100) + '%';
-            if (!zoomRaf) {
-                zoomRaf = requestAnimationFrame(() => {
-                    zoomRaf = 0;
-                    resizeCanvas();
-                });
-            }
-        }
-
-        // الأحداث على المساحة كلها (مش الكانفاس بس) عشان الإصبع التاني يتسجل حتى لو لمس بره الرسم
-        stageEl.addEventListener('pointerdown', e => {
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            const p = canvasPoint(e);
-
-            if (e.pointerType === 'touch') {
-                touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-                try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
-                if (touches.size >= 2) {
-                    cancelStrokeForPinch();
-                    const [a, b] = [...touches.values()];
-                    pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: zoomLevel };
-                    pinchCenter = centerOfTouches();
-                    return;
-                }
-            }
-
-            // رسم عادي: قلم أو إصبع واحد
-            pushHistory();
-            strokeOwner = e.pointerId;
-            isDrawing = true;
-            points = [{ x: p.x, y: p.y, pressure: 1 }];
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
-        });
-
-        stageEl.addEventListener('pointermove', e => {
-            if (e.pointerType === 'touch') {
-                if (!touches.has(e.pointerId)) return;
-                touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-                if (pinch && touches.size >= 2) {
-                    updatePinch();
-                    return;
-                }
-            }
-            if (isDrawing && strokeOwner === e.pointerId) drawSegment(e);
-        });
-
-        function endPointer(e) {
-            if (e.pointerType === 'touch') {
-                touches.delete(e.pointerId);
-                if (touches.size < 2) { pinch = null; pinchCenter = null; }
-            }
-            if (strokeOwner === e.pointerId) endStrokeNow();
-            if (stageEl.hasPointerCapture && stageEl.hasPointerCapture(e.pointerId)) {
-                stageEl.releasePointerCapture(e.pointerId);
-            }
-        }
-        stageEl.addEventListener('pointerup', endPointer);
-        stageEl.addEventListener('pointercancel', endPointer);
-
-        // مسح بضغطتين: الأولى للتأكيد، والثانية خلال 3 ثوانٍ
+        // ---- مسح الصفحة (ضغطتين للتأكيد) ----
         let clearArmed = false;
         let clearTimer = null;
         function clearBoard() {
@@ -1668,10 +1725,10 @@
             clearTimeout(clearTimer);
             resetClearButton();
             pushHistory();
-            drawPage(null);
-            const s = wbGrade();
-            s.pages[s.currentIndex] = null;
-            scheduleSave();
+            const page = currentPage();
+            page.strokes = [];
+            delete page.bg;
+            afterChange();
         }
         function resetClearButton() {
             clearArmed = false;
@@ -1679,16 +1736,14 @@
             $('clear-btn').style.background = '';
         }
 
-        // ملء الشاشة: على الكمبيوتر وعلى الأندرويد (الجسر يخفي شريط النظام)
+        // ---- ملء الشاشة ----
         function setBoardFs(on) {
-            const board = $('board');
-            board.classList.toggle('fs', on);
-            if (!on) board.classList.remove('bar-hidden');
+            $('board').classList.toggle('fs', on);
+            if (!on) $('board').classList.remove('bar-hidden');
             document.body.classList.toggle('board-fs', on);
             $('fs-btn').innerHTML = icon(on ? 'minimize' : 'maximize');
             api.setFullscreen(on);
             if (!NATIVE) {
-                // ملء الشاشة الحقيقي للمتصفح/الويندوز، ولو تعذّر يكفي التكبير داخل النافذة
                 try {
                     if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) {
                         document.documentElement.requestFullscreen().catch(() => {});
@@ -1708,7 +1763,6 @@
             $('board').classList.toggle('bar-hidden');
         }
 
-        // لو خرج المستخدم من ملء الشاشة بمفتاح Esc أو من المتصفح نرجّع السبورة لوضعها
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement && $('board').classList.contains('fs')) setBoardFs(false);
         });
@@ -1722,24 +1776,50 @@
             });
         }
 
+        // ---- حفظ PDF: كل صفحة بحجم محتواها ----
+        function contentBox(pg) {
+            let x0 = 0, y0 = 0, x1 = 800, y1 = 500, first = true;
+            for (const st of pg.strokes) {
+                for (const q of st.pts) {
+                    if (first) { x0 = x1 = q[0]; y0 = y1 = q[1]; first = false; }
+                    x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]);
+                    x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]);
+                }
+            }
+            return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+        }
+
         async function saveBoardAsPDF() {
             if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
-            saveCurrentPageState();
             const { jsPDF } = window.jspdf;
-            const pages = wbGrade().pages;
-            const w = canvas.width || 800, h = canvas.height || 500;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [w, h] });
-
-            for (let i = 0; i < pages.length; i++) {
-                if (i > 0) pdf.addPage([w, h], 'landscape');
+            const pages = wbGrade().pages.map(normalizePage);
+            const images = [];
+            for (const pg of pages) {
+                const box = contentBox(pg);
+                const W = Math.max(480, Math.ceil(box.w + 40));
+                const H = Math.max(320, Math.ceil(box.h + 40));
+                const scale = 2;
                 const tmp = document.createElement('canvas');
-                tmp.width = w; tmp.height = h;
-                const t = tmp.getContext('2d');
-                t.fillStyle = '#ffffff';
-                t.fillRect(0, 0, w, h);
-                if (pages[i]) t.drawImage(await loadImage(pages[i]), 0, 0, w, h);
-                pdf.addImage(tmp.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+                tmp.width = W * scale;
+                tmp.height = H * scale;
+                const g = tmp.getContext('2d');
+                g.fillStyle = '#ffffff';
+                g.fillRect(0, 0, tmp.width, tmp.height);
+                g.setTransform(scale, 0, 0, scale, (20 - box.x) * scale, (20 - box.y) * scale);
+                if (pg.bg) {
+                    const img = await loadImage(pg.bg);
+                    g.drawImage(img, 0, 0);
+                }
+                for (const st of pg.strokes) drawStroke(g, st);
+                images.push({ data: tmp.toDataURL('image/png'), W, H });
             }
+            if (!images.length) return toast('لا توجد صفحات لحفظها');
+
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [images[0].W, images[0].H] });
+            images.forEach((im, i) => {
+                if (i > 0) pdf.addPage([im.W, im.H], 'landscape');
+                pdf.addImage(im.data, 'PNG', 0, 0, im.W, im.H);
+            });
 
             const name = `شرح_السبورة_${currentGrade === 'sec3' ? 'ثالثة' : 'ثانية'}_ثانوي_${Date.now()}.pdf`;
             const base64 = pdf.output('datauristring').split(',').pop();
@@ -1751,19 +1831,21 @@
             }
         }
 
+        // ---- الصفحات ----
         function switchPage(index) {
             wbGrade().currentIndex = index;
             undoStack = [];
             redoStack = [];
+            cur = null;
             updateHistBtns();
             scheduleSave();
-            drawPage(currentPageData());
+            requestRender();
             renderPageButtons();
         }
 
         function addNewPage() {
             const s = wbGrade();
-            s.pages.push(null);
+            s.pages.push({ strokes: [] });
             switchPage(s.pages.length - 1);
         }
 
@@ -1788,7 +1870,9 @@
         function initWhiteboard() {
             renderPageButtons();
             resizeCanvas();
-            drawPage(currentPageData());
+            updateZoomLabel();
+            updateHistBtns();
+            requestRender();
         }
 
         // ==========================================
