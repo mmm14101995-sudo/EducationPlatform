@@ -1509,23 +1509,18 @@
             $('redo-btn').disabled = redoStack.length === 0;
         }
 
-        canvas.addEventListener('pointerdown', e => {
-            if (e.button !== undefined && e.button !== 0 && e.pointerType === 'mouse') return;
-            pushHistory();
-            isDrawing = true;
-            const p = canvasPoint(e);
-            points = [{ x: p.x, y: p.y, pressure: 1 }];
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            canvas.setPointerCapture(e.pointerId);
-        });
+        // ==========================================
+        // اللمس: إصبعين = تكبير/تصغير، والرسم بالإصبع أو القلم زي ما هو
+        // ==========================================
+        const touches = new Map();   // كل لمسة على الشاشة
+        let pinch = null;            // {dist, zoom} وقت بدء التكبير
+        let strokeOwner = null;      // الـ pointer اللي بيرسم دلوقتي
+        let zoomRaf = 0;
 
-        canvas.addEventListener('pointermove', e => {
-            if (!isDrawing) return;
+        function drawSegment(e) {
             const p = canvasPoint(e);
             const pressure = e.pressure > 0 ? e.pressure : 1;
             points.push({ x: p.x, y: p.y, pressure });
-
             if (tool === 'pen' && penStyle === 'feather') {
                 drawFeatherSegment();
                 return;
@@ -1539,20 +1534,94 @@
                 ctx.beginPath();
                 ctx.moveTo(mid.x, mid.y);
             }
-        });
+        }
 
-        function endStroke(e) {
+        function endStrokeNow() {
             if (!isDrawing) return;
             isDrawing = false;
             points = [];
+            strokeOwner = null;
             ctx.beginPath();
+            saveCurrentPageState();
+        }
+
+        // لو لمس إصبع تاني وإحنا لسه بنرسم، نلغي الخط اللي اتبدأ عشان ما يتسجلش
+        function cancelStrokeForPinch() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            points = [];
+            strokeOwner = null;
+            ctx.beginPath();
+            const snap = undoStack.pop();
+            if (snap) ctx.putImageData(snap, 0, 0);
+            updateHistBtns();
+        }
+
+        function updatePinch() {
+            if (!pinch || touches.size < 2) return;
+            const [a, b] = [...touches.values()];
+            const d = Math.hypot(a.x - b.x, a.y - b.y);
+            const target = Math.max(0.5, Math.min(3, Math.round(pinch.zoom * (d / pinch.dist) * 100) / 100));
+            if (Math.abs(target - zoomLevel) < 0.01) return;
+            zoomLevel = target;
+            $('zoom-label').innerText = Math.round(zoomLevel * 100) + '%';
+            if (!zoomRaf) {
+                zoomRaf = requestAnimationFrame(() => {
+                    zoomRaf = 0;
+                    resizeCanvas();
+                });
+            }
+        }
+
+        canvas.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            const p = canvasPoint(e);
+
+            if (e.pointerType === 'touch') {
+                touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                if (touches.size >= 2) {
+                    cancelStrokeForPinch();
+                    const [a, b] = [...touches.values()];
+                    pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: zoomLevel };
+                    return;
+                }
+            }
+
+            // رسم عادي: قلم أو إصبع واحد
+            pushHistory();
+            strokeOwner = e.pointerId;
+            isDrawing = true;
+            points = [{ x: p.x, y: p.y, pressure: 1 }];
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+        });
+
+        canvas.addEventListener('pointermove', e => {
+            if (e.pointerType === 'touch') {
+                if (!touches.has(e.pointerId)) return;
+                touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if (pinch && touches.size >= 2) {
+                    updatePinch();
+                    return;
+                }
+            }
+            if (isDrawing && strokeOwner === e.pointerId) drawSegment(e);
+        });
+
+        function endPointer(e) {
+            if (e.pointerType === 'touch') {
+                touches.delete(e.pointerId);
+                if (touches.size < 2) pinch = null;
+            }
+            if (strokeOwner === e.pointerId) endStrokeNow();
             if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) {
                 canvas.releasePointerCapture(e.pointerId);
             }
-            saveCurrentPageState();
         }
-        canvas.addEventListener('pointerup', endStroke);
-        canvas.addEventListener('pointercancel', endStroke);
+        canvas.addEventListener('pointerup', endPointer);
+        canvas.addEventListener('pointercancel', endPointer);
 
         // مسح بضغطتين: الأولى للتأكيد، والثانية خلال 3 ثوانٍ
         let clearArmed = false;
@@ -2427,17 +2496,32 @@
             toast(changed ? 'تم مسح الكتابات في الصفحة' : 'لا توجد كتابات في الصفحة');
         }
 
-        // الممحاة تمسح الخط كامل اللي تلمسه
+        // الممحاة تمسح الجزء اللي بتلمسه بس، والباقي من الخط يفضل
         function eraseAt(pageNo, p, layer) {
             const ratio = layer.height / layer.width;
-            const R = reader.size * 2 + 6;
+            const R = reader.size * 3 + 6;
             const px = p[0] * NOTE_W, py = p[1] * NOTE_W * ratio;
             const list = pageStrokes(pageNo);
-            const keep = list.filter(s => !s.pts.some(q =>
-                Math.hypot(q[0] * NOTE_W - px, q[1] * NOTE_W * ratio - py) < R));
-            if (keep.length !== list.length) {
-                setPageStrokes(pageNo, keep);
-                drawNotesOn(layer, keep);
+            const out = [];
+            let changed = false;
+            for (const s of list) {
+                const hit = s.pts.map(q => Math.hypot(q[0] * NOTE_W - px, q[1] * NOTE_W * ratio - py) < R);
+                if (!hit.some(Boolean)) { out.push(s); continue; }
+                changed = true;
+                let seg = [];
+                s.pts.forEach((q, i) => {
+                    if (hit[i]) {
+                        if (seg.length > 1) out.push({ ...s, pts: seg });
+                        seg = [];
+                    } else {
+                        seg.push(q);
+                    }
+                });
+                if (seg.length > 1) out.push({ ...s, pts: seg });
+            }
+            if (changed) {
+                setPageStrokes(pageNo, out);
+                drawNotesOn(layer, out);
             }
         }
 
