@@ -569,6 +569,38 @@
             .nav.settings-nav { margin-bottom: 14px; }
         }
 
+        /* القارئ: الصفحات بتتكبر بالإصبعين */
+        .reader-stage { position: relative; touch-action: none; }
+        .rwrap {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            gap: 12px; transform-origin: 0 0; direction: rtl; will-change: transform;
+        }
+        /* على الشاشات اللمس: تمويه أخف عشان الحركة تبقى أسرع */
+        @media (pointer: coarse) {
+            .sidebar, .topbar, .hero, .stat, .qa-card, .course-card, .exam-card, .ai-card,
+            .lib-toolbar, .modal-box, .teacher, .seg, .detail-item, .board-bar, .bgrp {
+                backdrop-filter: blur(10px) saturate(140%) !important;
+                -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
+            }
+        }
+
+        /* ===== وضع الأداء: من غير تمويه ولا حركات تقيلة ===== */
+        body.lite .sidebar, body.lite .topbar, body.lite .hero, body.lite .stat, body.lite .qa-card,
+        body.lite .course-card, body.lite .exam-card, body.lite .ai-card, body.lite .lib-toolbar,
+        body.lite .modal-box, body.lite .teacher, body.lite .seg, body.lite .detail-item,
+        body.lite .board, body.lite .board-bar, body.lite .fs-exit, body.lite .fs-toggle-bar {
+            backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+            background: var(--solid) !important; box-shadow: none !important;
+        }
+        body.lite .nav, body.lite .qa-card, body.lite .course-card, body.lite .stat, body.lite .ai-card,
+        body.lite .exam-card, body.lite .btn-ghost, body.lite .btn-primary, body.lite .ibtn { transition: none !important; }
+        body.lite .qa-card::after, body.lite .course-card::after, body.lite .stat::after { display: none; }
+        body.lite #bg-layer { filter: none; }
+        body.lite .book-card:hover .cover { transform: none; }
+
+        .rinner { position: relative; display: flex; flex-direction: row; direction: rtl; justify-content: center;
+                  align-items: center; gap: 12px; width: 100%; height: 100%; transform-origin: 0 0; }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition: none !important; animation: none !important; }
         }
@@ -800,6 +832,10 @@
             <div class="field">
                 <label for="inp-grade2">اسم السنة الثانية</label>
                 <input type="text" id="inp-grade2" maxlength="30">
+            </div>
+            <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
+                <input type="checkbox" id="inp-lite" style="width:22px;height:22px;" onchange="setLite(this.checked)">
             </div>
             <div class="modal-actions" style="margin-bottom:18px;">
                 <button class="btn-primary" onclick="saveProfile()">حفظ البيانات</button>
@@ -1161,6 +1197,7 @@
             $('inp-sub').value = appState.teacher.subtitle;
             $('inp-grade3').value = gradeName('sec3');
             $('inp-grade2').value = gradeName('sec2');
+            $('inp-lite').checked = document.body.classList.contains('lite');
             renderPresets();
             $('settings').classList.add('open');
         }
@@ -1180,6 +1217,12 @@
             $('grade-btn-sec3').innerText = gradeName('sec3');
             $('grade-btn-sec2').innerText = gradeName('sec2');
             $('hero-grade').innerText = gradeName(currentGrade);
+        }
+
+        function setLite(on) {
+            document.body.classList.toggle('lite', on);
+            appState.lite = on;
+            scheduleSave();
         }
 
         function saveProfile() {
@@ -1402,16 +1445,20 @@
             g.restore();
         }
 
-        function drawBg(src) {
+        const cacheCanvas = document.createElement('canvas');
+        const cacheCtx = cacheCanvas.getContext('2d');
+        let boardDirty = true;   // لازم نعيد رسم الخطوط المحفوظة (تغيّر الحجم أو الخطوط أو الصفحة)
+
+        function drawBg(g, src) {
             let img = bgCache.get(src);
             if (!img) {
                 img = new Image();
-                img.onload = () => requestRender();
+                img.onload = () => { boardDirty = true; requestRender(); };
                 img.src = src;
                 bgCache.set(src, img);
                 return;
             }
-            if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+            if (img.complete && img.naturalWidth) g.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
         }
 
         function requestRender() {
@@ -1426,14 +1473,26 @@
         function renderBoard() {
             if (!canvas.width || !canvas.height) return;
             const d = boardDpr();
+            if (boardDirty) {
+                if (cacheCanvas.width !== canvas.width || cacheCanvas.height !== canvas.height) {
+                    cacheCanvas.width = canvas.width;
+                    cacheCanvas.height = canvas.height;
+                }
+                cacheCtx.setTransform(1, 0, 0, 1, 0, 0);
+                cacheCtx.clearRect(0, 0, cacheCanvas.width, cacheCanvas.height);
+                cacheCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+                const page = currentPage();
+                if (page.bg) drawBg(cacheCtx, page.bg);
+                for (const st of page.strokes) drawStroke(cacheCtx, st);
+                boardDirty = false;
+            }
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
-            const page = currentPage();
-            if (page.bg) drawBg(page.bg);
-            for (const st of page.strokes) drawStroke(ctx, st);
-            if (cur) drawStroke(ctx, cur);
-            // نقط الخلفية بتكبر وتصغر مع السبورة
+            ctx.drawImage(cacheCanvas, 0, 0);
+            if (cur) {
+                ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+                drawStroke(ctx, cur);
+            }
             const grid = 24 * view.s;
             stageEl.style.backgroundSize = grid + 'px ' + grid + 'px';
             stageEl.style.backgroundPosition = (view.tx % grid) + 'px ' + (view.ty % grid) + 'px';
@@ -1448,6 +1507,7 @@
             const d = boardDpr();
             const w = Math.round(cssW * d), h = Math.round(cssH * d);
             if (canvas.width !== w || canvas.height !== h) {
+                boardDirty = true;
                 canvas.width = w;
                 canvas.height = h;
             }
@@ -1477,6 +1537,7 @@
             view.s = s1;
             view.tx = cx - wx * s1;
             view.ty = cy - wy * s1;
+            boardDirty = true;
             updateZoomLabel();
             requestRender();
         }
@@ -1503,6 +1564,7 @@
             $('redo-btn').disabled = redoStack.length === 0;
         }
         function afterChange() {
+            boardDirty = true;
             updateHistBtns();
             requestRender();
             scheduleSave();
@@ -1545,6 +1607,7 @@
                 if (seg.length > 1) out.push({ ...st, pts: seg });
             }
             if (changed) {
+                boardDirty = true;
                 page.strokes = out;
                 requestRender();
             }
@@ -1579,6 +1642,7 @@
             view.s = s;
             view.tx = cx - wx * s;
             view.ty = cy - wy * s;
+            boardDirty = true;
             updateZoomLabel();
             requestRender();
         }
@@ -1834,6 +1898,7 @@
         // ---- الصفحات ----
         function switchPage(index) {
             wbGrade().currentIndex = index;
+            boardDirty = true;
             undoStack = [];
             redoStack = [];
             cur = null;
@@ -2519,6 +2584,8 @@
             const saved = getProgress(book.id);
             reader.page = Math.min(Math.max(1, saved ? saved.page : 1), reader.total);
             noteUndo = [];
+            pageCache.clear();
+            resetReaderView();
             saveProgress();
             await renderReader();
         }
@@ -2639,44 +2706,98 @@
             }
         }
 
-        function bindNoteLayer(layer, pageNo) {
-            layer.addEventListener('pointerdown', e => {
-                if (!reader.annotate || e.button > 0) return;
-                e.preventDefault();
-                e.stopPropagation();
-                try { layer.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
-                const p = notePoint(layer, e);
-                pushNoteUndo(pageNo);
-                if (reader.tool === 'eraser') {
-                    activeStroke = { layer, pageNo, erase: true };
-                    eraseAt(pageNo, p, layer);
-                } else {
-                    const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', c: reader.color, w: reader.size, pts: [p] };
-                    setPageStrokes(pageNo, [...pageStrokes(pageNo), s]);
-                    activeStroke = { layer, pageNo, stroke: s };
-                    drawNotesOn(layer, pageStrokes(pageNo));
-                }
-            });
+        // ---- القارئ: إصبعين = تكبير وتحريك الصفحة، والكتابة بإصبع واحد أو القلم ----
+        const readerTouches = new Map();
+        let readerView = { z: 1, tx: 0, ty: 0 };
+        let readerPinch = null;
+        let readerNoTap = false;
+        const pageCache = new Map();   // صفحات اترسمت قبل كده (التقليب يبقى أسرع)
 
-            layer.addEventListener('pointermove', e => {
-                if (!activeStroke || activeStroke.layer !== layer) return;
-                const p = notePoint(layer, e);
-                if (activeStroke.erase) {
-                    eraseAt(pageNo, p, layer);
-                } else {
-                    activeStroke.stroke.pts.push(p);
-                    drawNotesOn(layer, pageStrokes(pageNo));
-                }
-            });
+        function applyReaderView() {
+            const inner = document.querySelector('#reader-stage .rinner');
+            if (inner) inner.style.transform = 'translate(' + readerView.tx + 'px, ' + readerView.ty + 'px) scale(' + readerView.z + ')';
+        }
 
-            const finish = () => {
-                if (activeStroke && activeStroke.layer === layer) {
-                    activeStroke = null;
-                    scheduleSave();
+        function clampReaderView() {
+            const stage = $('reader-stage');
+            const W = stage.clientWidth, H = stage.clientHeight;
+            if (readerView.z <= 1) { readerView.z = 1; readerView.tx = 0; readerView.ty = 0; return; }
+            readerView.tx = Math.min(0, Math.max(W - W * readerView.z, readerView.tx));
+            readerView.ty = Math.min(0, Math.max(H - H * readerView.z, readerView.ty));
+        }
+
+        function readerPinchStart() {
+            // إصبعين: نلغي أي كتابة كانت بتبدأ بالإصبع الأول
+            if (activeStroke) {
+                if (activeStroke.stroke) {
+                    setPageStrokes(activeStroke.pageNo, pageStrokes(activeStroke.pageNo).filter(s => s !== activeStroke.stroke));
+                    drawNotesOn(activeStroke.layer, pageStrokes(activeStroke.pageNo));
                 }
+                activeStroke = null;
+            }
+            const [a, b] = [...readerTouches.values()];
+            const r = $('reader-stage').getBoundingClientRect();
+            readerPinch = {
+                z0: readerView.z, tx0: readerView.tx, ty0: readerView.ty,
+                cx0: (a.x + b.x) / 2 - r.left, cy0: (a.y + b.y) / 2 - r.top,
+                d0: Math.hypot(a.x - b.x, a.y - b.y) || 1
             };
-            layer.addEventListener('pointerup', finish);
-            layer.addEventListener('pointercancel', finish);
+            readerNoTap = true;
+        }
+
+        function readerPinchMove() {
+            const [a, b] = [...readerTouches.values()];
+            const r = $('reader-stage').getBoundingClientRect();
+            const cx = (a.x + b.x) / 2 - r.left, cy = (a.y + b.y) / 2 - r.top;
+            const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+            const z = Math.max(1, Math.min(4, readerPinch.z0 * d / readerPinch.d0));
+            const wx = (readerPinch.cx0 - readerPinch.tx0) / readerPinch.z0;
+            const wy = (readerPinch.cy0 - readerPinch.ty0) / readerPinch.z0;
+            readerView.z = z;
+            readerView.tx = cx - wx * z;
+            readerView.ty = cy - wy * z;
+            clampReaderView();
+            applyReaderView();
+        }
+
+        const readerStage = $('reader-stage');
+        readerStage.addEventListener('pointerdown', e => {
+            if (e.pointerType !== 'touch') return;
+            readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (readerTouches.size >= 2) readerPinchStart();
+        }, true);
+        readerStage.addEventListener('pointermove', e => {
+            if (e.pointerType !== 'touch' || !readerTouches.has(e.pointerId)) return;
+            readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (readerPinch && readerTouches.size >= 2) readerPinchMove();
+        }, true);
+        function readerTouchEnd(e) {
+            if (e.pointerType !== 'touch') return;
+            readerTouches.delete(e.pointerId);
+            if (readerTouches.size < 2 && readerPinch) {
+                readerPinch = null;
+                setTimeout(() => { readerNoTap = false; }, 300);
+            }
+        }
+        readerStage.addEventListener('pointerup', readerTouchEnd, true);
+        readerStage.addEventListener('pointercancel', readerTouchEnd, true);
+        readerStage.addEventListener('wheel', e => {
+            if (!$('reader').classList.contains('open')) return;
+            e.preventDefault();
+            const r = readerStage.getBoundingClientRect();
+            const px = e.clientX - r.left, py = e.clientY - r.top;
+            const z0 = readerView.z;
+            const z1 = Math.max(1, Math.min(4, z0 * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+            const wx = (px - readerView.tx) / z0, wy = (py - readerView.ty) / z0;
+            readerView.z = z1;
+            readerView.tx = px - wx * z1;
+            readerView.ty = py - wy * z1;
+            clampReaderView();
+            applyReaderView();
+        }, { passive: false });
+
+        function cacheKey(pageNo, w, h, dpr) {
+            return pageNo + '|' + Math.round(w) + 'x' + Math.round(h) + '|' + dpr;
         }
 
         async function renderReader() {
@@ -2688,6 +2809,7 @@
             const cssW = stage.clientWidth - 24;
             const cssH = stage.clientHeight - 24;
             const wraps = [];
+            readerView = { z: 1, tx: 0, ty: 0 };
 
             for (let i = 0; i < count; i++) {
                 const pageNo = reader.page + i;
@@ -2696,27 +2818,34 @@
                 const base = page.getViewport({ scale: 1 });
                 const fit = Math.min((cssW / count) / base.width, cssH / base.height);
                 const vp = page.getViewport({ scale: fit * dpr });
-
-                const pc = document.createElement('canvas');
-                pc.width = Math.floor(vp.width);
-                pc.height = Math.floor(vp.height);
-                pc.style.width = (vp.width / dpr) + 'px';
-                pc.style.height = (vp.height / dpr) + 'px';
-                await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
-                if (token !== reader.token) return;
+                const key = cacheKey(pageNo, vp.width, vp.height, dpr);
+                let pc = pageCache.get(key);
+                if (!pc) {
+                    pc = document.createElement('canvas');
+                    pc.width = Math.floor(vp.width);
+                    pc.height = Math.floor(vp.height);
+                    await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
+                    if (token !== reader.token) return;
+                    pageCache.set(key, pc);
+                    if (pageCache.size > 10) pageCache.delete(pageCache.keys().next().value);
+                }
+                const cssWpx = (pc.width / dpr) + 'px';
+                const cssHpx = (pc.height / dpr) + 'px';
+                pc.style.width = cssWpx;
+                pc.style.height = cssHpx;
 
                 const wrap = document.createElement('div');
                 wrap.className = 'rpage';
                 wrap.dataset.page = pageNo;
-                wrap.style.width = pc.style.width;
-                wrap.style.height = pc.style.height;
+                wrap.style.width = cssWpx;
+                wrap.style.height = cssHpx;
 
                 const layer = document.createElement('canvas');
                 layer.className = 'note-layer';
                 layer.width = pc.width;
                 layer.height = pc.height;
-                layer.style.width = pc.style.width;
-                layer.style.height = pc.style.height;
+                layer.style.width = cssWpx;
+                layer.style.height = cssHpx;
                 layer.style.position = 'absolute';
                 layer.style.left = '0';
                 layer.style.top = '0';
@@ -2733,7 +2862,11 @@
             }
 
             stage.innerHTML = '';
-            wraps.forEach(w => stage.appendChild(w));
+            const inner = document.createElement('div');
+            inner.className = 'rinner';
+            wraps.forEach(w => inner.appendChild(w));
+            stage.appendChild(inner);
+            applyReaderView();
             updateReaderInfo();
             syncAnnotateUI();
         }
@@ -2750,6 +2883,7 @@
             const next = Math.max(1, Math.min(reader.total, reader.page + dir * amount));
             if (next === reader.page) return;
             reader.page = next;
+            resetReaderView();
             saveProgress();
             renderReader();
         }
@@ -2758,7 +2892,7 @@
         function prevPage() { step(-1); }
 
         function handleReaderTap(e) {
-            if (reader.annotate) return;     // وضع الكتابة: اللمس للرسم وليس لتقليب الصفحة
+            if (reader.annotate || readerNoTap) return;   // وضع الكتابة أو بعد التكبير: ما نقلبش الصفحة
             const r = $('reader-stage').getBoundingClientRect();
             if (e.clientX - r.left < r.width / 2) nextPage();
             else prevPage();
@@ -2766,6 +2900,7 @@
 
         function toggleSpread() {
             reader.spread = !reader.spread;
+            resetReaderView();
             $('spread-btn').innerText = reader.spread ? 'صفحة واحدة' : 'صفحتان';
             renderReader();
         }
@@ -2882,6 +3017,8 @@
             applyTheme(appState.theme);
             applyProfile();
             applyGradeNames();
+            // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
+            document.body.classList.toggle('lite', appState.lite === undefined ? (navigator.hardwareConcurrency || 8) <= 4 : !!appState.lite);
             applyBg();
             refreshToolButtons();
             syncSlider();
