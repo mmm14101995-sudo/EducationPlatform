@@ -2446,7 +2446,7 @@
                 if (!reader.annotate || e.button > 0) return;
                 e.preventDefault();
                 e.stopPropagation();
-                layer.setPointerCapture(e.pointerId);
+                try { layer.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
                 const p = notePoint(layer, e);
                 pushNoteUndo(pageNo);
                 if (reader.tool === 'eraser') {
@@ -2519,6 +2519,13 @@
                 layer.height = pc.height;
                 layer.style.width = pc.style.width;
                 layer.style.height = pc.style.height;
+                layer.style.position = 'absolute';
+                layer.style.left = '0';
+                layer.style.top = '0';
+                layer.style.zIndex = '2';
+                layer.style.touchAction = 'none';
+                layer.style.pointerEvents = reader.annotate ? 'auto' : 'none';
+                layer.style.cursor = reader.annotate ? 'crosshair' : 'default';
 
                 wrap.appendChild(pc);
                 wrap.appendChild(layer);
@@ -2596,6 +2603,10 @@
         function syncAnnotateUI() {
             const overlay = $('reader');
             overlay.classList.toggle('annotating', reader.annotate);
+            document.querySelectorAll('.note-layer').forEach(l => {
+                l.style.pointerEvents = reader.annotate ? 'auto' : 'none';
+                l.style.cursor = reader.annotate ? 'crosshair' : 'default';
+            });
             $('ann-toggle').classList.toggle('active', reader.annotate);
             ['pen', 'hl', 'eraser'].forEach(t => {
                 const map = { pen: 'tool-pen', hl: 'tool-hl', eraser: 'tool-eraser' };
