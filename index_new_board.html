@@ -355,6 +355,14 @@
 
         .back-btn { display: none; }
 
+        /* زرار حذف الكتاب */
+        .card-del {
+            position: absolute; top: 6px; left: 6px; z-index: 3; width: 30px; height: 30px; border-radius: 50%;
+            border: 0; background: rgba(15,23,42,0.75); color: #fff; display: grid; place-items: center; cursor: pointer;
+        }
+        .card-del .ico { width: 16px; height: 16px; }
+        .exam-del { flex: none; }
+
         /* الكورسات */
         .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
         .armed { background: #dc2626 !important; color: #fff !important; }
@@ -601,6 +609,54 @@
         .rinner { position: relative; display: flex; flex-direction: row; direction: rtl; justify-content: center;
                   align-items: center; gap: 12px; width: 100%; height: 100%; transform-origin: 0 0; }
 
+        /* القارئ: أزرار عايمة */
+        .rd-side, .rd-btn {
+            position: absolute; z-index: 7; width: 56px; height: 56px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.25); background: rgba(15,23,42,0.6); color: #fff;
+            display: grid; place-items: center; cursor: pointer;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .rd-side { top: 50%; transform: translateY(-50%); }
+        .rd-prev { right: 14px; }
+        .rd-next { left: 14px; }
+        .rd-corner { position: absolute; z-index: 7; right: 12px; top: 72px; display: flex; flex-direction: column; gap: 10px; }
+        .rd-btn { position: static; width: 46px; height: 46px; }
+        .reader-overlay.bars-hidden .rd-corner { top: 12px; }
+        .reader-overlay.bars-hidden .reader-bar,
+        .reader-overlay.bars-hidden .reader-notes,
+        .reader-overlay.bars-hidden .reader-foot { display: none; }
+        .reader-overlay.paper .rd-side, .reader-overlay.paper .rd-btn { background: rgba(70,54,30,0.6); }
+
+        /* أدوات السبورة بشكل مجسم */
+        .board-bar .pen-3d { width: 44px; height: 46px; border-radius: 12px; padding: 2px; }
+        .board-bar .pen-3d svg { width: 26px; height: 40px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.4)); }
+        .board-bar .pen-3d.active { background: rgba(255,255,255,0.18); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 0 2px var(--accent); }
+        .board-bar .sw.color-btn {
+            position: relative; width: 30px; height: 30px; border-radius: 9px; border: 0; overflow: hidden;
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.45), 0 5px 10px rgba(0,0,0,0.35);
+        }
+        .board-bar .sw.color-btn::after {
+            content: ''; position: absolute; left: 3px; right: 3px; top: 3px; height: 45%; border-radius: 6px;
+            background: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0)); pointer-events: none;
+        }
+        .board-bar .sw.color-btn.active {
+            transform: translateY(-2px) scale(1.08);
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.45), 0 0 0 2px #ffffff, 0 8px 14px rgba(0,0,0,0.45);
+        }
+
+        .rn-tool { width: 42px; height: 48px; }
+        .rn-tool svg { width: 22px; height: 36px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4)); }
+        .rn-tool.active { background: rgba(255,255,255,0.18); box-shadow: 0 0 0 2px #60a5fa; }
+        .reader-overlay.fs .reader-notes {
+            position: absolute; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
+            width: auto; max-width: calc(100% - 24px); flex-wrap: nowrap; overflow-x: auto; border-radius: 999px;
+            z-index: 6; padding: 8px 12px; scrollbar-width: none;
+            background: linear-gradient(145deg, rgba(255,255,255,0.22), rgba(255,255,255,0.05)), rgba(15,23,42,0.6);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+        }
+        .reader-overlay.fs .reader-notes::-webkit-scrollbar { display: none; }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition: none !important; animation: none !important; }
         }
@@ -687,10 +743,12 @@
                     <div class="board-bar">
                         <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
                         <div class="bgrp">
-                            <button class="ibtn pen-style-btn" data-style="normal" title="قلم عادي" onclick="setPenStyle('normal')"><i data-icon="pen"></i></button>
-                            <button class="ibtn pen-style-btn" data-style="feather" title="ريشة" onclick="setPenStyle('feather')"><i data-icon="feather"></i></button>
-                            <button class="ibtn pen-style-btn" data-style="broad" title="فرشاة عريضة" onclick="setPenStyle('broad')"><i data-icon="brush"></i></button>
-                            <button class="ibtn" id="eraser-btn" title="ممحاة" onclick="setEraser()"><i data-icon="eraser"></i></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="normal" title="قلم حبر" onclick="setPenStyle('normal')"><svg viewBox="0 0 26 40"><defs><linearGradient id="b1n" x1="0" x2="1"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".4" stop-color="#3b82f6"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient></defs><rect x="9.5" y="2" width="7" height="26" rx="3" fill="url(#b1n)"/><rect x="9.5" y="25" width="7" height="4" fill="#cbd5e1"/><path d="M10 29 H16 L13 39 Z" fill="#cbd5e1" stroke="#64748b" stroke-width=".5"/><rect x="16.5" y="4" width="1.2" height="16" rx=".6" fill="#e2e8f0"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="feather" title="قلم ريشة" onclick="setPenStyle('feather')"><svg viewBox="0 0 26 40"><defs><linearGradient id="b2f" x1="0" x2="1"><stop offset="0" stop-color="#0f172a"/><stop offset=".45" stop-color="#334155"/><stop offset="1" stop-color="#020617"/></linearGradient><linearGradient id="b2g" x1="0" x2="1"><stop offset="0" stop-color="#b45309"/><stop offset=".45" stop-color="#fde68a"/><stop offset="1" stop-color="#92400e"/></linearGradient></defs><rect x="8" y="2" width="10" height="17" rx="4" fill="url(#b2f)"/><rect x="7" y="17" width="12" height="4" rx="1" fill="url(#b2g)"/><path d="M8 21 C8 30 11 35 13 39 C15 35 18 30 18 21 Z" fill="url(#b2g)"/><line x1="13" y1="22" x2="13" y2="35" stroke="#78350f" stroke-width=".9"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="hl" title="تظليل" onclick="setPenStyle('hl')"><svg viewBox="0 0 26 40"><defs><linearGradient id="b3h" x1="0" x2="1"><stop offset="0" stop-color="#eab308"/><stop offset=".4" stop-color="#fef08a"/><stop offset="1" stop-color="#ca8a04"/></linearGradient></defs><rect x="7" y="2" width="12" height="25" rx="2" fill="url(#b3h)"/><rect x="7" y="25" width="12" height="4" fill="#a16207"/><path d="M7 29 H19 L16 39 H10 Z" fill="#fde047" stroke="#a16207" stroke-width=".5"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="setPenStyle('broad')"><svg viewBox="0 0 26 40"><defs><linearGradient id="b4m" x1="0" x2="1"><stop offset="0" stop-color="#4c1d95"/><stop offset=".45" stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b0764"/></linearGradient></defs><rect x="5" y="2" width="16" height="25" rx="4" fill="url(#b4m)"/><rect x="5" y="25" width="16" height="4" fill="#1e1b4b"/><path d="M5 29 H21 L17 39 H9 Z" fill="#cbd5e1" stroke="#475569" stroke-width=".5"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="setPenStyle('pencil')"><svg viewBox="0 0 26 40"><defs><linearGradient id="b5p" x1="0" x2="1"><stop offset="0" stop-color="#ca8a04"/><stop offset=".45" stop-color="#fde047"/><stop offset="1" stop-color="#a16207"/></linearGradient></defs><rect x="9" y="6" width="8" height="22" fill="url(#b5p)"/><rect x="9" y="2" width="8" height="4" rx="1" fill="#f9a8d4"/><rect x="9" y="27" width="8" height="2" fill="#94a3b8"/><path d="M9 29 H17 L13 38 Z" fill="#fcd9b6"/><path d="M11.4 34.5 H14.6 L13 38 Z" fill="#1f2937"/></svg></button>
+                            <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><defs><linearGradient id="b6e" x1="0" x2="1"><stop offset="0" stop-color="#6b7280"/><stop offset=".4" stop-color="#e5e7eb"/><stop offset="1" stop-color="#374151"/></linearGradient></defs><rect x="7" y="16" width="12" height="22" rx="2" fill="url(#b6e)"/><rect x="7" y="4" width="12" height="13" rx="3" fill="#f9a8d4"/><rect x="7" y="4" width="12" height="4" rx="2" fill="#fbcfe8"/></svg></button>
                         </div>
 
                         <div class="bgrp">
@@ -833,6 +891,9 @@
                 <label for="inp-grade2">اسم السنة الثانية</label>
                 <input type="text" id="inp-grade2" maxlength="30">
             </div>
+            <div class="modal-actions" style="margin-bottom:14px;">
+                <button class="btn-ghost" onclick="showHiddenBooks()"><i data-icon="undo"></i><span>إظهار الملفات المحذوفة</span></button>
+            </div>
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
                 <input type="checkbox" id="inp-lite" style="width:22px;height:22px;" onchange="setLite(this.checked)">
@@ -893,6 +954,18 @@
         </div>
     </div>
 
+    <!-- تأكيد الحذف -->
+    <div id="confirm-modal" class="modal" onclick="if (event.target === this) cancelConfirm()">
+        <div class="modal-box" style="width:min(420px,92vw);">
+            <div class="modal-head"><h2>تأكيد الحذف</h2></div>
+            <p id="confirm-text" style="line-height:1.8;margin-bottom:18px;"></p>
+            <div class="modal-actions">
+                <button class="btn-ghost" onclick="cancelConfirm()">إلغاء</button>
+                <button class="btn-primary" style="background:linear-gradient(135deg,#f87171,#dc2626);" onclick="confirmYes()">حذف</button>
+            </div>
+        </div>
+    </div>
+
     <!-- القارئ -->
     <div id="reader" class="reader-overlay">
         <div class="reader-bar">
@@ -906,9 +979,12 @@
         <div class="reader-notes">
             <button class="reader-btn" id="ann-toggle" onclick="toggleAnnotate()"><i data-icon="feather"></i><span>كتابة</span></button>
             <span class="rn-sep"></span>
-            <button class="rn-tool" id="tool-pen" title="قلم" onclick="setNoteTool('pen')"><i data-icon="pen"></i></button>
-            <button class="rn-tool" id="tool-hl" title="تمييز" onclick="setNoteTool('hl')"><i data-icon="brush"></i></button>
-            <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><i data-icon="eraser"></i></button>
+            <button class="rn-tool" id="tool-normal" title="قلم حبر" onclick="setNoteTool('normal')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r1n" x1="0" x2="1"><stop offset="0" stop-color="#1e3a8a"/><stop offset=".4" stop-color="#3b82f6"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient></defs><rect x="9.5" y="2" width="7" height="26" rx="3" fill="url(#r1n)"/><rect x="9.5" y="25" width="7" height="4" fill="#cbd5e1"/><path d="M10 29 H16 L13 39 Z" fill="#cbd5e1" stroke="#64748b" stroke-width=".5"/><rect x="16.5" y="4" width="1.2" height="16" rx=".6" fill="#e2e8f0"/></svg></button>
+            <button class="rn-tool" id="tool-feather" title="قلم ريشة" onclick="setNoteTool('feather')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r2f" x1="0" x2="1"><stop offset="0" stop-color="#0f172a"/><stop offset=".45" stop-color="#334155"/><stop offset="1" stop-color="#020617"/></linearGradient><linearGradient id="r2g" x1="0" x2="1"><stop offset="0" stop-color="#b45309"/><stop offset=".45" stop-color="#fde68a"/><stop offset="1" stop-color="#92400e"/></linearGradient></defs><rect x="8" y="2" width="10" height="17" rx="4" fill="url(#r2f)"/><rect x="7" y="17" width="12" height="4" rx="1" fill="url(#r2g)"/><path d="M8 21 C8 30 11 35 13 39 C15 35 18 30 18 21 Z" fill="url(#r2g)"/><line x1="13" y1="22" x2="13" y2="35" stroke="#78350f" stroke-width=".9"/></svg></button>
+            <button class="rn-tool" id="tool-hl" title="تظليل" onclick="setNoteTool('hl')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r3h" x1="0" x2="1"><stop offset="0" stop-color="#eab308"/><stop offset=".4" stop-color="#fef08a"/><stop offset="1" stop-color="#ca8a04"/></linearGradient></defs><rect x="7" y="2" width="12" height="25" rx="2" fill="url(#r3h)"/><rect x="7" y="25" width="12" height="4" fill="#a16207"/><path d="M7 29 H19 L16 39 H10 Z" fill="#fde047" stroke="#a16207" stroke-width=".5"/></svg></button>
+            <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="setNoteTool('broad')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r4m" x1="0" x2="1"><stop offset="0" stop-color="#4c1d95"/><stop offset=".45" stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b0764"/></linearGradient></defs><rect x="5" y="2" width="16" height="25" rx="4" fill="url(#r4m)"/><rect x="5" y="25" width="16" height="4" fill="#1e1b4b"/><path d="M5 29 H21 L17 39 H9 Z" fill="#cbd5e1" stroke="#475569" stroke-width=".5"/></svg></button>
+            <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="setNoteTool('pencil')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r5p" x1="0" x2="1"><stop offset="0" stop-color="#ca8a04"/><stop offset=".45" stop-color="#fde047"/><stop offset="1" stop-color="#a16207"/></linearGradient></defs><rect x="9" y="6" width="8" height="22" fill="url(#r5p)"/><rect x="9" y="2" width="8" height="4" rx="1" fill="#f9a8d4"/><rect x="9" y="27" width="8" height="2" fill="#94a3b8"/><path d="M9 29 H17 L13 38 Z" fill="#fcd9b6"/><path d="M11.4 34.5 H14.6 L13 38 Z" fill="#1f2937"/></svg></button>
+            <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r6e" x1="0" x2="1"><stop offset="0" stop-color="#6b7280"/><stop offset=".4" stop-color="#e5e7eb"/><stop offset="1" stop-color="#374151"/></linearGradient></defs><rect x="7" y="16" width="12" height="22" rx="2" fill="url(#r6e)"/><rect x="7" y="4" width="12" height="13" rx="3" fill="#f9a8d4"/><rect x="7" y="4" width="12" height="4" rx="2" fill="#fbcfe8"/></svg></button>
             <span class="rn-sep"></span>
             <button class="ncolor" style="background:#0f172a" title="أسود" onclick="setNoteColor('#0f172a')"></button>
             <button class="ncolor" style="background:#dc2626" title="أحمر" onclick="setNoteColor('#dc2626')"></button>
@@ -925,6 +1001,12 @@
             <button class="rn-tool" title="مسح كتابات الصفحة" onclick="clearNotesPage()"><i data-icon="trash"></i></button>
         </div>
         <div id="reader-stage" class="reader-stage" onclick="handleReaderTap(event)"></div>
+        <button class="rd-side rd-prev" title="الصفحة السابقة" onclick="prevPage()"><i data-icon="chevR"></i></button>
+        <button class="rd-side rd-next" title="الصفحة التالية" onclick="nextPage()"><i data-icon="chevL"></i></button>
+        <div class="rd-corner">
+            <button class="rd-btn" title="إخفاء أو إظهار الأدوات" onclick="toggleReaderBars()"><i data-icon="eye"></i></button>
+            <button class="rd-btn" id="rd-fs-btn" title="ملء الشاشة" onclick="toggleReaderFs()"><i data-icon="maximize"></i></button>
+        </div>
         <div class="reader-foot">
             <button class="reader-btn" onclick="prevPage()">➡ الصفحة السابقة</button>
             <span id="reader-info"></span>
@@ -979,7 +1061,10 @@
             hand: '<path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-3l-3.5-4.5a2 2 0 0 1 3-2.6L6 14"/>',
             external: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
             sparkle: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
-            check: '<path d="M20 6 9 17l-5-5"/>'
+            check: '<path d="M20 6 9 17l-5-5"/>',
+            chevL: '<path d="m15 18-6-6 6-6"/>',
+            chevR: '<path d="m9 18 6-6-6-6"/>',
+            eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'
         };
 
         function icon(name) {
@@ -1139,6 +1224,7 @@
             appState.shelfOrder ||= {};
             appState.progress ||= {};
             appState.courses ||= [];
+            appState.hiddenBooks ||= [];
             appState.gradeNames ||= { ...DEFAULT_GRADE_NAMES };
         }
 
@@ -1428,9 +1514,9 @@
             g.save();
             g.strokeStyle = st.c;
             g.lineJoin = 'round';
-            g.lineCap = st.s === 'feather' ? 'square' : 'round';
-            g.globalAlpha = st.t === 'hl' ? 0.35 : 1;
-            g.lineWidth = st.w * (st.t === 'hl' ? 3 : (st.s === 'broad' ? 2.5 : 1));
+            g.lineCap = (st.s === 'feather' || st.s === 'broad' || st.t === 'hl') ? 'square' : 'round';
+            g.globalAlpha = st.t === 'hl' ? 0.35 : (st.s === 'pencil' ? 0.85 : 1);
+            g.lineWidth = st.w * (st.t === 'hl' ? 3 : st.s === 'broad' ? 2.5 : st.s === 'pencil' ? 0.6 : 1);
             g.beginPath();
             g.moveTo(pts[0][0], pts[0][1]);
             // خطوط ناعمة بين النقط
@@ -1677,7 +1763,7 @@
             } else {
                 activeMode = 'draw';
                 const [x, y] = worldPoint(e);
-                cur = { t: 'pen', c: penColor, w: penWidth / view.s, s: penStyle, pts: [[x, y]] };
+                cur = { t: penStyle === 'hl' ? 'hl' : 'pen', c: penColor, w: penWidth / view.s, s: penStyle, pts: [[x, y]] };
                 requestRender();
             }
         });
@@ -1831,6 +1917,35 @@
             if (!document.fullscreenElement && $('board').classList.contains('fs')) setBoardFs(false);
         });
 
+        function toggleReaderBars() {
+            $('reader').classList.toggle('bars-hidden');
+            renderReader();
+        }
+
+        function setReaderFs(on) {
+            $('reader').classList.toggle('fs', on);
+            api.setFullscreen(on);
+            if (!NATIVE) {
+                try {
+                    if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    } else if (!on && document.fullscreenElement && document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    }
+                } catch (e) { /* تجاهل */ }
+            }
+            $('rd-fs-btn').innerHTML = icon(on ? 'minimize' : 'maximize');
+            renderReader();
+        }
+
+        function toggleReaderFs() {
+            setReaderFs(!$('reader').classList.contains('fs'));
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && $('reader').classList.contains('fs')) setReaderFs(false);
+        });
+
         function loadImage(src) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -1965,6 +2080,7 @@
                 console.warn('تعذر تحميل قائمة الكتب', e);
                 booksCache = [];
             }
+            booksCache = booksCache.filter(b => !(appState.hiddenBooks || []).includes(b.id));
             bookById.clear();
             booksCache.forEach(b => bookById.set(b.id, b));
             renderHome();
@@ -2064,6 +2180,7 @@
                 <div class="cover">
                     <div class="cover-fallback">${esc(book.title)}</div>
                     <img class="cover-img" alt="">
+                    <button class="card-del" title="حذف">${icon('x')}</button>
                 </div>
                 <div class="book-title">${esc(book.title)}</div>
                 <div class="book-meta">${meta}</div>
@@ -2072,6 +2189,11 @@
             card.addEventListener('click', () => {
                 if (suppressClick) return;
                 openBook(book);
+            });
+            const delBtn = card.querySelector('.card-del');
+            delBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                askConfirm('هل تريد حذف "' + book.title + '"؟', () => deleteBook(book));
             });
 
             const img = card.querySelector('.cover-img');
@@ -2284,8 +2406,14 @@
                         <h3>${esc(book.title)}</h3>
                         <p>${meta}</p>
                     </div>
-                    <button class="btn-ghost">${icon('external')}<span>فتح</span></button>`;
+                    <button class="btn-ghost">${icon('external')}<span>فتح</span></button>
+                    <button class="ibtn danger exam-del" title="حذف">${icon('x')}</button>`;
                 card.addEventListener('click', () => openBook(book));
+                const xDel = card.querySelector('.exam-del');
+                xDel.addEventListener('click', e => {
+                    e.stopPropagation();
+                    askConfirm('هل تريد حذف "' + book.title + '"؟', () => deleteBook(book));
+                });
                 list.appendChild(card);
             });
         }
@@ -2298,11 +2426,29 @@
         // ==========================================
         // الكورسات: مجلدات بأسماء، فيها فيديوهات من الجهاز وروابط (بحد أقصى 20 كورس)
         // ==========================================
+        // نافذة تأكيد الحذف
+        let confirmAction = null;
+        function askConfirm(text, action) {
+            confirmAction = action;
+            $('confirm-text').innerText = text;
+            openModal('confirm-modal');
+        }
+        function confirmYes() {
+            closeModal('confirm-modal');
+            const fn = confirmAction;
+            confirmAction = null;
+            if (fn) fn();
+        }
+        function cancelConfirm() {
+            confirmAction = null;
+            closeModal('confirm-modal');
+        }
+
         const MAX_COURSES = 20;
         const courseMedia = new Map();   // cid -> [{name,url}]
         let detailId = null;
         let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings'];
+        const MODAL_IDS = ['confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings'];
 
         function findCourse(id) {
             return (appState.courses || []).find(c => c.id === id) || null;
@@ -2333,6 +2479,21 @@
                 if (el && el.classList.contains('open')) { closeModal(id); return true; }
             }
             return false;
+        }
+
+        // الحذف هنا إخفاء للملف من التطبيق (الملف نفسه بيفضل على الجهاز)
+        async function deleteBook(book) {
+            appState.hiddenBooks = [...new Set([...(appState.hiddenBooks || []), book.id])];
+            scheduleSave();
+            toast('تم إخفاء: ' + book.title);
+            await loadBooks();
+        }
+
+        function showHiddenBooks() {
+            appState.hiddenBooks = [];
+            scheduleSave();
+            toast('تم إظهار الملفات المخفية');
+            loadBooks();
         }
 
         async function renderCourses() {
@@ -2550,7 +2711,7 @@
         // ==========================================
         const reader = {
             book: null, doc: null, page: 1, total: 0, spread: false, token: 0,
-            annotate: false, tool: 'pen', color: '#dc2626', size: 7
+            annotate: false, tool: 'normal', color: '#dc2626', size: 7
         };
         const NOTE_W = 1000;      // عرض مرجعي للرسم: الخطوط تتناسب مع أي حجم شاشة
         let noteUndo = [];
@@ -2632,11 +2793,11 @@
                 if (!s.pts || !s.pts.length) continue;
                 const isHl = s.t === 'hl';
                 g.save();
-                g.lineCap = 'round';
+                g.lineCap = (s.s === 'feather' || s.s === 'broad' || isHl) ? 'square' : 'round';
                 g.lineJoin = 'round';
                 g.strokeStyle = s.c;
-                g.lineWidth = s.w * sc * (isHl ? 3 : 1);
-                g.globalAlpha = isHl ? 0.35 : 1;
+                g.lineWidth = s.w * sc * (isHl ? 3 : s.s === 'broad' ? 2.5 : s.s === 'pencil' ? 0.6 : 1);
+                g.globalAlpha = isHl ? 0.35 : (s.s === 'pencil' ? 0.85 : 1);
                 g.beginPath();
                 s.pts.forEach((p, i) => {
                     const x = p[0] * layer.width, y = p[1] * layer.height;
@@ -2729,7 +2890,7 @@
                     activeStroke = { layer, pageNo, pid: e.pointerId, erase: true };
                     eraseAt(pageNo, p, layer);
                 } else {
-                    const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', c: reader.color, w: reader.size, pts: [p] };
+                    const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', s: reader.tool, c: reader.color, w: reader.size, pts: [p] };
                     setPageStrokes(pageNo, [...pageStrokes(pageNo), s]);
                     activeStroke = { layer, pageNo, pid: e.pointerId, stroke: s };
                     drawNotesOn(layer, pageStrokes(pageNo));
@@ -2974,7 +3135,7 @@
 
         function setNoteColor(c) {
             reader.color = c;
-            if (reader.tool === 'eraser') reader.tool = 'pen';
+            if (reader.tool === 'eraser') reader.tool = 'normal';
             reader.annotate = true;
             syncAnnotateUI();
         }
@@ -2992,9 +3153,8 @@
                 l.style.cursor = reader.annotate ? 'crosshair' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
-            ['pen', 'hl', 'eraser'].forEach(t => {
-                const map = { pen: 'tool-pen', hl: 'tool-hl', eraser: 'tool-eraser' };
-                $(map[t]).classList.toggle('active', reader.annotate && reader.tool === t);
+            ['normal', 'feather', 'hl', 'broad', 'pencil', 'eraser'].forEach(t => {
+                $('tool-' + t).classList.toggle('active', reader.annotate && reader.tool === t);
             });
             document.querySelectorAll('.ncolor').forEach(b => {
                 const hex = rgbToHex(b.style.background);
@@ -3013,7 +3173,8 @@
 
         function closeReader() {
             if (!$('reader').classList.contains('open')) return;
-            $('reader').classList.remove('open');
+            $('reader').classList.remove('open', 'fs', 'bars-hidden');
+            api.setFullscreen(false);
             reader.token++;
             if (reader.doc) reader.doc.destroy();
             reader.doc = null;
