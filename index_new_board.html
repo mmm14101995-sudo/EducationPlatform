@@ -2557,8 +2557,14 @@
         let activeStroke = null;
         let readerResizeTimer = null;
 
-        function showReaderError() {
-            $('reader-stage').innerHTML = '<p class="reader-msg">تعذر فتح هذا الملف. إذا كانت المنصة تعمل لأول مرة، تأكد من وجود اتصال بالإنترنت لتحميل مكتبة القراءة.</p>';
+        function showReaderError(err) {
+            const detail = err ? (err.message || String(err)) : '';
+            $('reader-stage').innerHTML = '<p class="reader-msg">تعذر فتح هذا الملف.<br><small style="opacity:.7;direction:ltr;display:inline-block;margin-top:10px;">' + esc(detail) + '</small></p>';
+        }
+
+        function resetReaderView() {
+            readerView = { z: 1, tx: 0, ty: 0 };
+            applyReaderView();
         }
 
         async function openBook(book) {
@@ -2572,7 +2578,7 @@
                 if (!window.pdfjsLib) throw new Error('pdf.js غير محمّل');
                 doc = await pdfjsLib.getDocument({ url: book.url }).promise;
             } catch (e) {
-                if (t === reader.token) showReaderError();
+                if (t === reader.token) showReaderError(e);
                 return;
             }
             // إذا أغلق المستخدم القارئ أثناء التحميل نتجاهل الملف
@@ -2587,7 +2593,11 @@
             pageCache.clear();
             resetReaderView();
             saveProgress();
-            await renderReader();
+            try {
+                await renderReader();
+            } catch (e) {
+                if (t === reader.token) showReaderError(e);
+            }
         }
 
         function saveProgress() {
