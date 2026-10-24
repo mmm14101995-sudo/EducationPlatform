@@ -263,6 +263,7 @@
         .ptab-add { padding: 6px 10px; border-radius: 9px; border: 1px dashed var(--line); background: transparent; color: var(--text); font-weight: 700; cursor: pointer; font-size: 13px; }
         .board-stage { position: relative; z-index: 1; flex: 1; min-height: 0; overflow: auto; background: #ffffff; }
         .board-paper { position: relative; background: #ffffff; }
+        .board-stage, .board-paper { touch-action: none; }
         #custom-canvas {
             display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair;
             background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 24px 24px;
@@ -1347,11 +1348,18 @@
         function saveCurrentPageState() {
             if (!canvas.width || !canvas.height) return;
             const s = wbGrade();
-            s.pages[s.currentIndex] = canvas.toDataURL('image/png');
+            // نحفظ على خلفية بيضا (الممحاة بتبقى بيضا) وبصيغة خفيفة عشان الملف ما يكبرش
+            const flat = document.createElement('canvas');
+            flat.width = canvas.width;
+            flat.height = canvas.height;
+            const g = flat.getContext('2d');
+            g.fillStyle = '#ffffff';
+            g.fillRect(0, 0, flat.width, flat.height);
+            g.drawImage(canvas, 0, 0);
+            s.pages[s.currentIndex] = flat.toDataURL('image/jpeg', 0.92);
             scheduleSave();
         }
 
-        // ترسم الصورة المحفوظة بحجم اللوحة الحالي (يسمح بالتكبير والتصغير)
         let drawToken = 0;
         function drawPage(dataUrl) {
             const token = ++drawToken;
@@ -1375,7 +1383,7 @@
         function applyToolState() {
             ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
             ctx.strokeStyle = penColor;
-            ctx.lineWidth = currentSize();
+            ctx.lineWidth = currentSize() * boardDpr();
             ctx.lineCap = penStyle === 'normal' ? 'round' : 'square';
             ctx.lineJoin = penStyle === 'feather' ? 'miter' : (penStyle === 'broad' ? 'bevel' : 'round');
             canvas.style.cursor = tool === 'eraser' ? eraserCursor : 'crosshair';
@@ -1423,20 +1431,24 @@
         }
 
         // حجم اللوحة = حجم المنطقة × التكبير
+        // الدقة: الكانفاس بيتحسب بدقة الشاشة الحقيقية، والحجم بيتبع المساحة المرئية بالظبط
+        function boardDpr() { return Math.min(2, window.devicePixelRatio || 1); }
+
         function resizeCanvas() {
             const stage = $('board-stage');
             if (!stage) return;
-            const baseW = stage.clientWidth, baseH = stage.clientHeight;
-            if (baseW <= 0 || baseH <= 0) return;
-            const w = Math.round(baseW * zoomLevel);
-            const h = Math.round(baseH * zoomLevel);
+            const cssW = stage.clientWidth, cssH = stage.clientHeight;
+            if (cssW <= 0 || cssH <= 0) return;
+            const dpr = boardDpr();
+            const w = Math.round(cssW * zoomLevel * dpr);
+            const h = Math.round(cssH * zoomLevel * dpr);
             if (w === canvas.width && h === canvas.height) return;
-
             const snap = canvas.width > 0 ? canvas.toDataURL('image/png') : null;
             canvas.width = w;
             canvas.height = h;
-            $('board-paper').style.width = w + 'px';
-            $('board-paper').style.height = h + 'px';
+            const paper = $('board-paper');
+            paper.style.width = (cssW * zoomLevel) + 'px';
+            paper.style.height = (cssH * zoomLevel) + 'px';
             undoStack = [];
             redoStack = [];
             updateHistBtns();
@@ -1463,7 +1475,7 @@
             const p1 = points[points.length - 2];
             const p2 = points[points.length - 1];
             if (!p1 || !p2) return;
-            const nib = penWidth * 3 * (p2.pressure + 0.2);
+            const nib = penWidth * 3 * (p2.pressure + 0.2) * boardDpr();
             const dx = Math.cos(angle) * nib / 2;
             const dy = Math.sin(angle) * nib / 2;
             ctx.save();
@@ -1510,12 +1522,20 @@
         }
 
         // ==========================================
-        // اللمس: إصبعين = تكبير/تصغير، والرسم بالإصبع أو القلم زي ما هو
+        // اللمس: إصبعين = تكبير/تصغير وتحريك، والرسم بالإيد أو القلم زي ما هو
         // ==========================================
+        const stageEl = $('board-stage');
+        stageEl.style.direction = 'ltr';
         const touches = new Map();   // كل لمسة على الشاشة
         let pinch = null;            // {dist, zoom} وقت بدء التكبير
+        let pinchCenter = null;      // مركز الإصبعين عشان التحريك
         let strokeOwner = null;      // الـ pointer اللي بيرسم دلوقتي
         let zoomRaf = 0;
+
+        function centerOfTouches() {
+            const [a, b] = [...touches.values()];
+            return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        }
 
         function drawSegment(e) {
             const p = canvasPoint(e);
@@ -1528,7 +1548,7 @@
             if (points.length > 2) {
                 const [a, b] = points.slice(-2);
                 const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-                ctx.lineWidth = currentSize() * (pressure + 0.2);
+                ctx.lineWidth = currentSize() * (pressure + 0.2) * boardDpr();
                 ctx.quadraticCurveTo(a.x, a.y, mid.x, mid.y);
                 ctx.stroke();
                 ctx.beginPath();
@@ -1559,6 +1579,14 @@
 
         function updatePinch() {
             if (!pinch || touches.size < 2) return;
+            // تحريك بالإصبعين
+            const c = centerOfTouches();
+            if (pinchCenter) {
+                stageEl.scrollLeft -= (c.x - pinchCenter.x);
+                stageEl.scrollTop -= (c.y - pinchCenter.y);
+            }
+            pinchCenter = c;
+            // تكبير/تصغير
             const [a, b] = [...touches.values()];
             const d = Math.hypot(a.x - b.x, a.y - b.y);
             const target = Math.max(0.5, Math.min(3, Math.round(pinch.zoom * (d / pinch.dist) * 100) / 100));
@@ -1573,17 +1601,19 @@
             }
         }
 
-        canvas.addEventListener('pointerdown', e => {
+        // الأحداث على المساحة كلها (مش الكانفاس بس) عشان الإصبع التاني يتسجل حتى لو لمس بره الرسم
+        stageEl.addEventListener('pointerdown', e => {
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             const p = canvasPoint(e);
 
             if (e.pointerType === 'touch') {
                 touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-                try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
                 if (touches.size >= 2) {
                     cancelStrokeForPinch();
                     const [a, b] = [...touches.values()];
                     pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: zoomLevel };
+                    pinchCenter = centerOfTouches();
                     return;
                 }
             }
@@ -1595,10 +1625,10 @@
             points = [{ x: p.x, y: p.y, pressure: 1 }];
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
-            try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+            try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
         });
 
-        canvas.addEventListener('pointermove', e => {
+        stageEl.addEventListener('pointermove', e => {
             if (e.pointerType === 'touch') {
                 if (!touches.has(e.pointerId)) return;
                 touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1613,15 +1643,15 @@
         function endPointer(e) {
             if (e.pointerType === 'touch') {
                 touches.delete(e.pointerId);
-                if (touches.size < 2) pinch = null;
+                if (touches.size < 2) { pinch = null; pinchCenter = null; }
             }
             if (strokeOwner === e.pointerId) endStrokeNow();
-            if (canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) {
-                canvas.releasePointerCapture(e.pointerId);
+            if (stageEl.hasPointerCapture && stageEl.hasPointerCapture(e.pointerId)) {
+                stageEl.releasePointerCapture(e.pointerId);
             }
         }
-        canvas.addEventListener('pointerup', endPointer);
-        canvas.addEventListener('pointercancel', endPointer);
+        stageEl.addEventListener('pointerup', endPointer);
+        stageEl.addEventListener('pointercancel', endPointer);
 
         // مسح بضغطتين: الأولى للتأكيد، والثانية خلال 3 ثوانٍ
         let clearArmed = false;
@@ -2773,6 +2803,7 @@
             syncSlider();
             updateHistBtns();
             initWhiteboard();
+            if (window.ResizeObserver) new ResizeObserver(() => resizeCanvas()).observe($('board-stage'));
             await loadBooks();
         });
     </script>
