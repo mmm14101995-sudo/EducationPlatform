@@ -2706,6 +2706,47 @@
             }
         }
 
+        function bindNoteLayer(layer, pageNo) {
+            layer.addEventListener('pointerdown', e => {
+                if (!reader.annotate || e.button > 0) return;
+                if (e.pointerType === 'touch' && readerTouches.size >= 2) return;
+                if (readerTouches.size >= 2) return;      // إصبعين = تكبير وتحريك مش كتابة
+                e.preventDefault();
+                try { layer.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                const p = notePoint(layer, e);
+                pushNoteUndo(pageNo);
+                if (reader.tool === 'eraser') {
+                    activeStroke = { layer, pageNo, pid: e.pointerId, erase: true };
+                    eraseAt(pageNo, p, layer);
+                } else {
+                    const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', c: reader.color, w: reader.size, pts: [p] };
+                    setPageStrokes(pageNo, [...pageStrokes(pageNo), s]);
+                    activeStroke = { layer, pageNo, pid: e.pointerId, stroke: s };
+                    drawNotesOn(layer, pageStrokes(pageNo));
+                }
+            });
+
+            layer.addEventListener('pointermove', e => {
+                if (!activeStroke || activeStroke.layer !== layer || activeStroke.pid !== e.pointerId) return;
+                const p = notePoint(layer, e);
+                if (activeStroke.erase) {
+                    eraseAt(pageNo, p, layer);
+                } else {
+                    activeStroke.stroke.pts.push(p);
+                    drawNotesOn(layer, pageStrokes(pageNo));
+                }
+            });
+
+            const finish = e => {
+                if (activeStroke && activeStroke.layer === layer && activeStroke.pid === e.pointerId) {
+                    activeStroke = null;
+                    scheduleSave();
+                }
+            };
+            layer.addEventListener('pointerup', finish);
+            layer.addEventListener('pointercancel', finish);
+        }
+
         // ---- القارئ: إصبعين = تكبير وتحريك الصفحة، والكتابة بإصبع واحد أو القلم ----
         const readerTouches = new Map();
         let readerView = { z: 1, tx: 0, ty: 0 };
