@@ -1325,7 +1325,7 @@
         const canvas = $('custom-canvas');
         const ctx = canvas.getContext('2d');
         const stageEl = $('board-stage');
-        const FINGER_ERASES = true;   // true = الإصبع ممحاة والقلم كتابة، false = الإصبع يرسم
+        const FINGER_ERASES = false;   // false = الإصبع والقلم بيرسموا، والإصبعين للتكبير
 
         // screen = world * s + t
         const view = { s: 1, tx: 0, ty: 0 };
