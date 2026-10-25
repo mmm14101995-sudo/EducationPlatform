@@ -519,6 +519,21 @@ class MainActivity : Activity() {
         }
 
         @JavascriptInterface
+        fun playVideo(cid: String, name: String): Boolean {
+            val dir = courseDir(cid) ?: return false
+            val f = File(dir, name)
+            if (!f.isFile || f.parentFile != dir) return false
+            runOnUiThread {
+                startActivity(
+                    Intent(this@MainActivity, PlayerActivity::class.java)
+                        .putExtra("path", f.absolutePath)
+                        .putExtra("title", f.nameWithoutExtension)
+                )
+            }
+            return true
+        }
+
+        @JavascriptInterface
         fun listMedia(cid: String): String {
             val arr = JSONArray()
             val dir = courseDir(cid)
