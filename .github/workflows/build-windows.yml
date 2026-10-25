@@ -30,7 +30,7 @@ jobs:
           Write-Output "libmpv copied from $($dll.Name)"
 
       - name: Build EXE
-        run: pyinstaller --onefile --windowed --name EducationPlatform --add-data "index.html;." --add-binary "libmpv-2.dll;." app.py
+        run: pyinstaller --onefile --windowed --name EducationPlatform --add-data "index.html;." --add-binary "libmpv-2.dll;." --icon icon.ico app.py
 
       - uses: actions/upload-artifact@v4
         with:
