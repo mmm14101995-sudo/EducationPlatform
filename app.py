@@ -202,6 +202,32 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             shutil.rmtree(d, ignore_errors=True)
             return self.send_json({"ok": True})
 
+        if path == "/api/books/pick":
+            grade = str(payload.get("grade", "sec3")).lower()
+            kind = str(payload.get("kind", "books"))
+            if grade not in GRADES:
+                return self.send_json({"ok": False}, 400)
+            folder = {"books": "", "reviews": "reviews", "exams": "exams"}.get(kind)
+            if folder is None:
+                return self.send_json({"ok": False}, 400)
+            wins = webview.windows
+            if not wins:
+                return self.send_json({"ok": False}, 500)
+            picked = wins[0].create_file_dialog(
+                webview.OPEN_DIALOG, allow_multiple=True, file_types=("PDF files (*.pdf)",)
+            )
+            if not picked:
+                return self.send_json({"ok": False, "cancelled": True})
+            target = os.path.join(BOOKS_DIR, grade.upper(), folder) if folder else os.path.join(BOOKS_DIR, grade.upper())
+            os.makedirs(target, exist_ok=True)
+            count = 0
+            for src in picked:
+                name = os.path.basename(src)
+                if name.lower().endswith(".pdf"):
+                    shutil.copy2(src, os.path.join(target, name))
+                    count += 1
+            return self.send_json({"ok": True, "count": count})
+
         if path == "/api/media/native-play":
             d = course_dir(str(payload.get("course", "")))
             name = str(payload.get("name", ""))

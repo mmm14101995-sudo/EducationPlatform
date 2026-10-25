@@ -151,7 +151,6 @@
         .shelf-head h2 { font-size: 20px; font-weight: 800; }
         .shelf-count { font-size: 13px; color: var(--muted); }
         .shelf-head .btn-ghost { flex: 0 0 auto; margin-inline-start: auto; }
-        body:not(.native) .import-btn { display: none; }
         .shelf-wood {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 28px 22px;
             padding: 26px 22px 16px; min-height: 200px; border-radius: 18px; position: relative;
@@ -1307,7 +1306,11 @@
                 api.openExternal(url);
             },
             importBook(grade, kind) {
-                if (NATIVE) NATIVE.importBook(grade, kind);
+                if (NATIVE) return NATIVE.importBook(grade, kind);
+                return postJson('/api/books/pick', { grade, kind })
+                    .then(r => r.json())
+                    .then(j => { if (j && j.ok) loadBooks(); })
+                    .catch(() => {});
             },
             async listMedia(cid) {
                 if (NATIVE) return JSON.parse(NATIVE.listMedia(cid));
@@ -3208,6 +3211,15 @@
         vpVideo.addEventListener('loadeddata', () => { clearTimeout(vpLoadTimer); $('vp-msg').classList.remove('show'); });
         vpVideo.addEventListener('error', () => {
             const code = vpVideo.error ? vpVideo.error.code : 0;
+            if (code === 4 && vpCurrent) {
+                playNativeFallback().then(ok => {
+                    if (!ok) {
+                        $('vp-msg').innerText = 'تعذر تشغيل الفيديو (كود 4).\nالصيغة دي مش مدعومة.';
+                        $('vp-msg').classList.add('show');
+                    }
+                });
+                return;
+            }
             $('vp-msg').innerText = 'تعذر تشغيل الفيديو (كود ' + code + ').\nجرّب ملف MP4 بترميز H.264.';
             $('vp-msg').classList.add('show');
         });
@@ -3291,22 +3303,29 @@
         }
 
         // على الأندرويد الفيديو بيتفتح في المشغّل الأصلي (بيشغّل أغلب الصيغ)، وغير كده المشغّل اللي في المتصفح
-        // على الأندرويد: المشغّل الأصلي. على الويندوز: المشغّل الأصلي (libmpv) عن طريق البرنامج. ولو فشل الاتنين: مشغّل المتصفح
+        // الفيديو بيتشغّل جوه المنصة. على الأندرويد بالمشغّل الأصلي.
+        let vpCurrent = null;
         async function playMedia(cid, name, url, title) {
             if (NATIVE && NATIVE.playVideo) {
                 if (NATIVE.playVideo(cid, name)) return;
-            } else {
-                try {
-                    const res = await fetch('/api/media/native-play', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ course: cid, name })
-                    });
-                    const j = await res.json();
-                    if (j && j.ok) return;
-                } catch (e) { /* نكمل بمشغّل المتصفح */ }
             }
+            vpCurrent = NATIVE ? null : { cid, name };
             openPlayer(url, title);
+        }
+
+        // لو الصفحة ما قدرتش تفك الصيغة (زي MKV) على الكمبيوتر، نفتح المشغّل الأصلي (libmpv)
+        async function playNativeFallback() {
+            if (!vpCurrent) return false;
+            try {
+                const res = await fetch('/api/media/native-play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course: vpCurrent.cid, name: vpCurrent.name })
+                });
+                const j = await res.json();
+                if (j && j.ok) { closeModal('player-modal'); return true; }
+            } catch (e) { /* نعرض الرسالة */ }
+            return false;
         }
 
         function openPlayer(url, title) {
