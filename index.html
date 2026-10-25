@@ -716,6 +716,20 @@
             box-shadow: inset 0 2px 3px rgba(255,255,255,0.5), inset 0 -3px 5px rgba(0,0,0,0.35), 0 4px 8px rgba(0,0,0,0.35);
         }
 
+        /* قايمة الأشكال + شكل السن أوضح في الشريط */
+        .shape-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .shape-sw {
+            aspect-ratio: 1; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+            background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)); color: var(--text);
+            display: grid; place-items: center; padding: 12px; transition: transform 0.2s;
+        }
+        .shape-sw:hover { transform: scale(1.06); }
+        .shape-sw svg { width: 100%; height: 100%; }
+        .board-bar .pen-3d { width: 50px; height: 60px; }
+        .board-bar .pen-3d svg { width: 36px; height: 54px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45)); }
+        .rn-tool { width: 46px; height: 54px; }
+        .rn-tool svg { width: 30px; height: 46px; }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition: none !important; animation: none !important; }
         }
@@ -816,6 +830,9 @@
                             <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><defs><linearGradient id="b6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#b6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
                         </div>
 
+                        <div class="bgrp">
+                            <button class="ibtn" id="shape-open" title="الأشكال" onclick="openShapes('board')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
+                        </div>
                         <div class="bgrp">
                             <button class="ibtn cpick-btn" title="الألوان" onclick="openPalette('board')"><span id="cur-dot"></span></button>
                         </div>
@@ -1038,6 +1055,22 @@
         </div>
     </div>
 
+    <!-- قايمة الأشكال -->
+    <div id="shape-modal" class="modal pal-modal" onclick="if (event.target === this) closeModal('shape-modal')">
+        <div class="modal-box pal-box">
+            <div class="modal-head"><h2>اختار الشكل</h2><button class="ibtn" onclick="closeModal('shape-modal')"><i data-icon="x"></i></button></div>
+            <div class="shape-grid">
+                <button class="shape-sw" title="خط مستقيم" onclick="pickShape('line')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="20" x2="20" y2="4"/></svg></button>
+                <button class="shape-sw" title="سهم" onclick="pickShape('arrow')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="19" y2="5"/><path d="M10 5h9v9"/></svg></button>
+                <button class="shape-sw" title="مستطيل" onclick="pickShape('rect')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="6" width="18" height="12" rx="1.5"/></svg></button>
+                <button class="shape-sw" title="مربع" onclick="pickShape('square')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></button>
+                <button class="shape-sw" title="دايرة" onclick="pickShape('circle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8"/></svg></button>
+                <button class="shape-sw" title="مثلث" onclick="pickShape('triangle')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 4 L21 19 L3 19 Z"/></svg></button>
+                <button class="shape-sw" title="معين" onclick="pickShape('diamond')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3 L21 12 L12 21 L3 12 Z"/></svg></button>
+            </div>
+        </div>
+    </div>
+
     <!-- لوحة الألوان -->
     <div id="palette-modal" class="modal pal-modal" onclick="if (event.target === this) closeModal('palette-modal')">
         <div class="modal-box pal-box">
@@ -1082,6 +1115,7 @@
             <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="setNoteTool('broad')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r4a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="6.3" y="1.5" width="13.4" height="26" rx="3" fill="url(#r4a)"/><rect x="6.3" y="21.5" width="13.4" height="3.5" fill="#ef4444"/><path d="M6.3 25 H19.7 L17 38.5 H9 Z" fill="#6b7280"/><rect x="8" y="3" width="1.4" height="16" rx=".7" fill="#ffffff" opacity=".4"/></svg></button>
             <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="setNoteTool('pencil')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r5a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#78350f"/><stop offset=".35" stop-color="#fde047"/><stop offset=".6" stop-color="#fde047"/><stop offset="1" stop-color="#92400e"/></linearGradient></defs><rect x="9" y="5.5" width="8" height="20" fill="url(#r5a)"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" fill="#f9a8d4"/><rect x="9" y="25.5" width="8" height="2.5" fill="#94a3b8"/><path d="M9 28 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
             <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#r6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
+            <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
             <span class="rn-sep"></span>
             <button class="ncolor" id="rd-cpick" title="الألوان" onclick="openPalette('reader')" style="background:#dc2626"></button>
             <span class="rn-sep"></span>
@@ -1558,6 +1592,7 @@
         let penWidth = 3;            // بالبيكسل على الشاشة
         let eraserWidth = 35;        // بالبيكسل على الشاشة
         let penStyle = 'normal';     // normal | feather | broad
+        let shapeKind = 'line';      // line | arrow | rect | square | circle | triangle | diamond
         let cur = null;              // الخط اللي بيترسم دلوقتي
         let renderPending = false;
         let undoStack = [];
@@ -1857,7 +1892,11 @@
             } else {
                 activeMode = 'draw';
                 const [x, y] = worldPoint(e);
-                cur = { t: penStyle === 'hl' ? 'hl' : 'pen', c: penColor, w: penWidth / view.s, s: penStyle, pts: [[x, y]] };
+                if (tool === 'shape') {
+                    cur = { t: 'pen', c: penColor, w: penWidth / view.s, s: 'shape', kind: shapeKind, start: [x, y], pts: [[x, y], [x, y]] };
+                } else {
+                    cur = { t: penStyle === 'hl' ? 'hl' : 'pen', c: penColor, w: penWidth / view.s, s: penStyle, pts: [[x, y]] };
+                }
                 requestRender();
             }
         });
@@ -1877,8 +1916,12 @@
             for (const ce of list) {
                 const [x, y] = worldPoint(ce);
                 if (activeMode === 'draw' && cur) {
-                    const last = cur.pts[cur.pts.length - 1];
-                    if (Math.hypot(x - last[0], y - last[1]) * view.s > 0.8) cur.pts.push([x, y]);
+                    if (cur.start) {
+                        cur.pts = buildShape(cur.kind, cur.start, [x, y]);
+                    } else {
+                        const last = cur.pts[cur.pts.length - 1];
+                        if (Math.hypot(x - last[0], y - last[1]) * view.s > 0.8) cur.pts.push([x, y]);
+                    }
                 } else if (activeMode === 'erase') {
                     eraseBoardAt([x, y]);
                 }
@@ -1908,6 +1951,60 @@
         }
         stageEl.addEventListener('pointerup', endPointer);
         stageEl.addEventListener('pointercancel', endPointer);
+
+        // الأشكال بتتحفظ كخطوط عادية، فالممحاة والتراجع والحفظ بيشتغلوا عليها زي الكتابة
+        function buildShape(kind, a, b) {
+            const [x1, y1] = a, [x2, y2] = b;
+            if (kind === 'rect') return [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]];
+            if (kind === 'square') {
+                const d = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
+                const X = x1 + (x2 >= x1 ? d : -d), Y = y1 + (y2 >= y1 ? d : -d);
+                return [[x1, y1], [X, y1], [X, Y], [x1, Y], [x1, y1]];
+            }
+            if (kind === 'circle') {
+                const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2, rx = Math.abs(x2 - x1) / 2, ry = Math.abs(y2 - y1) / 2;
+                const pts = [];
+                for (let i = 0; i <= 72; i++) {
+                    const t = i / 72 * Math.PI * 2;
+                    pts.push([cx + rx * Math.cos(t), cy + ry * Math.sin(t)]);
+                }
+                return pts;
+            }
+            if (kind === 'triangle') {
+                const mx = (x1 + x2) / 2;
+                return [[mx, y1], [x2, y2], [x1, y2], [mx, y1]];
+            }
+            if (kind === 'diamond') {
+                const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+                return [[mx, y1], [x2, my], [mx, y2], [x1, my], [mx, y1]];
+            }
+            if (kind === 'arrow') {
+                const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+                const head = Math.min(40, len * 0.25), ang = Math.atan2(dy, dx);
+                const h1 = [x2 - head * Math.cos(ang - Math.PI / 6), y2 - head * Math.sin(ang - Math.PI / 6)];
+                const h2 = [x2 - head * Math.cos(ang + Math.PI / 6), y2 - head * Math.sin(ang + Math.PI / 6)];
+                return [[x1, y1], [x2, y2], h1, [x2, y2], h2];
+            }
+            return [[x1, y1], [x2, y2]];
+        }
+
+        // شكل مختار من القايمة
+        let shapeTarget = 'board';
+        function openShapes(target) {
+            shapeTarget = target;
+            openModal('shape-modal');
+        }
+        function pickShape(kind) {
+            closeModal('shape-modal');
+            shapeKind = kind;
+            if (shapeTarget === 'board') {
+                setTool('shape');
+            } else {
+                reader.tool = 'shape';
+                reader.annotate = true;
+                syncAnnotateUI();
+            }
+        }
 
         // ---- الأدوات ----
         function applyToolState() {
@@ -1947,6 +2044,7 @@
         }
 
         function setEraser() { setTool('eraser'); }
+        function setShape(kind) { shapeKind = kind; setTool('shape'); }
 
         function changeToolSize(size) {
             size = Number(size);
@@ -2542,7 +2640,7 @@
         const courseMedia = new Map();   // cid -> [{name,url}]
         let detailId = null;
         let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings'];
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings'];
 
         function findCourse(id) {
             return (appState.courses || []).find(c => c.id === id) || null;
@@ -3211,7 +3309,8 @@
                     activeStroke = { layer, pageNo, pid: e.pointerId, erase: true };
                     eraseAt(pageNo, p, layer);
                 } else {
-                    const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', s: reader.tool, c: reader.color, w: reader.size, pts: [p] };
+                    const isShape = reader.tool === 'shape';
+                    const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', s: isShape ? 'shape' : reader.tool, kind: shapeKind, start: isShape ? p : undefined, c: reader.color, w: reader.size, pts: isShape ? [p, p] : [p] };
                     setPageStrokes(pageNo, [...pageStrokes(pageNo), s]);
                     activeStroke = { layer, pageNo, pid: e.pointerId, stroke: s };
                     drawNotesOn(layer, pageStrokes(pageNo));
@@ -3224,7 +3323,8 @@
                 if (activeStroke.erase) {
                     eraseAt(pageNo, p, layer);
                 } else {
-                    activeStroke.stroke.pts.push(p);
+                    if (activeStroke.stroke.start) activeStroke.stroke.pts = buildShape(activeStroke.stroke.kind, activeStroke.stroke.start, p);
+                    else activeStroke.stroke.pts.push(p);
                     drawNotesOn(layer, pageStrokes(pageNo));
                 }
             });
@@ -3474,7 +3574,7 @@
                 l.style.cursor = reader.annotate ? 'crosshair' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
-            ['normal', 'feather', 'hl', 'broad', 'pencil', 'eraser'].forEach(t => {
+            ['normal', 'feather', 'hl', 'broad', 'pencil', 'eraser', 'shape'].forEach(t => {
                 $('tool-' + t).classList.toggle('active', reader.annotate && reader.tool === t);
             });
             document.querySelectorAll('.ncolor').forEach(b => {
