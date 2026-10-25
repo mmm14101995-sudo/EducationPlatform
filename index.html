@@ -3291,8 +3291,21 @@
         }
 
         // على الأندرويد الفيديو بيتفتح في المشغّل الأصلي (بيشغّل أغلب الصيغ)، وغير كده المشغّل اللي في المتصفح
-        function playMedia(cid, name, url, title) {
-            if (NATIVE && NATIVE.playVideo && NATIVE.playVideo(cid, name)) return;
+        // على الأندرويد: المشغّل الأصلي. على الويندوز: المشغّل الأصلي (libmpv) عن طريق البرنامج. ولو فشل الاتنين: مشغّل المتصفح
+        async function playMedia(cid, name, url, title) {
+            if (NATIVE && NATIVE.playVideo) {
+                if (NATIVE.playVideo(cid, name)) return;
+            } else {
+                try {
+                    const res = await fetch('/api/media/native-play', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ course: cid, name })
+                    });
+                    const j = await res.json();
+                    if (j && j.ok) return;
+                } catch (e) { /* نكمل بمشغّل المتصفح */ }
+            }
             openPlayer(url, title);
         }
 
