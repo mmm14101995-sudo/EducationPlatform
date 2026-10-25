@@ -1,0 +1,38 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install pywebview python-mpv pyinstaller
+
+      - name: Download libmpv (video engine)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo zhongfly/mpv-winbuild --pattern "mpv-dev-x86_64-*.7z" --dir mpvdev --clobber
+          $archive = Get-ChildItem mpvdev -Filter "*.7z" | Select-Object -First 1
+          7z x $archive.FullName "-ompvdev\out" -y | Out-Null
+          $dll = Get-ChildItem mpvdev\out -Recurse -Filter "libmpv*.dll" | Select-Object -First 1
+          if (-not $dll) { throw "libmpv DLL not found in the archive" }
+          Copy-Item $dll.FullName -Destination "libmpv-2.dll"
+          Write-Output "libmpv copied from $($dll.Name)"
+
+      - name: Build EXE
+        run: pyinstaller --onefile --windowed --name EducationPlatform --add-data "index.html;." --add-binary "libmpv-2.dll;." app.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EducationPlatform-windows
+          path: dist/EducationPlatform.exe
