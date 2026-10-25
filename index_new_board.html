@@ -2753,8 +2753,8 @@
             media.forEach(m => {
                 const title = m.name.replace(/\.[^.]+$/, '');
                 list.appendChild(detailItem({
-                    title, sub: /\.(mp4|m4v|webm)$/i.test(m.name) ? 'فيديو من الجهاز' : 'صيغة غير مضمونة، الأفضل MP4',
-                    onOpen: () => openPlayer(m.url, title),
+                    title, sub: 'فيديو من الجهاز',
+                    onOpen: () => playMedia(c.id, m.name, m.url, title),
                     onDelete: async () => {
                         await api.deleteMedia(c.id, m.name);
                         renderDetail();
@@ -2939,12 +2939,21 @@
         function makeThumb(url) {
             return new Promise(resolve => {
                 if (thumbCache.has(url)) return resolve(thumbCache.get(url));
+                if (appState.thumbs && appState.thumbs[url]) {
+                    thumbCache.set(url, appState.thumbs[url]);
+                    return resolve(appState.thumbs[url]);
+                }
                 const v = document.createElement('video');
                 v.muted = true;
                 v.preload = 'metadata';
                 v.playsInline = true;
                 const done = data => {
                     thumbCache.set(url, data);
+                    if (data) {
+                        appState.thumbs = appState.thumbs || {};
+                        appState.thumbs[url] = data;
+                        scheduleSave();
+                    }
                     v.removeAttribute('src');
                     v.load();
                     resolve(data);
@@ -2972,7 +2981,7 @@
             const grid = $('home-videos');
             if (!grid) return;
             const items = [];
-            (appState.courses || []).forEach(c => (courseMedia.get(c.id) || []).forEach(m => items.push({ m, course: c.name })));
+            (appState.courses || []).forEach(c => (courseMedia.get(c.id) || []).forEach(m => items.push({ m, course: c.name, cid: c.id })));
             $('home-videos-count').innerText = items.length ? items.length + ' فيديو' : '';
             grid.innerHTML = '';
             if (!items.length) {
@@ -2983,18 +2992,24 @@
                 grid.appendChild(p);
                 return;
             }
-            items.slice(0, 12).forEach(({ m, course }) => {
+            items.slice(0, 12).forEach(({ m, course, cid }) => {
                 const title = m.name.replace(/\.[^.]+$/, '');
                 const card = document.createElement('div');
                 card.className = 'course-card vid-card';
                 card.innerHTML = '<div class="vid-thumb"><div class="vid-play">' + icon('play') + '</div></div>' +
                                  '<h3>' + esc(title) + '</h3><p>' + esc(course) + '</p>';
-                card.addEventListener('click', () => openPlayer(m.url, title));
+                card.addEventListener('click', () => playMedia(cid, m.name, m.url, title));
                 grid.appendChild(card);
                 makeThumb(m.url).then(img => {
                     if (img) card.querySelector('.vid-thumb').style.backgroundImage = 'url(' + img + ')';
                 });
             });
+        }
+
+        // على الأندرويد الفيديو بيتفتح في المشغّل الأصلي (بيشغّل أغلب الصيغ)، وغير كده المشغّل اللي في المتصفح
+        function playMedia(cid, name, url, title) {
+            if (NATIVE && NATIVE.playVideo && NATIVE.playVideo(cid, name)) return;
+            openPlayer(url, title);
         }
 
         function openPlayer(url, title) {
