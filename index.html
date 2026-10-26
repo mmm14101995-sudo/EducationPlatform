@@ -260,7 +260,13 @@
         .ptab { padding: 7px 12px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; font-size: 13px; }
         .ptab.active { background: #ffffff; color: #0f172a; }
         .ptab-add { padding: 6px 10px; border-radius: 9px; border: 1px dashed var(--line); background: transparent; color: var(--text); font-weight: 700; cursor: pointer; font-size: 13px; }
-        .board-bg-btn { width: auto; padding: 0 10px; gap: 6px; display: inline-flex; align-items: center; }
+        .board-bg-btn { width: auto; min-height: 38px; padding: 0 10px; gap: 8px; display: inline-flex; align-items: center; justify-content: center; }
+        .board-bg-dot {
+            width: 20px; height: 20px; flex: 0 0 20px; display: inline-block; border-radius: 6px;
+            background: #ffffff; border: 2px solid rgba(128,128,128,0.7);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 5px rgba(0,0,0,0.25);
+        }
+        .pen-color-group, .board-color-group { flex: 0 0 auto; }
         .bgtxt { font-size: 13px; font-weight: 700; white-space: nowrap; }
         .bgchips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
         .bgchip { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; color: inherit; cursor: pointer; font-size: 12px; }
@@ -718,10 +724,10 @@
         .pal-sw:hover { transform: scale(1.08); }
         .pal-custom { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 700; }
         .pal-custom input { width: 64px; height: 42px; border: 0; background: none; cursor: pointer; }
-        .cpick-btn { width: 44px; height: 42px; display: grid; place-items: center; }
+        .cpick-btn { width: auto; min-width: 94px; height: 38px; padding: 0 9px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
         #cur-dot {
-            width: 28px; height: 28px; border-radius: 9px; background: #0f172a; border: 2px solid #fff;
-            box-shadow: inset 0 2px 3px rgba(255,255,255,0.5), inset 0 -3px 5px rgba(0,0,0,0.35), 0 4px 8px rgba(0,0,0,0.35);
+            width: 20px; height: 20px; flex: 0 0 20px; border-radius: 6px; background: #0f172a; border: 2px solid rgba(255,255,255,0.9);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.25);
         }
         #rd-cpick {
             width: 30px; height: 30px; border-radius: 9px; border: 2px solid #fff; cursor: pointer;
@@ -880,9 +886,15 @@
                             <button class="ibtn" id="shape-open" title="الأشكال" onclick="openShapes('board')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
                             <button class="ibtn sticky-btn" title="ملاحظة لاصقة" onclick="addBoardSticky()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fde047" stroke="#a16207"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
                         </div>
-                        <div class="bgrp">
-                            <button class="ibtn cpick-btn" title="الألوان" onclick="openPalette('board')"><span id="cur-dot"></span></button>
-                            <button class="ibtn board-bg-btn" title="لون السبورة" onclick="openBoardBg()"><i data-icon="palette"></i><span class="bgtxt">لون السبورة</span></button>
+                        <div class="bgrp pen-color-group">
+                            <button class="ibtn cpick-btn" title="لون القلم" aria-label="اختيار لون القلم" onclick="openPalette('board')">
+                                <span id="cur-dot"></span><span class="bgtxt">لون القلم</span>
+                            </button>
+                        </div>
+                        <div class="bgrp board-color-group">
+                            <button class="ibtn board-bg-btn" id="board-bg-btn" title="خلفية السبورة" aria-label="اختيار لون خلفية السبورة" onclick="openBoardBg()">
+                                <span class="board-bg-dot" id="board-bg-dot"></span><span class="bgtxt">خلفية السبورة</span>
+                            </button>
                         </div>
 
                         <div class="bgrp">
@@ -1712,19 +1724,24 @@
             return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
         }
         function boardIsDark(hex) { return lumHex(hex) < 0.45; }
+        function updateBoardBgButton(hex) {
+            const dot = $('board-bg-dot');
+            if (dot) dot.style.backgroundColor = hex || boardBg();
+            const btn = $('board-bg-btn');
+            if (btn) btn.title = 'خلفية السبورة: ' + (hex || boardBg());
+        }
         function applyBoardBgStyles(hex) {
             const dk = boardIsDark(hex);
             stageEl.style.backgroundColor = hex;
             stageEl.style.backgroundImage = dk ? 'radial-gradient(rgba(255,255,255,0.16) 1px, transparent 1px)' : 'radial-gradient(#e2e8f0 1px, transparent 1px)';
             const paper = $('board-paper');
             if (paper) paper.style.background = 'transparent';
+            updateBoardBgButton(hex);
         }
         function applyBoardBg(hex) {
             appState.boardBg = hex;
             applyBoardBgStyles(hex);
-            // الحبر الغامق يبقى أبيض على الخلفية الغامقة، والأبيض يبقى غامق على الفاتحة
-            if (boardIsDark(hex) && lumHex(penColor) < 0.35) setPenColor('#f8fafc');
-            else if (!boardIsDark(hex) && lumHex(penColor) > 0.85) setPenColor('#0f172a');
+            // لون الخلفية مستقل تماماً عن لون القلم، ولا يغيّر اختيار المستخدم للقلم.
             scheduleSave();
         }
 
