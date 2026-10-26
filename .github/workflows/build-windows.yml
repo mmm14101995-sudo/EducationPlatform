@@ -36,3 +36,14 @@ jobs:
         with:
           name: EducationPlatform-windows
           path: dist/EducationPlatform.exe
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer (Setup)
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EducationPlatform-setup
+          path: Output/EducationPlatform-Setup.exe
