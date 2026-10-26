@@ -261,6 +261,12 @@
         .ptab { padding: 7px 12px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; font-size: 13px; }
         .ptab.active { background: #ffffff; color: #0f172a; }
         .ptab-add { padding: 6px 10px; border-radius: 9px; border: 1px dashed var(--line); background: transparent; color: var(--text); font-weight: 700; cursor: pointer; font-size: 13px; }
+        .board-bg-btn { width: auto; padding: 0 10px; gap: 6px; display: inline-flex; align-items: center; }
+        .bgtxt { font-size: 13px; font-weight: 700; white-space: nowrap; }
+        .bgchips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .bgchip { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; color: inherit; cursor: pointer; font-size: 12px; }
+        .bgsw { width: 58px; height: 58px; border-radius: 14px; border: 2px solid rgba(128,128,128,0.45); box-shadow: inset 0 2px 3px rgba(255,255,255,0.35), 0 4px 10px rgba(0,0,0,0.25); }
+        .bgchip.on .bgsw { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.35); }
         .board-stage { position: relative; z-index: 1; flex: 1; min-height: 0; overflow: auto; background: #ffffff; }
         .board-paper { position: relative; background: #ffffff; }
         .board-stage, .board-paper { touch-action: none; }
@@ -870,7 +876,7 @@
                         </div>
                         <div class="bgrp">
                             <button class="ibtn cpick-btn" title="الألوان" onclick="openPalette('board')"><span id="cur-dot"></span></button>
-                            <button class="ibtn" title="لون السبورة" onclick="openPalette('boardbg')"><i data-icon="palette"></i></button>
+                            <button class="ibtn board-bg-btn" title="لون السبورة" onclick="openBoardBg()"><i data-icon="palette"></i><span class="bgtxt">لون السبورة</span></button>
                         </div>
 
                         <div class="bgrp">
@@ -1113,6 +1119,17 @@
     </div>
 
     <!-- لوحة الألوان -->
+    <div id="board-bg-modal" class="modal pal-modal" onclick="if (event.target === this) closeModal('board-bg-modal')">
+        <div class="modal-box pal-box">
+            <div class="modal-head"><h2>لون السبورة</h2><button class="ibtn" onclick="closeModal('board-bg-modal')"><i data-icon="x"></i></button></div>
+            <div class="bgchips" id="bg-chips"></div>
+            <div class="pal-custom">
+                <label for="board-bg-custom">لون مخصص للسبورة</label>
+                <input type="color" id="board-bg-custom" value="#ffffff">
+            </div>
+        </div>
+    </div>
+
     <div id="palette-modal" class="modal pal-modal" onclick="if (event.target === this) closeModal('palette-modal')">
         <div class="modal-box pal-box">
             <div class="modal-head"><h2>اختار اللون</h2><button class="ibtn" onclick="closeModal('palette-modal')"><i data-icon="x"></i></button></div>
@@ -1700,6 +1717,22 @@
             else if (!boardIsDark(hex) && lumHex(penColor) > 0.85) setPenColor('#0f172a');
             scheduleSave();
         }
+
+        const BOARD_BG_NAMES = { '#ffffff': 'أبيض', '#fdf6e3': 'كريمي', '#f1f5f9': 'رمادي فاتح', '#111111': 'أسود', '#0f172a': 'كحلي', '#1f3d2b': 'أخضر سبورة', '#3b2f2f': 'بني غامق', '#1e1b4b': 'بنفسجي غامق' };
+        function openBoardBg() {
+            const g = $('bg-chips');
+            g.innerHTML = '';
+            BOARD_BG_LIST.forEach(c => {
+                const b = document.createElement('button');
+                b.className = 'bgchip' + (c === boardBg() ? ' on' : '');
+                b.innerHTML = '<span class="bgsw" style="background:' + c + '"></span><span class="bgname">' + BOARD_BG_NAMES[c] + '</span>';
+                b.addEventListener('click', () => { closeModal('board-bg-modal'); applyBoardBg(c); });
+                g.appendChild(b);
+            });
+            $('board-bg-custom').value = boardBg();
+            openModal('board-bg-modal');
+        }
+        $('board-bg-custom').addEventListener('change', e => { closeModal('board-bg-modal'); applyBoardBg(e.target.value); });
 
         function boardDpr() { return document.body.classList.contains('lite') ? Math.min(1.5, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1); }
         function wbGrade() { return appState.whiteboard[currentGrade]; }
@@ -3119,7 +3152,7 @@
         function buildPalette() {
             const g = $('pal-grid');
             g.innerHTML = '';
-            (paletteTarget === 'boardbg' ? BOARD_BG_LIST : PALETTE).forEach(c => {
+            PALETTE.forEach(c => {
                 const b = document.createElement('button');
                 b.className = 'pal-sw';
                 b.style.background = c;
@@ -3131,7 +3164,7 @@
 
         function openPalette(target) {
             paletteTarget = target;
-            $('pal-custom').value = target === 'boardbg' ? boardBg() : (target === 'board' ? penColor : reader.color);
+            $('pal-custom').value = target === 'board' ? penColor : reader.color;
             openModal('palette-modal');
         }
 
@@ -3142,7 +3175,6 @@
 
         function pickPalette(c) {
             closeModal('palette-modal');
-            if (paletteTarget === 'boardbg') { applyBoardBg(c); return; }
             if (paletteTarget === 'board') setPenColor(c);
             else setNoteColor(c);
             markCurrentColor(c);
