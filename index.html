@@ -275,6 +275,15 @@
         .board-stage { position: relative; z-index: 1; flex: 1; min-height: 0; overflow: auto; background: #ffffff; }
         .board-paper { position: relative; background: #ffffff; }
         .board-stage, .board-paper { touch-action: none; }
+        .paper-style-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0 18px; }
+        .paper-style-choice { min-height: 86px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.04); color: var(--text); padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; }
+        .paper-style-choice.active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); background: rgba(255,255,255,.08); }
+        .paper-style-preview { display: block; width: 100%; max-width: 116px; height: 44px; border: 1px solid rgba(128,128,128,.45); border-radius: 7px; background-color: #fff; }
+        .paper-style-preview.grid { background-image: linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px); background-size: 12px 12px; }
+        .paper-style-preview.lined { background-image: linear-gradient(to bottom, #cbd5e1 1px, transparent 1px); background-size: 100% 10px; }
+        .paper-size-options { display: flex; flex-wrap: wrap; gap: 8px; }
+        .paper-size-choice { flex: 1 1 64px; min-height: 38px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; }
+        .paper-size-choice.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
         #custom-canvas {
             display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair;
             background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 24px 24px;
@@ -953,6 +962,11 @@
                                 <span class="board-bg-dot" id="board-bg-dot"></span><span class="bgtxt">خلفية السبورة</span>
                             </button>
                         </div>
+                        <div class="bgrp paper-style-group">
+                            <button class="ibtn" id="paper-style-btn" title="شكل الصفحة: مسطرة أو مربعات" aria-label="اختيار شكل الصفحة" onclick="openBoardPaperStyle()">
+                                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="2.5" width="18" height="19" rx="2"/><path d="M7 7h10M7 11h10M7 15h10M7 19h10"/><path d="M7 3v18" opacity=".45"/></svg>
+                            </button>
+                        </div>
 
                         <div class="bgrp">
                             <input type="range" class="range" id="penSizeSlider" min="1" max="60" value="3" oninput="changeToolSize(this.value)" title="السمك">
@@ -1202,6 +1216,26 @@
                 <label for="board-bg-custom">لون مخصص للسبورة</label>
                 <input type="color" id="board-bg-custom" value="#ffffff">
             </div>
+        </div>
+    </div>
+
+    <div id="board-paper-style-modal" class="modal" onclick="if (event.target === this) closeModal('board-paper-style-modal')">
+        <div class="modal-box">
+            <div class="modal-head"><h2>شكل صفحة السبورة</h2><button class="ibtn" onclick="closeModal('board-paper-style-modal')"><i data-icon="x"></i></button></div>
+            <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:8px;">اختار شكل الورقة، ثم المسافة بين السطور أو المربعات.</p>
+            <div class="paper-style-options">
+                <button type="button" class="paper-style-choice" id="paper-choice-lined" onclick="setBoardPaperPattern('lined')"><span class="paper-style-preview lined"></span><span>مسطرة</span></button>
+                <button type="button" class="paper-style-choice" id="paper-choice-grid" onclick="setBoardPaperPattern('grid')"><span class="paper-style-preview grid"></span><span>مربعات</span></button>
+            </div>
+            <div class="field"><label>حجم السطور أو المربعات</label></div>
+            <div class="paper-size-options">
+                <button type="button" class="paper-size-choice" data-paper-size="14" onclick="setBoardPaperSize(14)">صغير جدًا</button>
+                <button type="button" class="paper-size-choice" data-paper-size="20" onclick="setBoardPaperSize(20)">صغير</button>
+                <button type="button" class="paper-size-choice" data-paper-size="28" onclick="setBoardPaperSize(28)">متوسط</button>
+                <button type="button" class="paper-size-choice" data-paper-size="40" onclick="setBoardPaperSize(40)">كبير</button>
+                <button type="button" class="paper-size-choice" data-paper-size="52" onclick="setBoardPaperSize(52)">كبير جدًا</button>
+            </div>
+            <div class="modal-actions" style="margin-top:18px;"><button class="btn-primary" onclick="closeModal('board-paper-style-modal')">تم</button></div>
         </div>
     </div>
 
@@ -1787,13 +1821,62 @@
             const btn = $('board-bg-btn');
             if (btn) btn.title = 'خلفية السبورة: ' + (hex || boardBg());
         }
+        function boardPaperPattern() { return appState.boardPaperPattern === 'lined' ? 'lined' : 'grid'; }
+        function boardPaperSize() {
+            const n = Number(appState.boardPaperSize);
+            return [14, 20, 28, 40, 52].includes(n) ? n : 28;
+        }
+        function applyBoardPaperPatternStyles() {
+            const dk = boardIsDark(boardBg());
+            const line = dk ? 'rgba(255,255,255,0.18)' : 'rgba(148,163,184,0.48)';
+            const step = Math.max(2, boardPaperSize() * view.s);
+            if (boardPaperPattern() === 'lined') {
+                stageEl.style.backgroundImage = 'linear-gradient(to bottom, ' + line + ' 1px, transparent 1px)';
+                stageEl.style.backgroundSize = '100% ' + step + 'px';
+                stageEl.style.backgroundPosition = '0 ' + (view.ty % step) + 'px';
+            } else {
+                stageEl.style.backgroundImage = 'linear-gradient(to right, ' + line + ' 1px, transparent 1px), linear-gradient(to bottom, ' + line + ' 1px, transparent 1px)';
+                stageEl.style.backgroundSize = step + 'px ' + step + 'px';
+                stageEl.style.backgroundPosition = (view.tx % step) + 'px ' + (view.ty % step) + 'px';
+            }
+            const btn = $('paper-style-btn');
+            if (btn) btn.title = 'شكل الصفحة: ' + (boardPaperPattern() === 'lined' ? 'مسطرة' : 'مربعات') + '، الحجم ' + boardPaperSize();
+        }
         function applyBoardBgStyles(hex) {
-            const dk = boardIsDark(hex);
             stageEl.style.backgroundColor = hex;
-            stageEl.style.backgroundImage = dk ? 'radial-gradient(rgba(255,255,255,0.16) 1px, transparent 1px)' : 'radial-gradient(#e2e8f0 1px, transparent 1px)';
             const paper = $('board-paper');
             if (paper) paper.style.background = 'transparent';
             updateBoardBgButton(hex);
+            applyBoardPaperPatternStyles();
+        }
+        function refreshBoardPaperStyleChoices() {
+            const pattern = boardPaperPattern();
+            ['lined', 'grid'].forEach(type => {
+                const el = $('paper-choice-' + type);
+                if (el) el.classList.toggle('active', type === pattern);
+            });
+            document.querySelectorAll('[data-paper-size]').forEach(el => {
+                el.classList.toggle('active', Number(el.dataset.paperSize) === boardPaperSize());
+            });
+        }
+        function openBoardPaperStyle() {
+            refreshBoardPaperStyleChoices();
+            openModal('board-paper-style-modal');
+        }
+        function setBoardPaperPattern(type) {
+            if (type !== 'lined' && type !== 'grid') return;
+            appState.boardPaperPattern = type;
+            refreshBoardPaperStyleChoices();
+            applyBoardPaperPatternStyles();
+            scheduleSave();
+        }
+        function setBoardPaperSize(size) {
+            size = Number(size);
+            if (![14, 20, 28, 40, 52].includes(size)) return;
+            appState.boardPaperSize = size;
+            refreshBoardPaperStyleChoices();
+            applyBoardPaperPatternStyles();
+            scheduleSave();
         }
         function applyBoardBg(hex) {
             appState.boardBg = hex;
@@ -2046,9 +2129,7 @@
                 ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
                 drawStroke(ctx, cur);
             }
-            const grid = 24 * view.s;
-            stageEl.style.backgroundSize = grid + 'px ' + grid + 'px';
-            stageEl.style.backgroundPosition = (view.tx % grid) + 'px ' + (view.ty % grid) + 'px';
+            applyBoardPaperPatternStyles();
             renderStickies();
         }
 
@@ -4069,6 +4150,9 @@
             syncSlider();
             updateHistBtns();
             initWhiteboard();
+            appState.boardPaperPattern = appState.boardPaperPattern === 'lined' ? 'lined' : 'grid';
+            appState.boardPaperSize = [14, 20, 28, 40, 52].includes(Number(appState.boardPaperSize)) ? Number(appState.boardPaperSize) : 28;
+            applyBoardBgStyles(boardBg());
             if (window.ResizeObserver) new ResizeObserver(() => resizeCanvas()).observe($('board-stage'));
             await loadBooks();
         });
