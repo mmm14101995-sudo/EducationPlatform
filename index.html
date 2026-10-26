@@ -876,6 +876,7 @@
                         </div>
                         <div class="bgrp">
                             <button class="ibtn cpick-btn" title="الألوان" onclick="openPalette('board')"><span id="cur-dot"></span></button>
+                            <button class="ibtn" title="لون السبورة" onclick="openPalette('boardbg')"><i data-icon="palette"></i></button>
                         </div>
 
                         <div class="bgrp">
@@ -1685,6 +1686,31 @@
             canvas.style.touchAction = 'none';
         })();
 
+        // ---- لون السبورة (أبيض أو أسود أو أي لون) ----
+        const BOARD_BG_LIST = ['#ffffff', '#fdf6e3', '#f1f5f9', '#111111', '#0f172a', '#1f3d2b', '#3b2f2f', '#1e1b4b'];
+        function boardBg() { return appState.boardBg || '#ffffff'; }
+        function lumHex(hex) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16);
+            return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        }
+        function boardIsDark(hex) { return lumHex(hex) < 0.45; }
+        function applyBoardBgStyles(hex) {
+            const dk = boardIsDark(hex);
+            stageEl.style.backgroundColor = hex;
+            stageEl.style.backgroundImage = dk ? 'radial-gradient(rgba(255,255,255,0.16) 1px, transparent 1px)' : 'radial-gradient(#e2e8f0 1px, transparent 1px)';
+            const paper = $('board-paper');
+            if (paper) paper.style.background = 'transparent';
+        }
+        function applyBoardBg(hex) {
+            appState.boardBg = hex;
+            applyBoardBgStyles(hex);
+            // الحبر الغامق يبقى أبيض على الخلفية الغامقة، والأبيض يبقى غامق على الفاتحة
+            if (boardIsDark(hex) && lumHex(penColor) < 0.35) setPenColor('#f8fafc');
+            else if (!boardIsDark(hex) && lumHex(penColor) > 0.85) setPenColor('#0f172a');
+            scheduleSave();
+        }
+
         function boardDpr() { return document.body.classList.contains('lite') ? Math.min(1.5, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1); }
         function wbGrade() { return appState.whiteboard[currentGrade]; }
 
@@ -1890,6 +1916,7 @@
         }
 
         function renderBoard() {
+            if (stageEl.dataset.bg !== boardBg()) { stageEl.dataset.bg = boardBg(); applyBoardBgStyles(boardBg()); }
             if (!canvas.width || !canvas.height) return;
             const d = boardDpr();
             if (boardDirty) {
@@ -3110,7 +3137,7 @@
         function buildPalette() {
             const g = $('pal-grid');
             g.innerHTML = '';
-            PALETTE.forEach(c => {
+            (paletteTarget === 'boardbg' ? BOARD_BG_LIST : PALETTE).forEach(c => {
                 const b = document.createElement('button');
                 b.className = 'pal-sw';
                 b.style.background = c;
@@ -3122,7 +3149,7 @@
 
         function openPalette(target) {
             paletteTarget = target;
-            $('pal-custom').value = target === 'board' ? penColor : reader.color;
+            $('pal-custom').value = target === 'boardbg' ? boardBg() : (target === 'board' ? penColor : reader.color);
             openModal('palette-modal');
         }
 
@@ -3133,6 +3160,7 @@
 
         function pickPalette(c) {
             closeModal('palette-modal');
+            if (paletteTarget === 'boardbg') { applyBoardBg(c); return; }
             if (paletteTarget === 'board') setPenColor(c);
             else setNoteColor(c);
             markCurrentColor(c);
