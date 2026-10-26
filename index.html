@@ -785,7 +785,64 @@
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { transition: none !important; animation: none !important; }
         }
-    </style>
+    
+        /* إصلاح احتواء زر خلفية السبورة ومنع تداخله مع لون القلم */
+        .board-bar .pen-color-group,
+        .board-bar .board-color-group {
+            box-sizing: border-box;
+            flex: 0 0 auto;
+            min-width: 0;
+            max-width: 100%;
+        }
+        .board-bar .pen-color-group .cpick-btn,
+        .board-bar .board-color-group .board-bg-btn {
+            box-sizing: border-box;
+            width: auto;
+            min-width: 0;
+            max-width: 100%;
+            height: 38px;
+            min-height: 38px;
+            padding: 0 8px;
+            gap: 6px;
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            line-height: 1.15;
+        }
+        .board-bar .board-bg-dot,
+        .board-bar #cur-dot {
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            flex: 0 0 16px;
+            box-sizing: border-box;
+        }
+        .board-bar .bgtxt {
+            display: inline-block;
+            font-size: 11px;
+            line-height: 1.2;
+            white-space: nowrap;
+            max-width: none;
+        }
+        .board-bar .pen-color-group,
+        .board-bar .board-color-group {
+            margin: 0;
+        }
+        @media (max-width: 820px) {
+            .board-bar .pen-color-group .cpick-btn,
+            .board-bar .board-color-group .board-bg-btn {
+                height: 36px;
+                min-height: 36px;
+                padding: 0 6px;
+                gap: 5px;
+            }
+            .board-bar .bgtxt { font-size: 10px; }
+            .board-bar .board-bg-dot,
+            .board-bar #cur-dot { width: 15px; height: 15px; min-width: 15px; flex-basis: 15px; }
+        }
+</style>
 </head>
 <body data-theme="dark">
 
