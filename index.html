@@ -384,6 +384,13 @@
             display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 14px;
             background: rgba(255,255,255,0.06); border: 1px solid var(--line);
         }
+        .detail-item .di-thumb {
+            width: 104px; aspect-ratio: 16 / 9; flex: none; border-radius: 10px; position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1e293b) center / cover no-repeat;
+            display: grid; place-items: center;
+        }
+        .detail-item .di-thumb .vid-play { width: 30px; height: 30px; }
+        .detail-item .di-thumb .vid-play .ico { width: 15px; height: 15px; }
         .detail-item .di-info { flex: 1; min-width: 0; }
         .detail-item .di-info b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .detail-item .di-info span { font-size: 12px; color: var(--muted); }
@@ -3040,7 +3047,7 @@
             media.forEach(m => {
                 const title = m.name.replace(/\.[^.]+$/, '');
                 list.appendChild(detailItem({
-                    title, sub: 'فيديو من الجهاز',
+                    title, sub: 'فيديو من الجهاز', thumbUrl: m.url,
                     onOpen: () => playMedia(c.id, m.name, m.url, title),
                     onDelete: async () => {
                         await api.deleteMedia(c.id, m.name);
@@ -3063,10 +3070,19 @@
             });
         }
 
-        function detailItem({ title, sub, onOpen, onDelete }) {
+        function detailItem({ title, sub, onOpen, onDelete, thumbUrl }) {
             const row = document.createElement('div');
             row.className = 'detail-item';
             row.innerHTML = `<div class="di-info"><b>${esc(title)}</b><span>${esc(sub)}</span></div>`;
+            if (thumbUrl) {
+                const th = document.createElement('div');
+                th.className = 'di-thumb';
+                th.innerHTML = '<div class="vid-play">' + icon('play') + '</div>';
+                row.insertBefore(th, row.firstChild);
+                makeThumb(thumbUrl).then(img => {
+                    if (img) th.style.backgroundImage = 'url(' + img + ')';
+                });
+            }
             const openBtn = document.createElement('button');
             openBtn.className = 'ibtn';
             openBtn.title = 'تشغيل';
