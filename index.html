@@ -347,6 +347,15 @@
             background: #1e1e1e; color: #eee; flex-wrap: wrap;
         }
         .reader-overlay.paper .reader-bar, .reader-overlay.paper .reader-foot { background: #dcd0b3; color: #3d2e1a; }
+        .reader-info { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+        .page-jump {
+            width: 64px; padding: 6px 8px; text-align: center; font: inherit; font-weight: 800;
+            border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: inherit;
+            -moz-appearance: textfield; appearance: textfield;
+        }
+        .page-jump::-webkit-outer-spin-button, .page-jump::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .page-jump:focus { outline: 2px solid #38bdf8; background: rgba(255, 255, 255, 0.18); }
+        .reader-overlay.paper .page-jump { border-color: rgba(61, 46, 26, 0.4); background: rgba(255, 255, 255, 0.5); }
         .reader-title { font-weight: 800; font-size: 16px; flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .reader-tools { display: flex; gap: 8px; }
         .reader-btn {
@@ -1460,7 +1469,11 @@
         </div>
         <div class="reader-foot">
             <button class="reader-btn" onclick="prevPage()">➡ الصفحة السابقة</button>
-            <span id="reader-info"></span>
+            <span id="reader-info" class="reader-info">
+                <span>الصفحة</span>
+                <input id="page-jump" class="page-jump" type="number" inputmode="numeric" min="1" step="1" title="اكتب رقم الصفحة واضغط Enter للانتقال" aria-label="رقم الصفحة">
+                <span id="page-total"></span>
+            </span>
             <button class="reader-btn" onclick="nextPage()">⬅ الصفحة التالية</button>
         </div>
     </div>
@@ -5154,8 +5167,35 @@
         function updateReaderInfo() {
             const last = reader.spread && reader.page < reader.total ? reader.page + 1 : reader.page;
             const label = last !== reader.page ? `${reader.page} و ${last}` : `${reader.page}`;
-            $('reader-info').innerText = `الصفحة ${label} من ${reader.total}`;
+            const inp = $('page-jump');
+            if (document.activeElement !== inp) inp.value = reader.page;
+            inp.max = reader.total;
+            $('page-total').innerText = (last !== reader.page ? `(معروضة مع ${last}) ` : '') + `من ${reader.total}`;
         }
+
+        // الانتقال المباشر لرقم صفحة بيكتبه المستخدم
+        function goToPage(n) {
+            if (!reader.doc) return;
+            n = Math.round(Number(n));
+            if (!Number.isFinite(n)) { updateReaderInfo(); return; }
+            n = Math.max(1, Math.min(reader.total, n));
+            if (n === reader.page) { updateReaderInfo(); return; }
+            reader.page = n;
+            resetReaderView();
+            saveProgress();
+            renderReader();
+        }
+        (function bindPageJump() {
+            const inp = $('page-jump');
+            inp.addEventListener('focus', () => inp.select());
+            inp.addEventListener('keydown', e => {
+                e.stopPropagation();   // ما نقلبش الصفحة بالأسهم/المسافة وإحنا بنكتب
+                if (e.key === 'Enter') { e.preventDefault(); goToPage(inp.value); inp.blur(); }
+                else if (e.key === 'Escape') { inp.value = reader.page; inp.blur(); }
+            });
+            inp.addEventListener('blur', () => { if (inp.value !== '' && Number(inp.value) !== reader.page) goToPage(inp.value); else updateReaderInfo(); });
+            ['pointerdown', 'click'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
+        })();
 
         function step(dir) {
             if (!reader.doc) return;
@@ -5291,6 +5331,7 @@
 
         document.addEventListener('keydown', e => {
             if ($('reader').classList.contains('open')) {
+                if (e.target && e.target.id === 'page-jump') return;
                 if (e.key === 'Escape') { closeReader(); return; }
                 if (reader.annotate) return;
                 if (e.key === 'ArrowLeft' || e.key === ' ') { e.preventDefault(); nextPage(); }
