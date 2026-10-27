@@ -261,6 +261,20 @@
         .ptab.active { background: #ffffff; color: #0f172a; }
         .ptab-add { padding: 6px 10px; border-radius: 9px; border: 1px dashed var(--line); background: transparent; color: var(--text); font-weight: 700; cursor: pointer; font-size: 13px; }
         .ptab-del { color: #f87171; border-color: rgba(248,113,113,0.6); }
+        /* سطر جديد في شريط السبورة: الصف الأول الأقلام والأشكال، والصف اللي تحته الخلفية والصفحة والباقي */
+        .board-bar .bar-break { flex-basis: 100%; width: 100%; height: 0; margin: 0; padding: 0; border: 0; background: none; }
+        .board-bar { flex-wrap: wrap !important; }
+        .board.fs .board-bar { border-radius: 26px !important; }
+        .mm-list { display: flex; flex-direction: column; gap: 10px; }
+        .mm-choice { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; font-weight: 700; font-size: 14px; text-align: right; }
+        .mm-choice:hover { background: rgba(255,255,255,0.08); }
+        .mm-box { width: min(580px, 94vw); }
+        .mm-section { font-weight: 800; margin: 10px 0 8px; color: var(--accent); font-size: 14px; }
+        .mm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .mm-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; font-size: 12px; font-weight: 700; text-align: center; }
+        .mm-tile:hover { background: rgba(255,255,255,0.08); }
+        .mm-tile svg { width: 100%; max-width: 120px; height: auto; color: var(--text); }
+        .mm-choice svg { width: 64px; height: 44px; flex: none; color: var(--accent); }
         .board-bg-btn { width: auto; min-height: 38px; padding: 0 10px; gap: 8px; display: inline-flex; align-items: center; justify-content: center; }
         .board-bg-dot {
             width: 20px; height: 20px; flex: 0 0 20px; display: inline-block; border-radius: 6px;
@@ -1020,7 +1034,9 @@
                         <div class="bgrp">
                             <button class="ibtn" id="shape-open" title="الأشكال" onclick="openShapes('board')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
                             <button class="ibtn sticky-btn" title="Sticky Notes" aria-label="Sticky Notes" onclick="openStickyPicker()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fde047" stroke="#a16207" stroke-width="1.2"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
+                            <button class="ibtn" id="mindmap-btn" title="خرائط ذهنية" aria-label="خرائط ذهنية" onclick="openMindMapPicker()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="5" r="2"/><circle cx="4.5" cy="19" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="M9.5 10.5 6 6.5M14.5 10.5 18 6.5M9.5 13.5 6 17.5M14.5 13.5 18 17.5"/></svg></button>
                         </div>
+                        <div class="bar-break"></div>
                         <div class="bgrp board-color-group">
                             <button class="ibtn board-bg-btn" id="board-bg-btn" title="خلفية السبورة" aria-label="اختيار لون خلفية السبورة" onclick="openBoardBg()">
                                 <span class="board-bg-dot" id="board-bg-dot"></span><span class="bgtxt">خلفية السبورة</span>
@@ -1291,14 +1307,10 @@
         </div>
     </div>
     <div id="mindmap-modal" class="modal" onclick="if (event.target === this) closeModal('mindmap-modal')">
-        <div class="modal-box">
+        <div class="modal-box mm-box">
             <div class="modal-head"><h2>خرائط ذهنية جاهزة</h2><button class="ibtn" onclick="closeModal('mindmap-modal')"><i data-icon="x"></i></button></div>
-            <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:10px;">اختار الشكل، هتتفتح صفحة جديدة فيها الخريطة، والكلام كله تقدر تعدّله وتحرّك الأشكال.</p>
-            <div class="modal-actions" style="flex-direction:column;">
-                <button class="btn-ghost" onclick="addMindMap('center')">فكرة مركزية وفروع (6 فروع)</button>
-                <button class="btn-ghost" onclick="addMindMap('tree')">شجرة هرمية (3 مستويات)</button>
-                <button class="btn-ghost" onclick="addMindMap('cycle')">دورة متسلسلة (4 مراحل)</button>
-            </div>
+            <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:10px;">الخريطة بتتضاف فاضية للصفحة الحالية، اكتب عليها أو امسح زي أي شكل.</p>
+            <div id="mm-list"></div>
         </div>
     </div>
     <div id="sticky-picker-modal" class="modal" onclick="if (event.target === this) closeModal('sticky-picker-modal')">
@@ -2110,12 +2122,19 @@
         // الممحاة فوق ملاحظة الرسم: بتمسح الخطوط اللي تحت المؤشر بدل ما ترسم
         function eraseInkAt(cv, n, el, e) {
             const r = cv.getBoundingClientRect();
-            const u = (e.clientX - r.left) / r.width, v = (e.clientY - r.top) / r.height;
-            const rad = Math.max(12, eraserWidth / 2);
-            const ux = rad / cv.clientWidth, vy = rad / cv.clientHeight;
-            const before = (n.ink || []).length;
-            n.ink = (n.ink || []).filter(st => !(st.pts || []).some(p => Math.abs(p[0] - u) <= ux && Math.abs(p[1] - v) <= vy));
-            if (n.ink.length !== before) { drawInk(el, n); scheduleSave(); }
+            const W = cv.clientWidth, H = cv.clientHeight;
+            const px = (e.clientX - r.left), py = (e.clientY - r.top);
+            const R = Math.max(12, eraserWidth / 2) * eraseSpeedFactor(e);
+            let changed = false;
+            const out = [];
+            for (const st of (n.ink || [])) {
+                const P = (st.pts || []).map(q => [q[0] * W, q[1] * H]);
+                const res = cutOutsideCircle(P, px, py, R);
+                if (!res.changed) { out.push(st); continue; }
+                changed = true;
+                res.pieces.forEach(pts => out.push({ ...st, pts: pts.map(q => [q[0] / W, q[1] / H]) }));
+            }
+            if (changed) { n.ink = out; drawInk(el, n); scheduleSave(); }
         }
 
         function bindInk(cv, n, el) {
@@ -2529,26 +2548,92 @@
         }
 
         // ---- الممحاة: تمسح الجزء اللي بتلمسه بس ----
-        function eraseBoardAt(p) {
-            const R = (eraserWidth / 2) / view.s;
+        // ممحاة بتمسح جزء صغير بجزء صغير: بتقص الخط عند حافة الدايرة وتسيب الباقي
+        // بترجع القطع اللي برا الدايرة (pts بنفس الإحداثيات اللي بيتبعتلها)
+        function cutOutsideCircle(pts, px, py, R) {
+            if (!pts || !pts.length) return { changed: false, pieces: [] };
+            if (pts.length === 1) {
+                const inside = Math.hypot(pts[0][0] - px, pts[0][1] - py) < R;
+                return { changed: inside, pieces: inside ? [] : [pts] };
+            }
+            const pieces = [];
+            let cur = [], lastEnd = false, changed = false;
+            const flush = () => { if (cur.length >= 2) pieces.push(cur); cur = []; };
+            for (let i = 0; i < pts.length - 1; i++) {
+                const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+                const dx = bx - ax, dy = by - ay, fx = ax - px, fy = ay - py;
+                const A = dx * dx + dy * dy, B = 2 * (fx * dx + fy * dy), C = fx * fx + fy * fy - R * R;
+                let outs;
+                if (A < 1e-9) outs = C >= 0 ? [[0, 1]] : [];
+                else {
+                    const disc = B * B - 4 * A * C;
+                    if (disc <= 0) outs = [[0, 1]];
+                    else {
+                        const sq = Math.sqrt(disc);
+                        const t1 = (-B - sq) / (2 * A), t2 = (-B + sq) / (2 * A);
+                        if (t2 <= 0 || t1 >= 1) outs = [[0, 1]];
+                        else {
+                            outs = [];
+                            if (t1 > 0) outs.push([0, t1]);
+                            if (t2 < 1) outs.push([t2, 1]);
+                        }
+                    }
+                }
+                if (!(outs.length === 1 && outs[0][0] === 0 && outs[0][1] === 1)) changed = true;
+                if (!outs.length) { flush(); lastEnd = false; continue; }
+                for (const [sT, eT] of outs) {
+                    const P = t => [ax + t * dx, ay + t * dy];
+                    if (sT === 0 && lastEnd && cur.length) cur.push(P(eT));
+                    else { flush(); cur = [P(sT), P(eT)]; }
+                    lastEnd = eT === 1;
+                }
+                if (!(outs.length && outs[outs.length - 1][1] === 1)) { flush(); lastEnd = false; }
+            }
+            flush();
+            return { changed, pieces: changed ? pieces : [pts] };
+        }
+
+        // سرعة الممحاة: لما تحركها بسرعة حجمها بيكبر (وقفتها بتكون بالحجم الأساسي)
+        let eraseTrail = { t: 0, x: 0, y: 0, v: 0 };
+        function eraseSpeedFactor(e) {
+            const now = performance.now();
+            if (!e || e.type === 'pointerdown' || !eraseTrail.t) {
+                eraseTrail = { t: now, x: e ? e.clientX : 0, y: e ? e.clientY : 0, v: 0 };
+                return 1;
+            }
+            const dt = Math.max(1, now - eraseTrail.t);
+            const d = Math.hypot(e.clientX - eraseTrail.x, e.clientY - eraseTrail.y);
+            const v = 0.6 * eraseTrail.v + 0.4 * (d / dt);
+            eraseTrail = { t: now, x: e.clientX, y: e.clientY, v };
+            return 1 + Math.min(1.6, v * 1.6);
+        }
+
+        // أقرب مسافة من نقطة لقطعة خط (عشان الممحاة تمسح الخط حتى لو الخط بين نقطتين بس)
+        function distToSeg(px, py, ax, ay, bx, by) {
+            const dx = bx - ax, dy = by - ay;
+            const L2 = dx * dx + dy * dy;
+            let t = L2 ? ((px - ax) * dx + (py - ay) * dy) / L2 : 0;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(ax + t * dx - px, ay + t * dy - py);
+        }
+        // أي قطعة بين نقطتين والممحاة لمسّتها، نعلّم الاتنين كمتمسحين
+        function markSegmentHits(pts, hit, px, py, R) {
+            for (let i = 0; i < pts.length - 1; i++) {
+                if (hit[i] && hit[i + 1]) continue;
+                if (distToSeg(px, py, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]) < R) { hit[i] = true; hit[i + 1] = true; }
+            }
+        }
+
+        function eraseBoardAt(p, R) {
             const [px, py] = p;
             const page = currentPage();
             const out = [];
             let changed = false;
             for (const st of page.strokes) {
-                const hit = st.pts.map(q => Math.hypot(q[0] - px, q[1] - py) < R);
-                if (!hit.some(Boolean)) { out.push(st); continue; }
+                const r = cutOutsideCircle(st.pts, px, py, R);
+                if (!r.changed) { out.push(st); continue; }
                 changed = true;
-                let seg = [];
-                st.pts.forEach((q, i) => {
-                    if (hit[i]) {
-                        if (seg.length > 1) out.push({ ...st, pts: seg });
-                        seg = [];
-                    } else {
-                        seg.push(q);
-                    }
-                });
-                if (seg.length > 1) out.push({ ...st, pts: seg });
+                r.pieces.forEach(pts => out.push({ ...st, pts }));
             }
             if (changed) {
                 boardDirty = true;
@@ -2617,7 +2702,8 @@
             activeId = e.pointerId;
             if (erase) {
                 activeMode = 'erase';
-                eraseBoardAt(worldPoint(e));
+                eraseTrail.t = 0;
+                eraseBoardAt(worldPoint(e), (eraserWidth / 2) * eraseSpeedFactor(e) / view.s);
             } else {
                 activeMode = 'draw';
                 const [x, y] = worldPoint(e);
@@ -2652,7 +2738,7 @@
                         if (Math.hypot(x - last[0], y - last[1]) * view.s > 0.8) cur.pts.push([x, y]);
                     }
                 } else if (activeMode === 'erase') {
-                    eraseBoardAt([x, y]);
+                    eraseBoardAt([x, y], (eraserWidth / 2) * eraseSpeedFactor(e) / view.s);
                 }
             }
             if (activeMode === 'draw') requestRender();
@@ -3029,11 +3115,6 @@
             ren.innerText = 'تغيير الاسم';
             ren.onclick = () => openPageRename(s.currentIndex);
             bar.appendChild(ren);
-            const mm = document.createElement('button');
-            mm.className = 'ptab-add';
-            mm.innerText = 'خريطة ذهنية';
-            mm.onclick = () => openModal('mindmap-modal');
-            bar.appendChild(mm);
             const del = document.createElement('button');
             del.className = 'ptab-add ptab-del';
             del.innerText = 'حذف الصفحة';
@@ -3085,63 +3166,165 @@
             scheduleSave();
         }
 
-        // ---- خرائط ذهنية جاهزة: أشكال + ملاحظات قابلة للتعديل ----
-        function addMindMap(kind) {
-            closeModal('mindmap-modal');
-            const s = wbGrade();
-            const uid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-            const line = (x1, y1, x2, y2) => ({ t: 'pen', c: '#475569', w: 3, s: 'shape', kind: 'line', pts: [[x1, y1], [x2, y2]] });
-            const note = (x, y, w, h, text, shape) => ({ id: uid(), x: x - w / 2, y: y - h / 2, w, h, text, shape });
-            const cx = 0, cy = 0;
-            let title = '';
-            let strokes = [], notes = [];
+        // ---- خرائط ذهنية جاهزة: فاضية، تتضاف للصفحة الحالية، والكتابة والمسح زي أي شكل ----
+        const mmUid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        // المكان بيتحسب بالمركز (cx, cy)، والـ x/y هي الركن العلوي
+        const mkNode = (cx, cy, w, h, shape) => ({ id: mmUid(), x: cx - w / 2, y: cy - h / 2, cx, cy, w, h, text: '', shape, mode: 'text', ink: [] });
+        const mkLink = (a, b) => ({ t: 'pen', c: '#475569', w: 3, s: 'shape', kind: 'line', pts: [[a.cx, a.cy], [b.cx, b.cy]] });
+        const mkLinks = (pairs) => pairs.map(([a, b]) => mkLink(a, b));
+        const mkRing = (n, rx, ry, a0, w, h, shape) => Array.from({ length: n }, (_, i) => {
+            const a = a0 + i * 2 * Math.PI / n;
+            return mkNode(Math.cos(a) * rx, Math.sin(a) * ry, w, h, shape);
+        });
+        const mkChain = (arr, closed) => {
+            const pairs = arr.slice(1).map((n, i) => [arr[i], n]);
+            if (closed && arr.length > 2) pairs.push([arr[arr.length - 1], arr[0]]);
+            return mkLinks(pairs);
+        };
+        const UP = -Math.PI / 2;
 
-            if (kind === 'center') {
-                title = 'فكرة مركزية';
-                const c = note(cx, cy, 190, 190, 'الفكرة الرئيسية', 'round');
-                notes.push(c);
-                for (let i = 0; i < 6; i++) {
-                    const a = -Math.PI / 2 + i * Math.PI / 3;
-                    const bx = cx + Math.cos(a) * 340, by = cy + Math.sin(a) * 260;
-                    strokes.push(line(cx, cy, bx, by));
-                    notes.push(note(bx, by, 170, 110, 'فرع ' + (i + 1), 'bubble'));
-                }
-            } else if (kind === 'tree') {
-                title = 'شجرة هرمية';
-                const root = note(cx, -260, 220, 100, 'الموضوع الرئيسي', 'bubble');
-                notes.push(root);
-                const lvl2 = [note(-300, -60, 200, 90, 'فرع أول', 'bubble'), note(300, -60, 200, 90, 'فرع ثاني', 'bubble')];
-                notes.push(...lvl2);
-                strokes.push(line(cx, -260 + 50, -300, -60 - 45), line(cx, -260 + 50, 300, -60 - 45));
-                const leaves = [[-400, 140], [-200, 140], [200, 140], [400, 140]];
-                leaves.forEach(([lx, ly], i) => {
-                    const parent = i < 2 ? lvl2[0] : lvl2[1];
-                    const n = note(lx, ly, 170, 80, 'تفصيل ' + (i + 1), 'rect');
-                    notes.push(n);
-                    const px = parent.x + parent.w / 2, py = parent.y + parent.h;
-                    strokes.push(line(px, py, lx, ly - 40));
+        const MM_TEMPLATES = [
+            // ---- مستوى واحد ----
+            { id: 'radial6', levels: 1, title: 'فكرة مركزية وستة فروع', build() {
+                const c = mkNode(0, 0, 190, 190, 'round');
+                const arr = mkRing(6, 340, 260, UP, 170, 110, 'bubble');
+                return { nodes: [c, ...arr], links: arr.map(n => mkLink(c, n)) };
+            } },
+            { id: 'radial4', levels: 1, title: 'فكرة مركزية وأربعة فروع', build() {
+                const c = mkNode(0, 0, 190, 190, 'hexagon');
+                const arr = [mkNode(-380, 0, 180, 100, 'rect'), mkNode(380, 0, 180, 100, 'rect'), mkNode(0, -250, 180, 100, 'rect'), mkNode(0, 250, 180, 100, 'rect')];
+                return { nodes: [c, ...arr], links: arr.map(n => mkLink(c, n)) };
+            } },
+            { id: 'ring8', levels: 1, title: 'دائرة حوالين الفكرة (8)', build() {
+                const c = mkNode(0, 0, 170, 170, 'star');
+                const arr = mkRing(8, 400, 320, 0, 130, 80, 'dogear');
+                return { nodes: [c, ...arr], links: arr.map(n => mkLink(c, n)) };
+            } },
+            { id: 'cycle4', levels: 1, title: 'دورة متسلسلة (4 مراحل)', build() {
+                const arr = [mkNode(0, -230, 180, 100, 'bubble'), mkNode(280, 0, 180, 100, 'bubble'), mkNode(0, 230, 180, 100, 'bubble'), mkNode(-280, 0, 180, 100, 'bubble')];
+                return { nodes: arr, links: mkChain(arr, true) };
+            } },
+            { id: 'cycle6', levels: 1, title: 'دورة متسلسلة (6 مراحل)', build() {
+                const arr = mkRing(6, 330, 260, UP, 170, 90, 'tag');
+                return { nodes: arr, links: mkChain(arr, true) };
+            } },
+            { id: 'timeline5', levels: 1, title: 'خط زمني (5 نقاط)', build() {
+                const arr = [-480, -240, 0, 240, 480].map(x => mkNode(x, 0, 200, 90, 'rect'));
+                return { nodes: arr, links: mkChain(arr, false) };
+            } },
+            { id: 'flow3', levels: 1, title: 'تسلسل من 3 خطوات', build() {
+                const arr = [mkNode(-340, 0, 220, 100, 'rect'), mkNode(0, 0, 220, 100, 'rect'), mkNode(340, 0, 220, 100, 'rect')];
+                return { nodes: arr, links: mkChain(arr, false) };
+            } },
+            { id: 'compare', levels: 1, title: 'مقارنة بين شيئين', build() {
+                const h1 = mkNode(-200, -230, 240, 90, 'hexagon'), h2 = mkNode(200, -230, 240, 90, 'hexagon');
+                const rows = [-70, 40, 150].flatMap(y => [mkNode(-200, y, 240, 80, 'dogear'), mkNode(200, y, 240, 80, 'dogear')]);
+                const divider = { cx: 0, cy: -270 }, divider2 = { cx: 0, cy: 230 };
+                return { nodes: [h1, h2, ...rows], links: [mkLink(divider, divider2)] };
+            } },
+            { id: 'grid6', levels: 1, title: 'شبكة مربعات (6 خانات)', build() {
+                const arr = [];
+                [-210, 0, 210].forEach(y => [-170, 170].forEach(x => arr.push(mkNode(x, y, 260, 120, 'rect'))));
+                return { nodes: arr, links: [] };
+            } },
+            { id: 'columns4', levels: 1, title: 'أربع خانات متجاورة', build() {
+                const arr = [-420, -140, 140, 420].map((x, i) => mkNode(x, 0, 240, 200, ['dogear', 'octagon', 'tag', 'diamond'][i]));
+                return { nodes: arr, links: [] };
+            } },
+            // ---- مستويين ----
+            { id: 'tree2', levels: 2, title: 'شجرة من مستويين', build() {
+                const root = mkNode(0, -260, 220, 100, 'bubble');
+                const m1 = mkNode(-300, -60, 200, 90, 'bubble'), m2 = mkNode(300, -60, 200, 90, 'bubble');
+                const leaves = [-400, -200, 200, 400].map(x => mkNode(x, 140, 170, 80, 'rect'));
+                return { nodes: [root, m1, m2, ...leaves], links: mkLinks([[root, m1], [root, m2], [m1, leaves[0]], [m1, leaves[1]], [m2, leaves[2]], [m2, leaves[3]]]) };
+            } },
+            { id: 'hub2', levels: 2, title: 'فكرة مركزية وفروع فرعية', build() {
+                const c = mkNode(0, 0, 190, 190, 'round');
+                const br = mkRing(5, 300, 240, UP, 170, 90, 'bubble');
+                const subs = br.map((b, i) => { const a = UP + i * 2 * Math.PI / 5; return mkNode(Math.cos(a) * 540, Math.sin(a) * 420, 150, 70, 'dogear'); });
+                return { nodes: [c, ...br, ...subs], links: [...br.map(b => mkLink(c, b)), ...br.map((b, i) => mkLink(b, subs[i]))] };
+            } },
+            { id: 'cat2', levels: 2, title: 'تصنيف: فكرة وتصنيفات وتفاصيل', build() {
+                const root = mkNode(0, -260, 260, 100, 'hexagon');
+                const cats = [-360, 0, 360].map(x => mkNode(x, -40, 210, 90, 'bubble'));
+                const items = [];
+                cats.forEach(c => { items.push(mkNode(c.cx - 90, 220, 160, 70, 'dogear'), mkNode(c.cx + 90, 220, 160, 70, 'dogear')); });
+                const links = [...cats.map(c => mkLink(root, c))];
+                cats.forEach((c, i) => { links.push(mkLink(c, items[i * 2]), mkLink(c, items[i * 2 + 1])); });
+                return { nodes: [root, ...cats, ...items], links };
+            } },
+            { id: 'map2', levels: 2, title: 'خريطة مفاهيم بأربع فروع', build() {
+                const c = mkNode(0, 0, 200, 200, 'star');
+                const br = mkRing(4, 330, 260, -Math.PI / 4, 190, 100, 'diamond');
+                const leaves = br.map((b, i) => { const a = -Math.PI / 4 + i * Math.PI / 2; return mkNode(Math.cos(a) * 560, Math.sin(a) * 440, 150, 70, 'tag'); });
+                return { nodes: [c, ...br, ...leaves], links: [...br.map(b => mkLink(c, b)), ...br.map((b, i) => mkLink(b, leaves[i]))] };
+            } },
+        ];
+
+        function openMindMapPicker() {
+            const list = $('mm-list');
+            list.innerHTML = '';
+            const section = (title, lv) => {
+                const h = document.createElement('div');
+                h.className = 'mm-section';
+                h.innerText = title;
+                list.appendChild(h);
+                const grid = document.createElement('div');
+                grid.className = 'mm-grid';
+                MM_TEMPLATES.filter(t => t.levels === lv).forEach(t => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'mm-tile';
+                    b.innerHTML = mmPreviewSvg(t) + '<span></span>';
+                    b.querySelector('span').innerText = t.title;
+                    b.onclick = () => addMindMap(t.id);
+                    grid.appendChild(b);
                 });
-            } else if (kind === 'cycle') {
-                title = 'دورة متسلسلة';
-                const pts = [[0, -230], [260, 0], [0, 230], [-260, 0]];
-                const labels = ['المرحلة 1', 'المرحلة 2', 'المرحلة 3', 'المرحلة 4'];
-                pts.forEach(([x, y], i) => notes.push(note(x, y, 180, 110, labels[i], 'bubble')));
-                for (let i = 0; i < 4; i++) {
-                    const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % 4];
-                    strokes.push(line(x1 * 0.62, y1 * 0.62, x2 * 0.62, y2 * 0.62));
-                }
-            } else {
-                return;
-            }
+                list.appendChild(grid);
+            };
+            section('مستوى واحد', 1);
+            section('مستويين', 2);
+            openModal('mindmap-modal');
+        }
 
-            // تتحط الأشكال في نص الصفحة الحالية (إزاحة بسيطة عشان ما تتدخلش في محتوى موجود)
-            const offset = (s.pages.length) * 30;
-            strokes = strokes.map(st => ({ ...st, pts: st.pts.map(([x, y]) => [x + offset, y + offset]) }));
-            notes = notes.map(n => ({ ...n, x: n.x + offset, y: n.y + offset }));
+        function mmPreviewSvg(tpl) {
+            const { nodes, links } = tpl.build();
+            const xs = [], ys = [];
+            nodes.forEach(n => { xs.push(n.x, n.x + n.w); ys.push(n.y, n.y + n.h); });
+            const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+            const W = 64, H = 44, pad = 3;
+            const k = Math.min((W - 2 * pad) / (maxX - minX), (H - 2 * pad) / (maxY - minY));
+            const ox = pad + ((W - 2 * pad) - (maxX - minX) * k) / 2, oy = pad + ((H - 2 * pad) - (maxY - minY) * k) / 2;
+            const tx = x => ox + (x - minX) * k, ty = y => oy + (y - minY) * k;
+            let g = '';
+            links.forEach(l => {
+                const [a, b] = l.pts;
+                g += `<line x1="${tx(a[0])}" y1="${ty(a[1])}" x2="${tx(b[0])}" y2="${ty(b[1])}" stroke="currentColor" stroke-width="0.9"/>`;
+            });
+            nodes.forEach(n => {
+                const rx = n.shape === 'round' || n.shape === 'bubble' ? 4 : 1.5;
+                g += `<rect x="${tx(n.x)}" y="${ty(n.y)}" width="${n.w * k}" height="${n.h * k}" rx="${rx}" fill="#fde047" stroke="currentColor" stroke-width="0.7"/>`;
+            });
+            return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+        }
 
-            s.pages.push({ strokes, notes, name: title });
-            switchPage(s.pages.length - 1);
+        function addMindMap(id) {
+            const tpl = MM_TEMPLATES.find(t => t.id === id);
+            if (!tpl) return;
+            closeModal('mindmap-modal');
+            const pg = currentPage();
+            pg.notes = pg.notes || [];
+            pg.strokes = pg.strokes || [];
+            const { nodes, links } = tpl.build();
+            const ox = (stageEl.clientWidth / 2 - view.tx) / view.s;
+            const oy = (stageEl.clientHeight / 2 - view.ty) / view.s;
+            links.forEach(st => pg.strokes.push({ ...st, pts: st.pts.map(([x, y]) => [x + ox, y + oy]) }));
+            nodes.forEach(({ cx, cy, ...n }) => pg.notes.push({ ...n, x: n.x + ox, y: n.y + oy }));
+            boardDirty = true;
+            scheduleSave();
             renderStickies();
+            requestRender();
+            toast('اتضافت الخريطة للصفحة الحالية');
         }
 
         function initWhiteboard() {
@@ -4192,8 +4375,9 @@
                 if (!cropState || cropState.pid !== e.pointerId) return;
                 cropState.drawing = false;
                 const w = Math.abs(cropState.x2 - cropState.x1), h = Math.abs(cropState.y2 - cropState.y1);
-                $('crop-go').disabled = !(w > 20 && h > 20);
-                $('crop-hint').innerText = w > 20 && h > 20 ? 'تمام، اضغط "إضافة للسبورة"' : 'اسحب مساحة أكبر';
+                const ok = w >= 2 && h >= 2;
+                $('crop-go').disabled = !ok;
+                $('crop-hint').innerText = ok ? 'تمام، اضغط "إضافة للسبورة"' : 'اسحب على الجزء اللي عايزه من الصفحة';
             };
             layer.addEventListener('pointerup', up);
             layer.addEventListener('pointercancel', up);
@@ -4218,7 +4402,6 @@
             const sy = (Math.max(t, wr.top) - wr.top) / wr.height * src.height;
             const sw = best.ix / wr.width * src.width;
             const sh = best.iy / wr.height * src.height;
-            if (sw < 2 || sh < 2) { toast('المساحة صغيرة جداً'); return; }
             const k = Math.min(1, 1000 / sw);
             const out = document.createElement('canvas');
             out.width = Math.max(1, Math.round(sw * k));
@@ -4234,7 +4417,7 @@
             pg.notes = pg.notes || [];
             const cx = (stageEl.clientWidth / 2 - view.tx) / view.s;
             const cy = (stageEl.clientHeight / 2 - view.ty) / view.s;
-            const w = Math.min(360, pw);
+            const w = Math.min(360, Math.max(120, pw));
             const h = w * ph / pw;
             pg.notes.push({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), x: cx - w / 2, y: cy - h / 2, w, h, text: '', shape: 'rect', mode: 'image', src, ink: [] });
             scheduleSave();
@@ -4340,27 +4523,19 @@
         }
 
         // الممحاة تمسح الجزء اللي بتلمسه بس، والباقي من الخط يفضل
-        function eraseAt(pageNo, p, layer) {
+        function eraseAt(pageNo, p, layer, e) {
             const ratio = layer.height / layer.width;
-            const R = reader.size * 3 + 6;
+            const R = (reader.size * 3 + 6) * eraseSpeedFactor(e);
             const px = p[0] * NOTE_W, py = p[1] * NOTE_W * ratio;
             const list = pageStrokes(pageNo);
             const out = [];
             let changed = false;
             for (const s of list) {
-                const hit = s.pts.map(q => Math.hypot(q[0] * NOTE_W - px, q[1] * NOTE_W * ratio - py) < R);
-                if (!hit.some(Boolean)) { out.push(s); continue; }
+                const P = s.pts.map(q => [q[0] * NOTE_W, q[1] * NOTE_W * ratio]);
+                const r = cutOutsideCircle(P, px, py, R);
+                if (!r.changed) { out.push(s); continue; }
                 changed = true;
-                let seg = [];
-                s.pts.forEach((q, i) => {
-                    if (hit[i]) {
-                        if (seg.length > 1) out.push({ ...s, pts: seg });
-                        seg = [];
-                    } else {
-                        seg.push(q);
-                    }
-                });
-                if (seg.length > 1) out.push({ ...s, pts: seg });
+                r.pieces.forEach(pts => out.push({ ...s, pts: pts.map(q => [q[0] / NOTE_W, q[1] / (NOTE_W * ratio)]) }));
             }
             if (changed) {
                 setPageStrokes(pageNo, out);
@@ -4379,7 +4554,7 @@
                 pushNoteUndo(pageNo);
                 if (reader.tool === 'eraser') {
                     activeStroke = { layer, pageNo, pid: e.pointerId, erase: true };
-                    eraseAt(pageNo, p, layer);
+                    eraseAt(pageNo, p, layer, e);
                 } else {
                     const isShape = reader.tool === 'shape';
                     const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', s: isShape ? 'shape' : reader.tool, kind: shapeKind, start: isShape ? p : undefined, c: reader.color, w: reader.size, pts: isShape ? [p, p] : [p] };
@@ -4393,7 +4568,7 @@
                 if (!activeStroke || activeStroke.layer !== layer || activeStroke.pid !== e.pointerId) return;
                 const p = notePoint(layer, e);
                 if (activeStroke.erase) {
-                    eraseAt(pageNo, p, layer);
+                    eraseAt(pageNo, p, layer, e);
                 } else {
                     if (activeStroke.stroke.start) activeStroke.stroke.pts = buildShape(activeStroke.stroke.kind, activeStroke.stroke.start, p);
                     else activeStroke.stroke.pts.push(p);
