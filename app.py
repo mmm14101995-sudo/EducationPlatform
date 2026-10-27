@@ -136,8 +136,17 @@ def update_ui():
         pass
 
 
+LOCAL_UI = os.path.join(APP_DIR, "index.html")
+
+
 def current_ui_dir():
-    return UI_CACHE_DIR if os.path.exists(UI_CACHE) else UI_DIR
+    # الأولوية للنسخة اللي اتنزلت من GitHub (التحديث أونلاين).
+    # لو مفيش نسخة محفوظة (أول تشغيل بدون نت) نستخدم index.html اللي جنب البرنامج، وبعدها اللي داخل الملف.
+    if os.path.exists(UI_CACHE):
+        return UI_CACHE_DIR
+    if os.path.exists(LOCAL_UI):
+        return APP_DIR
+    return UI_DIR
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -244,6 +253,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             except OSError:
                 return self.send_json({"ok": False}, 500)
             return self.send_json({"ok": True})
+
+        if path == "/api/media/pick":
+            # يفتح نافذة اختيار الفيديوهات، وينسخها تلقائياً جوه مجلد الكورس
+            d = course_dir(str(payload.get("course", "")))
+            if not d:
+                return self.send_json({"ok": False}, 400)
+            wins = webview.windows
+            if not wins:
+                return self.send_json({"ok": False}, 500)
+            picked = wins[0].create_file_dialog(
+                webview.OPEN_DIALOG,
+                allow_multiple=True,
+                file_types=("Video files (*.mp4;*.webm;*.mkv;*.mov;*.m4v;*.3gp)",),
+            )
+            if not picked:
+                return self.send_json({"ok": False, "cancelled": True})
+            os.makedirs(d, exist_ok=True)
+            count = 0
+            for src in picked:
+                name = os.path.basename(src)
+                if name.lower().endswith(VIDEO_EXT):
+                    shutil.copy2(src, os.path.join(d, name))
+                    count += 1
+            return self.send_json({"ok": True, "count": count})
 
         if path == "/api/media/open-folder":
             d = course_dir(str(payload.get("course", "")))
@@ -500,14 +533,22 @@ def main():
     port = httpd.server_address[1]
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
 
-    webview.create_window(
+    win = webview.create_window(
         "المنصة التعليمية الشاملة",
         f"http://127.0.0.1:{port}/index.html",
         width=1320,
         height=860,
         min_size=(960, 620),
     )
-    webview.start()
+
+    def _maximize(w):
+        # يفتح التطبيق على كامل الشاشة (ملء الشاشة من غير ما يكون فيه وضع Fullscreen الكامل)
+        try:
+            w.maximize()
+        except Exception:
+            pass
+
+    webview.start(_maximize, win)
     httpd.shutdown()
 
 
