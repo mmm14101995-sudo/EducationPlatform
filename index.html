@@ -841,6 +841,11 @@
         .sticky-ink { position: absolute; left: 0; top: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; border-radius: 4px; }
         .sticky.moving { opacity: 0.85; }
         .sticky.moving .sticky-head { cursor: grabbing; }
+        /* الخريطة الذهنية مجموعة واحدة: رأس/إغلاق واحد فقط على العقدة الرئيسية */
+        .sticky.mindmap-node:not(.mindmap-master) > .sticky-head { display: none !important; }
+        .sticky.mindmap-master > .sticky-head { position: relative; z-index: 8; cursor: grab; }
+        .sticky.mindmap-node:not(.mindmap-master) { touch-action: manipulation; }
+
         /* 10 أشكال للملاحظة */
         .sh-round::before { border-radius: 50%; }
         .sh-bubble::before { border-radius: 22px; }
@@ -2304,6 +2309,7 @@
 
         function bindStickyDrag(el, n, getRect, onEnd, isReader) {
             const head = el.querySelector('.sticky-head');
+            if (!head) return; // عقد الخريطة لا تملك مقابض مستقلة؛ التحريك من عقدة المجموعة الرئيسية فقط
             let d = null;
             head.addEventListener('pointerdown', e => {
                 e.preventDefault();
@@ -2465,6 +2471,19 @@
 
         function makeBoardSticky(n) {
             const el = makeStickyBase();
+            if (n.groupId) {
+                el.classList.add('mindmap-node');
+                // دعم الخرائط القديمة التي لم يكن فيها groupMaster محفوظًا
+                const groupNotes = (currentPage().notes || []).filter(x => x.groupId === n.groupId);
+                const isMaster = n.groupMaster === true || groupNotes[0] === n;
+                if (!isMaster) {
+                    const head = el.querySelector('.sticky-head');
+                    if (head) head.remove(); // علامة إغلاق ومقبض تحريك واحدان للخريطة كلها
+                } else {
+                    n.groupMaster = true;
+                    el.classList.add('mindmap-master');
+                }
+            }
             if (n.shape && n.shape !== 'rect') el.classList.add('sh-' + n.shape);
             if (n.mode === 'image') {
                 el.classList.add('sh-image');
@@ -2489,7 +2508,10 @@
                 ta.value = n.text || '';
                 ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
             }
-            el.querySelector('.sticky-del').addEventListener('click', () => {
+            const deleteButton = el.querySelector('.sticky-del');
+            if (deleteButton) deleteButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const pg = currentPage();
                 if (n.groupId) {
                     pg.notes = (pg.notes || []).filter(x => x.groupId !== n.groupId);
@@ -3674,7 +3696,7 @@
             const ox = (stageEl.clientWidth / 2 - view.tx) / view.s;
             const oy = (stageEl.clientHeight / 2 - view.ty) / view.s;
             links.forEach(st => pg.strokes.push({ ...st, groupId, pts: st.pts.map(([x, y]) => [x + ox, y + oy]) }));
-            nodes.forEach(({ cx, cy, ...n }) => pg.notes.push({ ...n, groupId, x: n.x + ox, y: n.y + oy }));
+            nodes.forEach(({ cx, cy, ...n }, i) => pg.notes.push({ ...n, groupId, groupMaster: i === 0, x: n.x + ox, y: n.y + oy }));
             boardDirty = true;
             scheduleSave();
             renderStickies();
