@@ -796,6 +796,12 @@
         body.lite #bg-layer { background-attachment: scroll; }
 
         /* الملاحظات اللاصقة */
+        .sel-marquee { position: absolute; border: 2px dashed #2563eb; background: rgba(37,99,235,.08); z-index: 5; pointer-events: none; }
+        .sel-box { position: absolute; border: 2px dashed #2563eb; background: rgba(37,99,235,.06); z-index: 4; cursor: move; touch-action: none; border-radius: 4px; }
+        .sel-actions { position: absolute; top: -44px; inset-inline-start: 0; display: flex; gap: 6px; cursor: default; }
+        .sel-box.below .sel-actions { top: auto; bottom: -44px; }
+        .sel-actions button { border: 0; border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.25); background: #fff; color: #0f172a; }
+        .sel-actions .sel-del { background: #dc2626; color: #fff; }
         .sticky-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
         .sticky {
             position: absolute; z-index: 5; pointer-events: auto; display: flex; flex-direction: column;
@@ -936,6 +942,36 @@
             .board-bar .ibtn.pen-3d svg, .board-bar #eraser-btn svg { width: 22px !important; height: 34px !important; }
             .board-bar .board-bg-dot { width: 22px !important; height: 22px !important; min-width: 22px; flex-basis: 22px; }
         }
+
+        /* ===== شريط السبورة في ملء الشاشة: صف واحد ثابت، أفقي أو راسي، وينقل لأي طرف ===== */
+        .board-bar .bar-ctl { display: none; }
+        .board.fs .board-bar .bar-ctl { display: flex; }
+        .board.fs .board-bar .bar-break { display: none !important; }
+        .bar-grip { width: 30px; height: 50px; display: grid; place-items: center; cursor: grab; touch-action: none; color: var(--text); opacity: .8; border-radius: 10px; }
+        .bar-grip:active { cursor: grabbing; }
+        .bar-grip svg { width: 18px; height: 26px; }
+        .board.fs .board-bar { flex-wrap: nowrap !important; flex-direction: row; scrollbar-width: none; overscroll-behavior: contain; }
+        .board.fs .board-bar > * { flex: 0 0 auto; }
+        .board.fs .board-bar.dragging { opacity: .85; transition: none; }
+        /* أفقي */
+        .board.fs.bar-h .board-bar {
+            left: 50%; right: auto; transform: translateX(-50%); width: auto; height: auto;
+            max-width: calc(100% - 140px); max-height: none; overflow-x: auto; overflow-y: hidden; border-radius: 999px; padding: 8px 12px;
+        }
+        .board.fs.bar-h.bar-bottom .board-bar { top: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+        .board.fs.bar-h.bar-top .board-bar { bottom: auto; top: calc(14px + env(safe-area-inset-top, 0px)); }
+        /* راسي */
+        .board.fs.bar-v .board-bar {
+            flex-direction: column; top: 50%; bottom: auto; transform: translateY(-50%); width: auto; height: auto;
+            max-height: calc(100% - 140px); max-width: none; overflow-y: auto; overflow-x: hidden; border-radius: 28px; padding: 12px 8px; align-items: center;
+        }
+        .board.fs.bar-v.bar-left .board-bar { left: calc(12px + env(safe-area-inset-left, 0px)); right: auto; }
+        .board.fs.bar-v.bar-right .board-bar { right: calc(12px + env(safe-area-inset-right, 0px)); left: auto; }
+        .board.fs.bar-v .board-bar .bgrp { flex-direction: column; }
+        .board.fs.bar-v .board-bar .range { width: 56px; }
+        .board.fs.bar-v .board-bar .ptab, .board.fs.bar-v .board-bar .ptab-add { max-width: 58px; }
+        .board.fs.bar-v .board-bar .lbl { min-width: 0; }
+        .board.fs.bar-v .board-bar #pages-bar { max-width: 66px; }
 </style>
 </head>
 <body data-theme="dark">
@@ -1023,6 +1059,10 @@
             <section id="view-board" class="view">
                 <div class="board" id="board">
                     <div class="board-bar">
+                        <div class="bgrp bar-ctl">
+                            <div class="bar-grip" id="bar-grip" title="اسحب الشريط لأي طرف"><svg viewBox="0 0 18 26" fill="currentColor"><circle cx="5" cy="4" r="2"/><circle cx="13" cy="4" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="5" cy="22" r="2"/><circle cx="13" cy="22" r="2"/></svg></div>
+                            <button class="ibtn" id="bar-orient-btn" title="شريط أفقي / راسي" aria-label="شريط أفقي أو راسي" onclick="toggleBarOrient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="2"/><path d="M12 3v3M12 18v3M9.5 4.5L12 3l2.5 1.5M9.5 19.5L12 21l2.5-1.5"/></svg></button>
+                        </div>
                         <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
                         <div class="bgrp">
                             <button class="ibtn pen-3d pen-style-btn" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><rect x="7.5" y="1.5" width="11" height="19" rx="3.5" fill="#1f2937"/><rect x="7.5" y="18" width="11" height="3.5" fill="#475569"/><rect x="9" y="3" width="1.4" height="14" rx=".7" fill="#fff" opacity=".35"/><path class="nib" d="M8.5 21.5 H17.5 L14.8 30 Q13 34 11.2 30 Z"/><circle class="nib" cx="13" cy="35.6" r="2.3"/></svg></button>
@@ -1031,6 +1071,7 @@
                             <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penTap('broad')"><svg viewBox="0 0 26 40"><rect x="6.5" y="1.5" width="13" height="15" rx="3" fill="#111827"/><rect x="6.5" y="13" width="13" height="2.5" fill="#64748b"/><rect class="nib" x="7.5" y="16" width="11" height="12" rx="5.5"/></svg></button>
                             <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
                             <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><defs><linearGradient id="b6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#b6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
+                            <button class="ibtn" id="select-btn" title="تحديد (مربع خط مقطع) للحذف أو النقل" aria-label="تحديد" onclick="setTool('select')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2" stroke-dasharray="3.5 3"/><path d="M10 10l7 3-3 1.5L12.5 18z" fill="currentColor" stroke="none"/></svg></button>
                         </div>
 
                         <div class="bgrp">
@@ -1940,6 +1981,162 @@
         let undoStack = [];
         let redoStack = [];
         const HISTORY_LIMIT = 40;
+
+        // ---- أداة التحديد (مربع خط مقطع) ----
+        let selBox = { strokes: [], notes: [] };
+        let selDrag = null;
+        const marqueeEl = document.createElement('div');
+        marqueeEl.className = 'sel-marquee';
+        marqueeEl.style.display = 'none';
+        stageEl.appendChild(marqueeEl);
+        const selEl = document.createElement('div');
+        selEl.className = 'sel-box';
+        selEl.style.display = 'none';
+        selEl.innerHTML = '<div class="sel-actions"><button type="button" class="sel-del">🗑 حذف</button><button type="button" class="sel-x">✕ إلغاء</button></div>';
+        stageEl.appendChild(selEl);
+        selEl.querySelector('.sel-del').addEventListener('click', () => deleteSelection());
+        selEl.querySelector('.sel-x').addEventListener('click', () => clearSelection());
+        function hasSelection() { return selBox.strokes.length > 0 || selBox.notes.length > 0; }
+        function clearSelection() {
+            selBox = { strokes: [], notes: [] };
+            selDrag = null;
+            marqueeEl.style.display = 'none';
+            selEl.style.display = 'none';
+        }
+        function selBounds() {
+            let x1 = 1e12, y1 = 1e12, x2 = -1e12, y2 = -1e12;
+            selBox.strokes.forEach(st => (st.pts || []).forEach(q => {
+                x1 = Math.min(x1, q[0]); y1 = Math.min(y1, q[1]); x2 = Math.max(x2, q[0]); y2 = Math.max(y2, q[1]);
+            }));
+            (currentPage().notes || []).forEach(n => {
+                if (!selBox.notes.includes(n.id)) return;
+                x1 = Math.min(x1, n.x); y1 = Math.min(y1, n.y); x2 = Math.max(x2, n.x + n.w); y2 = Math.max(y2, n.y + n.h);
+            });
+            return x1 > x2 ? null : { x1, y1, x2, y2 };
+        }
+        function updateSelBox() {
+            if (!hasSelection()) { selEl.style.display = 'none'; return; }
+            const b = selBounds();
+            if (!b) { selEl.style.display = 'none'; return; }
+            const s = view.s, pad = 8;
+            const left = b.x1 * s + view.tx - pad, top = b.y1 * s + view.ty - pad;
+            selEl.style.display = 'block';
+            selEl.style.left = left + 'px';
+            selEl.style.top = top + 'px';
+            selEl.style.width = ((b.x2 - b.x1) * s + pad * 2) + 'px';
+            selEl.style.height = ((b.y2 - b.y1) * s + pad * 2) + 'px';
+            selEl.classList.toggle('below', top < 50);
+        }
+        function deleteSelection() {
+            if (!hasSelection()) return;
+            const pg = currentPage();
+            pushHistory();
+            const ss = new Set(selBox.strokes), ids = selBox.notes;
+            pg.strokes = pg.strokes.filter(x => !ss.has(x));
+            pg.notes = (pg.notes || []).filter(n => !ids.includes(n.id));
+            clearSelection();
+            afterChange();
+            renderStickies();
+        }
+        function ptInRect(x, y, r) { return x >= r.x1 && x <= r.x2 && y >= r.y1 && y <= r.y2; }
+        function strokeInRect(st, r) {
+            const P = st.pts || [];
+            for (let i = 0; i < P.length; i++) {
+                if (ptInRect(P[i][0], P[i][1], r)) return true;
+                if (i) {
+                    const a = P[i - 1], b = P[i];
+                    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) * view.s;
+                    const steps = Math.min(60, Math.floor(len / 10));
+                    for (let k = 1; k < steps; k++) {
+                        const t = k / steps;
+                        if (ptInRect(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, r)) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        function drawMarquee() {
+            const d = selDrag;
+            marqueeEl.style.left = Math.min(d.x0, d.x1) + 'px';
+            marqueeEl.style.top = Math.min(d.y0, d.y1) + 'px';
+            marqueeEl.style.width = Math.abs(d.x1 - d.x0) + 'px';
+            marqueeEl.style.height = Math.abs(d.y1 - d.y0) + 'px';
+        }
+        function selectDown(e) {
+            activeId = e.pointerId;
+            if (e.target.closest && e.target.closest('.sel-box')) {
+                activeMode = 'selmove';
+                selDrag = { last: worldPoint(e), started: false };
+                return;
+            }
+            clearSelection();
+            activeMode = 'select';
+            const p = screenPoint(e);
+            selDrag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+            marqueeEl.style.display = 'block';
+            drawMarquee();
+        }
+        function selectMove(e) {
+            if (!selDrag) return;
+            if (activeMode === 'select') {
+                const p = screenPoint(e);
+                selDrag.x1 = p.x; selDrag.y1 = p.y;
+                drawMarquee();
+                return;
+            }
+            const w = worldPoint(e);
+            const dx = w[0] - selDrag.last[0], dy = w[1] - selDrag.last[1];
+            if (!selDrag.started) {
+                if (Math.hypot(dx, dy) * view.s < 3) return;
+                selDrag.started = true;
+                pushHistory();
+                const pg = currentPage(), map = new Map();
+                selBox.strokes = selBox.strokes.map(st => {
+                    const c = { ...st, pts: st.pts.map(q => [q[0], q[1]]) };
+                    if (st.start) c.start = [st.start[0], st.start[1]];
+                    map.set(st, c);
+                    return c;
+                });
+                pg.strokes = pg.strokes.map(st => map.get(st) || st);
+            }
+            selBox.strokes.forEach(st => {
+                st.pts.forEach(q => { q[0] += dx; q[1] += dy; });
+                if (st.start) { st.start[0] += dx; st.start[1] += dy; }
+            });
+            (currentPage().notes || []).forEach(n => {
+                if (selBox.notes.includes(n.id)) { n.x += dx; n.y += dy; }
+            });
+            selDrag.last = w;
+            boardDirty = true;
+            requestRender();
+        }
+        function selectUp() {
+            if (activeMode === 'select' && selDrag) {
+                const d = selDrag;
+                marqueeEl.style.display = 'none';
+                if (Math.abs(d.x1 - d.x0) > 4 || Math.abs(d.y1 - d.y0) > 4) {
+                    const ax = (Math.min(d.x0, d.x1) - view.tx) / view.s, ay = (Math.min(d.y0, d.y1) - view.ty) / view.s;
+                    const bx = (Math.max(d.x0, d.x1) - view.tx) / view.s, by = (Math.max(d.y0, d.y1) - view.ty) / view.s;
+                    const r = { x1: ax, y1: ay, x2: bx, y2: by };
+                    const pg = currentPage();
+                    selBox.strokes = pg.strokes.filter(st => strokeInRect(st, r));
+                    selBox.notes = (pg.notes || []).filter(n => n.x < bx && n.x + n.w > ax && n.y < by && n.y + n.h > ay).map(n => n.id);
+                }
+                selDrag = null;
+                updateSelBox();
+            } else if (activeMode === 'selmove') {
+                const started = selDrag && selDrag.started;
+                selDrag = null;
+                if (started) afterChange();
+            }
+        }
+        document.addEventListener('keydown', e => {
+            if (tool !== 'select' || !hasSelection()) return;
+            const tg = document.activeElement && document.activeElement.tagName;
+            if (tg === 'INPUT' || tg === 'TEXTAREA') return;
+            if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelection(); }
+            else if (e.key === 'Escape') clearSelection();
+        });
         const bgCache = new Map();
 
         (function setupBoardStyles() {
@@ -2162,7 +2359,7 @@
             let pid = null, start = null, st = null;
             const norm = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
             cv.addEventListener('pointerdown', e => {
-                if (el.classList.contains('moving')) return;
+                if (el.classList.contains('moving') || tool === 'select') return;
                 pid = e.pointerId; start = norm(e); st = null;
                 if (tool === 'eraser') eraseInkAt(cv, n, el, e);
             });
@@ -2484,6 +2681,7 @@
             }
             applyBoardPaperPatternStyles();
             renderStickies();
+            updateSelBox();
         }
 
         function drawPage() { requestRender(); }
@@ -2562,6 +2760,7 @@
             const page = currentPage();
             redoStack.push(page.strokes.slice());
             page.strokes = undoStack.pop();
+            clearSelection();
             afterChange();
         }
         function redo() {
@@ -2569,6 +2768,7 @@
             const page = currentPage();
             undoStack.push(page.strokes.slice());
             page.strokes = redoStack.pop();
+            clearSelection();
             afterChange();
         }
 
@@ -2677,6 +2877,7 @@
         let lastPenAt = 0;           // آخر مرة القلم اشتغل (عشان نتجاهل كف الإيد)
 
         function cancelActive() {
+            if (activeMode === 'select' || activeMode === 'selmove') { marqueeEl.style.display = 'none'; selDrag = null; activeId = null; activeMode = null; return; }
             if (activeMode === 'draw') undoStack.pop();   // نلغي الخط اللي اتبدأ
             cur = null;
             activeId = null;
@@ -2702,6 +2903,7 @@
         }
 
         stageEl.addEventListener('pointerdown', e => {
+            if (e.target.closest && e.target.closest('.sel-actions')) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             if (e.pointerType === 'pen') lastPenAt = Date.now();
             // كف الإيد أثناء الكتابة بالقلم: نتجاهل اللمس لحظة ما القلم يشتغل
@@ -2722,6 +2924,7 @@
                 }
             }
 
+            if (tool === 'select') { selectDown(e); return; }
             const erase = tool === 'eraser' || (e.pointerType === 'touch' && FINGER_ERASES);
             pushHistory();
             activeId = e.pointerId;
@@ -2751,6 +2954,7 @@
                 }
             }
             if (e.pointerId !== activeId || !activeMode) return;
+            if (activeMode === 'select' || activeMode === 'selmove') { selectMove(e); return; }
             const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
             const list = evs.length ? evs : [e];
             for (const ce of list) {
@@ -2774,7 +2978,11 @@
                 touches.delete(e.pointerId);
                 if (touches.size < 2) pinch = null;
             }
-            if (e.pointerId === activeId) {
+            if (e.pointerId === activeId && (activeMode === 'select' || activeMode === 'selmove')) {
+                selectUp();
+                activeId = null;
+                activeMode = null;
+            } else if (e.pointerId === activeId) {
                 if (activeMode === 'draw' && cur) {
                     currentPage().strokes = [...currentPage().strokes, cur];
                 }
@@ -2884,6 +3092,7 @@
 
         function refreshToolButtons() {
             $('eraser-btn').classList.toggle('active', tool === 'eraser');
+            $('select-btn').classList.toggle('active', tool === 'select');
             document.querySelectorAll('.pen-style-btn').forEach(b => {
                 b.style.setProperty('--pc', penColors[b.dataset.style] || '#0f172a');
                 b.classList.toggle('active', tool === 'pen' && b.dataset.style === penStyle);
@@ -2900,6 +3109,7 @@
 
         function setTool(newTool) {
             tool = newTool;
+            if (newTool !== 'select') clearSelection();
             syncSlider();
             applyToolState();
             refreshToolButtons();
@@ -2973,6 +3183,63 @@
             $('clear-btn').title = 'مسح الصفحة';
             $('clear-btn').style.background = '';
         }
+
+
+        // ---- مكان وشكل شريط الأدوات في ملء الشاشة ----
+        const BAR_KEY = 'boardBarLayout';
+        const barLayout = { orient: 'h', side: 'bottom' };
+        try {
+            const saved = JSON.parse(localStorage.getItem(BAR_KEY) || '{}');
+            if (saved.orient === 'v' || saved.orient === 'h') barLayout.orient = saved.orient;
+            if (['top', 'bottom', 'left', 'right'].includes(saved.side)) barLayout.side = saved.side;
+        } catch (e) { /* تجاهل */ }
+        function applyBarLayout() {
+            const b = $('board');
+            const v = barLayout.orient === 'v';
+            if (v && (barLayout.side === 'top' || barLayout.side === 'bottom')) barLayout.side = 'right';
+            if (!v && (barLayout.side === 'left' || barLayout.side === 'right')) barLayout.side = 'bottom';
+            b.classList.toggle('bar-v', v);
+            b.classList.toggle('bar-h', !v);
+            ['top', 'bottom', 'left', 'right'].forEach(x => b.classList.toggle('bar-' + x, barLayout.side === x));
+            try { localStorage.setItem(BAR_KEY, JSON.stringify(barLayout)); } catch (e) { /* تجاهل */ }
+            setTimeout(resizeCanvas, 50);
+        }
+        function toggleBarOrient() {
+            if (barLayout.orient === 'h') { barLayout.orient = 'v'; barLayout.side = barLayout.side === 'top' ? 'left' : 'right'; }
+            else { barLayout.orient = 'h'; barLayout.side = barLayout.side === 'left' ? 'top' : 'bottom'; }
+            applyBarLayout();
+        }
+        (function setupBarDrag() {
+            const grip = $('bar-grip'), bar = document.querySelector('#board .board-bar');
+            let d = null;
+            grip.addEventListener('pointerdown', e => {
+                e.preventDefault();
+                try { grip.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                d = { x: e.clientX, y: e.clientY };
+                bar.classList.add('dragging');
+            });
+            grip.addEventListener('pointermove', e => {
+                if (!d) return;
+                bar.style.translate = (e.clientX - d.x) + 'px ' + (e.clientY - d.y) + 'px';
+            });
+            const end = e => {
+                if (!d) return;
+                d = null;
+                bar.classList.remove('dragging');
+                bar.style.translate = '';
+                if (barLayout.orient === 'h') barLayout.side = e.clientY < window.innerHeight / 2 ? 'top' : 'bottom';
+                else barLayout.side = e.clientX < window.innerWidth / 2 ? 'left' : 'right';
+                applyBarLayout();
+            };
+            grip.addEventListener('pointerup', end);
+            grip.addEventListener('pointercancel', end);
+            // عجلة الماوس تحرك الشريط الأفقي يمين وشمال
+            bar.addEventListener('wheel', e => {
+                if (!$('board').classList.contains('fs') || barLayout.orient !== 'h') return;
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { bar.scrollLeft += e.deltaY * (getComputedStyle(bar).direction === 'rtl' ? -1 : 1); e.preventDefault(); }
+            }, { passive: false });
+            applyBarLayout();
+        })();
 
         // ---- ملء الشاشة ----
         function setBoardFs(on) {
@@ -3100,6 +3367,7 @@
 
         // ---- الصفحات ----
         function switchPage(index) {
+            clearSelection();
             wbGrade().currentIndex = index;
             boardDirty = true;
             undoStack = [];
