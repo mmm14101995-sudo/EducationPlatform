@@ -36,8 +36,10 @@
         #bg-layer {
             position: fixed; inset: 0; z-index: -2;
             background-size: cover; background-position: center; background-color: #0b1020;
-            transition: background-image 0.4s;
+            opacity: 0;   /* مخفية لحد ما نعرف آخر خلفية محفوظة، عشان الافتراضية ما تظهرش لحظة */
+            transition: background-image 0.4s, opacity 0.25s;
         }
+        #bg-layer.ready { opacity: 1; }
         #bg-layer::after { content: ''; position: absolute; inset: 0; background: rgba(6, 10, 20, 0.5); }
         [data-theme="light"] #bg-layer::after { background: rgba(255, 255, 255, 0.7); }
 
@@ -1648,6 +1650,7 @@
                 } else if (s.currentIndex >= s.pages.length || s.currentIndex < 0) {
                     s.currentIndex = 0;
                 }
+                appState.whiteboard[g].pages = appState.whiteboard[g].pages.map(normalizePage);
             }
             appState.shelfOrder ||= {};
             appState.progress ||= {};
@@ -1689,17 +1692,29 @@
 
         const BG_CACHE_KEY = 'platform-bg-v1';
         // أول ما الصفحة تفتح نطبّق آخر خلفية اختارها المستخدم من غير ما نستنى السيرفر
+        let earlyBgApplied = false, bgTouchedByUser = false;
+        const validBg = b => b && (b.type === 'preset' || (b.type === 'image' && b.data));
         try {
             const cachedBg = JSON.parse(localStorage.getItem(BG_CACHE_KEY) || 'null');
-            if (cachedBg && (cachedBg.type === 'preset' || (cachedBg.type === 'image' && cachedBg.data))) {
+            if (validBg(cachedBg)) {
                 appState.bg = cachedBg;
-                applyBg();   // نرسم الخلفية فوراً قبل ما الصفحة تظهر
+                earlyBgApplied = true;
             }
         } catch (e) { /* التخزين المحلي مش متاح، نكمّل عادي */ }
+        // مفيش كاش (أول فتح، أو التخزين المحلي بيتمسح، أو بورت السيرفر اتغير): نجيب الحالة المحفوظة فوراً
+        // من غير ما نستنى تحميل الصفحة كلها، ونطبّق منها الخلفية
+        if (!earlyBgApplied && NATIVE) {
+            try {
+                const st = JSON.parse(NATIVE.loadState() || '{}');
+                if (validBg(st.bg)) { appState.bg = st.bg; earlyBgApplied = true; }
+            } catch (e) { /* نكمّل */ }
+        }
 
         function applyBg() {
-            try { localStorage.setItem(BG_CACHE_KEY, JSON.stringify(appState.bg)); } catch (e) { /* تجاهل */ }
+            try { localStorage.setItem(BG_CACHE_KEY, JSON.stringify(appState.bg)); }
+            catch (e) { try { localStorage.removeItem(BG_CACHE_KEY); } catch (_) {} }   // لو الصورة كبيرة، نمسح الكاش القديم عشان ما يرجّعش خلفية قديمة
             const layer = $('bg-layer');
+            layer.classList.add('ready');
             const bg = appState.bg;
             if (bg.type === 'image' && bg.data) {
                 layer.style.backgroundImage = `url("${bg.data}")`;
@@ -1722,6 +1737,12 @@
                 `linear-gradient(160deg, ${p[0]}, ${p[1]})`;
             document.documentElement.style.setProperty('--accent', p[2]);
             document.documentElement.style.setProperty('--accent2', p[2]);
+        }
+        if (earlyBgApplied) applyBg();   // نرسم الخلفية فوراً قبل ما الصفحة تظهر
+        else if (!NATIVE) {
+            api.loadState().then(st => {
+                if (validBg(st && st.bg) && !bgTouchedByUser) { appState.bg = st.bg; applyBg(); }
+            }).catch(() => {});
         }
 
         function openSettings() {
@@ -1791,7 +1812,7 @@
         }
 
         function setPreset(key) {
-            appState.bg = { type: 'preset', value: key };
+            bgTouchedByUser = true; appState.bg = { type: 'preset', value: key };
             applyBg();
             renderPresets();
             scheduleSave();
@@ -1813,7 +1834,7 @@
 
         // يُستدعى من الأندرويد بعد ما الصورة تتصغّر وتتحوّل
         window.onBackgroundPicked = dataUrl => {
-            appState.bg = { type: 'image', data: dataUrl };
+            bgTouchedByUser = true; appState.bg = { type: 'image', data: dataUrl };
             applyBg();
             renderPresets();
             scheduleSave();
@@ -1834,7 +1855,7 @@
                 c.width = Math.round(img.width * scale);
                 c.height = Math.round(img.height * scale);
                 c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-                appState.bg = { type: 'image', data: c.toDataURL('image/jpeg', 0.82) };
+                bgTouchedByUser = true; appState.bg = { type: 'image', data: c.toDataURL('image/jpeg', 0.82) };
                 applyBg();
                 renderPresets();
                 scheduleSave();
@@ -4356,6 +4377,7 @@
         (function bindCropLayer() {
             const layer = $('crop-layer');
             layer.addEventListener('pointerdown', e => {
+                if (e.target.closest('.crop-bar')) return; // let the bar buttons receive their own clicks
                 if (!cropState) return;
                 cropState.drawing = true;
                 cropState.pid = e.pointerId;
