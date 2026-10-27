@@ -4919,6 +4919,7 @@
         const pageCache = new Map();   // صفحات اترسمت قبل كده (التقليب يبقى أسرع)
         let readerQuality = 3;         // دقة الرسم (بتزيد مع التكبير عشان الكتاب يفضل واضح)
         let readerSharpTimer = null;
+        let readerRendered = { w: 0, h: 0 };   // مقاس منطقة القراءة وقت آخر رسم
 
         function applyReaderView() {
             // لو المستخدم كبّر، نعيد رسم الصفحة بدقة أعلى بدل ما نكبّر صورة صغيرة (ده اللي بيخليها باهتة)
@@ -4926,10 +4927,26 @@
             if (readerView.z > 1.05 && wantQ > readerQuality + 0.5) {
                 readerQuality = wantQ;
                 clearTimeout(readerSharpTimer);
-                readerSharpTimer = setTimeout(() => renderReader(true), 350);
+                readerSharpTimer = setTimeout(readerSharpen, 350);
             }
             const inner = document.querySelector('#reader-stage .rinner');
             if (inner) inner.style.transform = 'translate(' + readerView.tx + 'px, ' + readerView.ty + 'px) scale(' + readerView.z + ')';
+        }
+
+        function readerSharpen() {
+            // لو لسه بيكبّر بإصبعين نستنى، عشان الصفحة ما تتبدلش تحت إيده
+            if (readerTouches.size > 0 || readerPinch) { readerSharpTimer = setTimeout(readerSharpen, 250); return; }
+            if (!$('reader').classList.contains('open')) return;
+            renderReader(true).catch(() => {});
+        }
+
+        // تغيّر مقاس النافذة (في ملء الشاشة بيحصل كتير): نعيد الرسم بس لو المقاس اتغير فعلاً، وبنحافظ على التكبير
+        function readerAfterResize() {
+            const stage = $('reader-stage');
+            if (!reader.doc || !stage || !$('reader').classList.contains('open')) return;
+            if (readerTouches.size > 0 || readerPinch) { readerResizeTimer = setTimeout(readerAfterResize, 300); return; }
+            if (Math.abs(stage.clientWidth - readerRendered.w) < 3 && Math.abs(stage.clientHeight - readerRendered.h) < 3) return;
+            renderReader(readerView.z > 1.05).catch(() => {});
         }
 
         function clampReaderView() {
@@ -5022,6 +5039,7 @@
             const dpr = document.body.classList.contains('lite') ? Math.min(1.5, window.devicePixelRatio || 1) : (window.devicePixelRatio || 1);
             const cssW = stage.clientWidth - 24;
             const cssH = stage.clientHeight - 24;
+            readerRendered = { w: stage.clientWidth, h: stage.clientHeight };
             const wraps = [];
             if (!keepView) readerView = { z: 1, tx: 0, ty: 0 };
 
@@ -5084,6 +5102,7 @@
             inner.className = 'rinner';
             wraps.forEach(w => inner.appendChild(w));
             stage.appendChild(inner);
+            if (keepView) clampReaderView();
             applyReaderView();
             updateReaderInfo();
             syncAnnotateUI();
@@ -5286,7 +5305,7 @@
             if ($('view-board').classList.contains('active')) resizeCanvas();
             if ($('reader').classList.contains('open')) {
                 clearTimeout(readerResizeTimer);
-                readerResizeTimer = setTimeout(renderReader, 150);
+                readerResizeTimer = setTimeout(readerAfterResize, 150);
             }
         });
 
