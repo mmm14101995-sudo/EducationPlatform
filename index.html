@@ -832,6 +832,15 @@
         .sp-mode { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #422006; background: transparent; color: #422006; font-weight: 800; cursor: pointer; }
         .sp-mode.on { background: #422006; color: #fde047; }
         .sp-create { width: 100%; padding: 12px; border-radius: 12px; border: 0; background: #422006; color: #fde047; font-weight: 800; font-size: 15px; cursor: pointer; }
+        .crop-layer { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.3); touch-action: none; cursor: crosshair; }
+        .crop-box { position: absolute; border: 2px dashed #fde047; background: rgba(253,224,71,0.15); pointer-events: none; }
+        .crop-bar { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; background: #0f172a; color: #fff; padding: 10px 14px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); font-weight: 700; cursor: default; max-width: calc(100% - 24px); }
+        .crop-go { background: #fde047; color: #422006; border: 0; border-radius: 10px; padding: 9px 14px; font-weight: 800; cursor: pointer; }
+        .crop-go:disabled { opacity: 0.45; cursor: not-allowed; }
+        .crop-cancel { background: transparent; color: #fff; border: 1px solid #fff; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+        /* صورة مقصوصة جوه ملاحظة السبورة (بتتحرك وتتمسح زي الملاحظات) */
+        .sticky.sh-image::before { display: none; }
+        .sticky-img { position: absolute; left: 0; top: 24px; width: 100%; height: calc(100% - 24px); object-fit: contain; background: #ffffff; border-radius: 0 0 4px 4px; user-select: none; -webkit-user-drag: none; }
         .sticky-btn svg { width: 26px; height: 26px; }
         .rn-tool.sticky-btn svg { width: 28px; height: 28px; }
 
@@ -1304,6 +1313,13 @@
             <button type="button" class="sp-create" onclick="createStickyFromPicker()">إنشاء الملاحظة</button>
         </div>
     </div>
+    <div id="crop-layer" class="crop-layer" style="display:none;">
+        <div id="crop-box" class="crop-box"></div>
+        <div class="crop-bar"><span id="crop-hint">اسحب على الجزء اللي عايزه من الصفحة</span>
+            <button class="crop-go" id="crop-go" disabled onclick="confirmCrop()">إضافة للسبورة</button>
+            <button class="crop-cancel" onclick="cancelCrop()">إلغاء</button>
+        </div>
+    </div>
     <div id="board-paper-style-modal" class="modal" onclick="if (event.target === this) closeModal('board-paper-style-modal')">
         <div class="modal-box">
             <div class="modal-head"><h2>شكل صفحة السبورة</h2><button class="ibtn" onclick="closeModal('board-paper-style-modal')"><i data-icon="x"></i></button></div>
@@ -1368,6 +1384,7 @@
             <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="readerPenTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
             <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#r6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
             <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
+            <button class="rn-tool" id="crop-btn" title="قص جزء من الصفحة وإضافته للسبورة" onclick="startCrop()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.6 20 19M8.2 16.4 20 5"/></svg></button>
             <span class="rn-sep"></span>
             <button class="rn-tool sticky-btn" title="ملاحظة لاصقة" onclick="addReaderSticky()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fde047" stroke="#a16207"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
             <button class="ncolor" id="rd-cpick" title="الألوان" onclick="openPalette('reader')" style="background:#dc2626"></button>
@@ -2090,15 +2107,28 @@
             });
         }
 
+        // الممحاة فوق ملاحظة الرسم: بتمسح الخطوط اللي تحت المؤشر بدل ما ترسم
+        function eraseInkAt(cv, n, el, e) {
+            const r = cv.getBoundingClientRect();
+            const u = (e.clientX - r.left) / r.width, v = (e.clientY - r.top) / r.height;
+            const rad = Math.max(12, eraserWidth / 2);
+            const ux = rad / cv.clientWidth, vy = rad / cv.clientHeight;
+            const before = (n.ink || []).length;
+            n.ink = (n.ink || []).filter(st => !(st.pts || []).some(p => Math.abs(p[0] - u) <= ux && Math.abs(p[1] - v) <= vy));
+            if (n.ink.length !== before) { drawInk(el, n); scheduleSave(); }
+        }
+
         function bindInk(cv, n, el) {
             let pid = null, start = null, st = null;
             const norm = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
             cv.addEventListener('pointerdown', e => {
                 if (el.classList.contains('moving')) return;
                 pid = e.pointerId; start = norm(e); st = null;
+                if (tool === 'eraser') eraseInkAt(cv, n, el, e);
             });
             cv.addEventListener('pointermove', e => {
                 if (pid !== e.pointerId || el.classList.contains('moving')) return;
+                if (tool === 'eraser') { eraseInkAt(cv, n, el, e); return; }
                 const p = norm(e);
                 if (!st) {
                     if (Math.hypot((p[0] - start[0]) * cv.clientWidth, (p[1] - start[1]) * cv.clientHeight) < 3) return;
@@ -2155,7 +2185,15 @@
         function makeBoardSticky(n) {
             const el = makeStickyBase();
             if (n.shape && n.shape !== 'rect') el.classList.add('sh-' + n.shape);
-            if (n.mode === 'draw') {
+            if (n.mode === 'image') {
+                el.classList.add('sh-image');
+                el.querySelector('textarea').remove();
+                const im = document.createElement('img');
+                im.className = 'sticky-img';
+                im.src = n.src;
+                im.draggable = false;
+                el.appendChild(im);
+            } else if (n.mode === 'draw') {
                 el.querySelector('textarea').remove();
                 const cv = document.createElement('canvas');
                 cv.className = 'sticky-ink';
@@ -4108,6 +4146,99 @@
             if (strokes.length) notes[pageNo] = strokes;
             else delete notes[pageNo];
             scheduleSave();
+        }
+
+        // ---- قص جزء من صفحة الكتاب وإضافته للسبورة ----
+        let cropState = null;
+        function startCrop() {
+            if (!reader.doc) return;
+            cropState = { drawing: false, pid: null, x1: 0, y1: 0, x2: 0, y2: 0 };
+            $('crop-box').style.display = 'none';
+            $('crop-go').disabled = true;
+            $('crop-hint').innerText = 'اسحب على الجزء اللي عايزه من الصفحة';
+            $('crop-layer').style.display = 'block';
+        }
+        function cancelCrop() {
+            cropState = null;
+            $('crop-layer').style.display = 'none';
+        }
+        function updateCropBox() {
+            const b = $('crop-box');
+            b.style.display = 'block';
+            b.style.left = Math.min(cropState.x1, cropState.x2) + 'px';
+            b.style.top = Math.min(cropState.y1, cropState.y2) + 'px';
+            b.style.width = Math.abs(cropState.x2 - cropState.x1) + 'px';
+            b.style.height = Math.abs(cropState.y2 - cropState.y1) + 'px';
+        }
+        (function bindCropLayer() {
+            const layer = $('crop-layer');
+            layer.addEventListener('pointerdown', e => {
+                if (!cropState) return;
+                cropState.drawing = true;
+                cropState.pid = e.pointerId;
+                cropState.x1 = cropState.x2 = e.clientX;
+                cropState.y1 = cropState.y2 = e.clientY;
+                try { layer.setPointerCapture(e.pointerId); } catch (_) {}
+                $('crop-go').disabled = true;
+                updateCropBox();
+            });
+            layer.addEventListener('pointermove', e => {
+                if (!cropState || !cropState.drawing || cropState.pid !== e.pointerId) return;
+                cropState.x2 = e.clientX;
+                cropState.y2 = e.clientY;
+                updateCropBox();
+            });
+            const up = e => {
+                if (!cropState || cropState.pid !== e.pointerId) return;
+                cropState.drawing = false;
+                const w = Math.abs(cropState.x2 - cropState.x1), h = Math.abs(cropState.y2 - cropState.y1);
+                $('crop-go').disabled = !(w > 20 && h > 20);
+                $('crop-hint').innerText = w > 20 && h > 20 ? 'تمام، اضغط "إضافة للسبورة"' : 'اسحب مساحة أكبر';
+            };
+            layer.addEventListener('pointerup', up);
+            layer.addEventListener('pointercancel', up);
+        })();
+
+        function confirmCrop() {
+            if (!cropState) return;
+            const l = Math.min(cropState.x1, cropState.x2), r = Math.max(cropState.x1, cropState.x2);
+            const t = Math.min(cropState.y1, cropState.y2), b = Math.max(cropState.y1, cropState.y2);
+            // نلاقي الصفحة اللي المساحة متقاطعة معاها أكتر
+            let best = null, bestArea = 0;
+            document.querySelectorAll('#reader-stage .rpage').forEach(w => {
+                const wr = w.getBoundingClientRect();
+                const ix = Math.max(0, Math.min(r, wr.right) - Math.max(l, wr.left));
+                const iy = Math.max(0, Math.min(b, wr.bottom) - Math.max(t, wr.top));
+                if (ix * iy > bestArea) { bestArea = ix * iy; best = { w, wr, ix, iy }; }
+            });
+            if (!best || bestArea <= 0) { toast('المساحة دي مش على الصفحة'); return; }
+            const src = best.w.querySelector('canvas');
+            const wr = best.wr;
+            const sx = (Math.max(l, wr.left) - wr.left) / wr.width * src.width;
+            const sy = (Math.max(t, wr.top) - wr.top) / wr.height * src.height;
+            const sw = best.ix / wr.width * src.width;
+            const sh = best.iy / wr.height * src.height;
+            if (sw < 2 || sh < 2) { toast('المساحة صغيرة جداً'); return; }
+            const k = Math.min(1, 1000 / sw);
+            const out = document.createElement('canvas');
+            out.width = Math.max(1, Math.round(sw * k));
+            out.height = Math.max(1, Math.round(sh * k));
+            out.getContext('2d').drawImage(src, sx, sy, sw, sh, 0, 0, out.width, out.height);
+            addImageToBoard(out.toDataURL('image/jpeg', 0.9), out.width, out.height);
+            cancelCrop();
+            toast('اتضافت الصورة للسبورة');
+        }
+
+        function addImageToBoard(src, pw, ph) {
+            const pg = currentPage();
+            pg.notes = pg.notes || [];
+            const cx = (stageEl.clientWidth / 2 - view.tx) / view.s;
+            const cy = (stageEl.clientHeight / 2 - view.ty) / view.s;
+            const w = Math.min(360, pw);
+            const h = w * ph / pw;
+            pg.notes.push({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), x: cx - w / 2, y: cy - h / 2, w, h, text: '', shape: 'rect', mode: 'image', src, ink: [] });
+            scheduleSave();
+            renderStickies();
         }
 
         function drawNotesOn(layer, strokes) {
