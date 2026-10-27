@@ -1082,6 +1082,7 @@
                             <button class="ibtn pen-3d pen-style-btn" data-style="hl" title="تظليل" onclick="penTap('hl')"><svg viewBox="0 0 26 40"><rect x="6" y="1.5" width="14" height="20" rx="2.5" fill="#374151"/><rect x="6" y="17" width="14" height="3" fill="#1f2937"/><path class="nib" d="M5 21.5 H21 V25 L5 31 Z"/></svg></button>
                             <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penTap('broad')"><svg viewBox="0 0 26 40"><rect x="6.5" y="1.5" width="13" height="15" rx="3" fill="#111827"/><rect x="6.5" y="13" width="13" height="2.5" fill="#64748b"/><rect class="nib" x="7.5" y="16" width="11" height="12" rx="5.5"/></svg></button>
                             <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="penTap('striped')"><svg viewBox="0 0 26 40"><defs><linearGradient id="stripeMetal" x1="0" x2="1"><stop offset="0" stop-color="#334155"/><stop offset=".25" stop-color="#e2e8f0"/><stop offset=".5" stop-color="#64748b"/><stop offset=".75" stop-color="#f8fafc"/><stop offset="1" stop-color="#334155"/></linearGradient><pattern id="stripePattern" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="2.5" height="5" fill="#2563eb"/><rect x="2.5" width="2.5" height="5" fill="#f8fafc"/></pattern></defs><rect x="8" y="2" width="10" height="25" rx="3" fill="url(#stripeMetal)"/><rect x="8.5" y="5" width="9" height="18" rx="2" fill="url(#stripePattern)"/><rect x="8" y="24" width="10" height="3" fill="#475569"/><path d="M8 27 H18 L13 38 Z" fill="#cbd5e1"/><path d="M11.5 34.5 H14.5 L13 38 Z" fill="#0f172a"/></svg></button>
                             <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><defs><linearGradient id="b6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#b6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
                             <button class="ibtn" id="select-btn" title="تحديد (مربع خط مقطع) للحذف أو النقل" aria-label="تحديد" onclick="setTool('select')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2" stroke-dasharray="3.5 3"/><path d="M10 10l7 3-3 1.5L12.5 18z" fill="currentColor" stroke="none"/></svg></button>
                         </div>
@@ -1449,6 +1450,7 @@
             <button class="rn-tool" id="tool-hl" title="تظليل" onclick="readerPenTap('hl')"><svg viewBox="0 0 26 40"><rect x="6" y="1.5" width="14" height="20" rx="2.5" fill="#374151"/><rect x="6" y="17" width="14" height="3" fill="#1f2937"/><path class="nib" d="M5 21.5 H21 V25 L5 31 Z"/></svg></button>
             <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="readerPenTap('broad')"><svg viewBox="0 0 26 40"><rect x="6.5" y="1.5" width="13" height="15" rx="3" fill="#111827"/><rect x="6.5" y="13" width="13" height="2.5" fill="#64748b"/><rect class="nib" x="7.5" y="16" width="11" height="12" rx="5.5"/></svg></button>
             <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="readerPenTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
+            <button class="rn-tool" id="tool-striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="readerPenTap('striped')"><svg viewBox="0 0 26 40"><defs><pattern id="rStripePattern" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="2.5" height="5" fill="#2563eb"/><rect x="2.5" width="2.5" height="5" fill="#f8fafc"/></pattern></defs><rect x="8" y="2" width="10" height="25" rx="3" fill="#64748b"/><rect x="8.5" y="5" width="9" height="18" rx="2" fill="url(#rStripePattern)"/><rect x="8" y="24" width="10" height="3" fill="#475569"/><path d="M8 27 H18 L13 38 Z" fill="#cbd5e1"/><path d="M11.5 34.5 H14.5 L13 38 Z" fill="#0f172a"/></svg></button>
             <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#r6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
             <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
             <button class="rn-tool" id="crop-btn" title="قص جزء من الصفحة وإضافته للسبورة" onclick="startCrop()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.6 20 19M8.2 16.4 20 5"/></svg></button>
@@ -1986,7 +1988,7 @@
         const view = { s: 1, tx: 0, ty: 0 };
         const VIEW_MIN = 0.1, VIEW_MAX = 8;
         let tool = 'pen';            // pen | eraser
-        let penColors = { normal: '#0f172a', feather: '#0f172a', hl: '#fde047', broad: '#dc2626', pencil: '#334155' };
+        let penColors = { normal: '#0f172a', feather: '#0f172a', hl: '#8b5cf6', broad: '#dc2626', pencil: '#334155', striped: '#2563eb' };
         let penColor = penColors.normal;
         let penWidth = 3;            // بالبيكسل على الشاشة
         let eraserWidth = 35;        // بالبيكسل على الشاشة
@@ -2660,6 +2662,16 @@
                 g.lineWidth = w * 3.2;
                 g.globalAlpha = 0.38;
                 tracePath(g, pts, 0, 0);
+            } else if (st.s === 'striped') {
+                // قلم مخطط بلونين: خط أساسي مع شرطات متباعدة بلون متباين
+                g.lineWidth = Math.max(2, w * 1.7);
+                g.globalAlpha = 0.95;
+                tracePath(g, pts, 0, 0);
+                g.strokeStyle = (st.c && st.c.toLowerCase() === '#ffffff') ? '#f59e0b' : '#f8fafc';
+                g.lineWidth = Math.max(1.5, w * 0.8);
+                g.setLineDash([Math.max(3, w * 2.2), Math.max(2, w * 1.5)]);
+                tracePath(g, pts, 0, 0);
+                g.setLineDash([]);
             } else if (st.s === 'pencil') {
                 // قلم رصاص: خط متقطع بحبيبات (تأثير الورق)
                 g.lineWidth = Math.max(1, w * 0.7);
@@ -4601,7 +4613,7 @@
             annotate: false, tool: 'normal', color: '#dc2626', size: 7
         };
         // لون كل قلم في القارئ (زي السبورة): كل قلم بيحتفظ بلونه
-        const readerPenColors = { normal: '#dc2626', feather: '#dc2626', hl: '#fde047', broad: '#dc2626', pencil: '#334155' };
+        const readerPenColors = { normal: '#dc2626', feather: '#dc2626', hl: '#8b5cf6', broad: '#dc2626', pencil: '#334155', striped: '#2563eb' };
         const NOTE_W = 1000;      // عرض مرجعي للرسم: الخطوط تتناسب مع أي حجم شاشة
         let noteUndo = [];
         let activeStroke = null;
@@ -4839,6 +4851,16 @@
                     g.lineWidth = w * 3.2;
                     g.globalAlpha = 0.38;
                     tracePath(g, pts, 0, 0);
+                } else if (s.s === 'striped') {
+                    // قلم مخطط بلونين
+                    g.lineWidth = Math.max(2, w * 1.7);
+                    g.globalAlpha = 0.95;
+                    tracePath(g, pts, 0, 0);
+                    g.strokeStyle = (s.c && s.c.toLowerCase() === '#ffffff') ? '#f59e0b' : '#f8fafc';
+                    g.lineWidth = Math.max(1.5, w * 0.8);
+                    g.setLineDash([Math.max(3, w * 2.2), Math.max(2, w * 1.5)]);
+                    tracePath(g, pts, 0, 0);
+                    g.setLineDash([]);
                 } else if (s.s === 'pencil') {
                     // قلم الرصاص بحبيبات (زي السبورة)
                     g.lineWidth = Math.max(1, w * 0.7);
@@ -5318,11 +5340,11 @@
                 l.style.cursor = reader.annotate ? 'crosshair' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
-            ['normal', 'feather', 'hl', 'broad', 'pencil'].forEach(t => {
+            ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped'].forEach(t => {
                 const b = $('tool-' + t);
                 if (b) b.style.setProperty('--pc', readerPenColors[t]);
             });
-            ['normal', 'feather', 'hl', 'broad', 'pencil', 'eraser', 'shape'].forEach(t => {
+            ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'eraser', 'shape'].forEach(t => {
                 $('tool-' + t).classList.toggle('active', reader.annotate && reader.tool === t);
             });
             document.querySelectorAll('.ncolor').forEach(b => {
