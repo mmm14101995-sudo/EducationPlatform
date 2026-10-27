@@ -6,7 +6,7 @@
     <title>المنصة التعليمية الشاملة للمرحلة الثانوية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" media="print" onload="this.media='all'">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" onload="window.setupPdfWorker && setupPdfWorker()"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
 
@@ -29,6 +29,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
         html, body { height: 100%; }
+        html { background: #0b1020; }
         body { display: flex; overflow: hidden; color: var(--text); -webkit-tap-highlight-color: transparent; }
         button, input, select { font-family: inherit; }
 
@@ -87,7 +88,7 @@
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
         .topbar h1 { font-size: 20px; font-weight: 800; }
-        .seg { display: flex; gap: 6px; padding: 5px; border-radius: 14px; background: rgba(255,255,255,0.07); border: 1px solid var(--line); }
+        .seg { display: flex; flex-wrap: wrap; max-width: 100%; gap: 6px; padding: 5px; border-radius: 14px; background: rgba(255,255,255,0.07); border: 1px solid var(--line); }
         .seg button {
             padding: 8px 16px; border: 0; border-radius: 10px; background: transparent; color: var(--muted);
             font-weight: 700; cursor: pointer; font-size: 14px;
@@ -1028,6 +1029,8 @@
                 <div class="seg">
                     <button id="grade-btn-sec3" class="active" onclick="setGrade('sec3', this)">٣ ثانوي</button>
                     <button id="grade-btn-sec2" onclick="setGrade('sec2', this)">٢ ثانوي (بكالوريا)</button>
+                    <button id="grade-btn-y3" onclick="setGrade('y3', this)">السنة الثالثة</button>
+                    <button id="grade-btn-y4" onclick="setGrade('y4', this)">السنة الرابعة</button>
                 </div>
             </header>
 
@@ -1238,6 +1241,14 @@
             <div class="field">
                 <label for="inp-grade2">اسم السنة الثانية</label>
                 <input type="text" id="inp-grade2" maxlength="30">
+            </div>
+            <div class="field">
+                <label for="inp-grade-y3">اسم السنة الثالثة</label>
+                <input type="text" id="inp-grade-y3" maxlength="30">
+            </div>
+            <div class="field">
+                <label for="inp-grade-y4">اسم السنة الرابعة</label>
+                <input type="text" id="inp-grade-y4" maxlength="30">
             </div>
             <div class="modal-actions" style="margin-bottom:14px;">
                 <button class="btn-ghost" onclick="showHiddenBooks()"><i data-icon="undo"></i><span>إظهار الملفات المحذوفة</span></button>
@@ -1690,7 +1701,9 @@
             bg: { type: 'preset', value: 'indigo' },
             whiteboard: {
                 sec3: { pages: [null], currentIndex: 0 },
-                sec2: { pages: [null], currentIndex: 0 }
+                sec2: { pages: [null], currentIndex: 0 },
+                y3: { pages: [null], currentIndex: 0 },
+                y4: { pages: [null], currentIndex: 0 }
             },
             shelfOrder: {},
             progress: {}   // progress[bookId] = { page, total, at }
@@ -1700,14 +1713,16 @@
         async function loadAppState() {
             try {
                 const saved = await api.loadState();
+                const keepBg = earlyBgApplied ? appState.bg : null;
                 appState = { ...appState, ...saved };
+                if (keepBg && !validBg(saved && saved.bg)) appState.bg = keepBg;
             } catch (e) {
                 console.warn('تعذر تحميل الحفظ', e);
             }
             appState.teacher = { ...DEFAULT_STATE.teacher, ...(appState.teacher || {}) };
             appState.bg = appState.bg || { type: 'preset', value: 'indigo' };
             appState.whiteboard ||= {};
-            for (const g of ['sec3', 'sec2']) {
+            for (const g of ['sec3', 'sec2', 'y3', 'y4']) {
                 const s = appState.whiteboard[g];
                 if (!s || !Array.isArray(s.pages) || !s.pages.length) {
                     appState.whiteboard[g] = { pages: [null], currentIndex: 0 };
@@ -1775,8 +1790,10 @@
         }
 
         function applyBg() {
-            try { localStorage.setItem(BG_CACHE_KEY, JSON.stringify(appState.bg)); }
-            catch (e) { try { localStorage.removeItem(BG_CACHE_KEY); } catch (_) {} }   // لو الصورة كبيرة، نمسح الكاش القديم عشان ما يرجّعش خلفية قديمة
+            try {
+                const j = JSON.stringify(appState.bg);
+                if (localStorage.getItem(BG_CACHE_KEY) !== j) localStorage.setItem(BG_CACHE_KEY, j);
+            } catch (e) { try { localStorage.removeItem(BG_CACHE_KEY); } catch (_) {} }   // لو الصورة كبيرة، نمسح الكاش القديم عشان ما يرجّعش خلفية قديمة
             const layer = $('bg-layer');
             layer.classList.add('ready');
             const bg = appState.bg;
@@ -1814,6 +1831,8 @@
             $('inp-sub').value = appState.teacher.subtitle;
             $('inp-grade3').value = gradeName('sec3');
             $('inp-grade2').value = gradeName('sec2');
+            $('inp-grade-y3').value = gradeName('y3');
+            $('inp-grade-y4').value = gradeName('y4');
             $('inp-lite').checked = document.body.classList.contains('lite');
             renderPresets();
             $('settings').classList.add('open');
@@ -1824,7 +1843,7 @@
         }
 
         // أسماء السنين: بتتغير بالاسم بس، والمحتوى (الكتب والاختبارات) ثابت
-        const DEFAULT_GRADE_NAMES = { sec3: '٣ ثانوي', sec2: '٢ ثانوي (بكالوريا)' };
+        const DEFAULT_GRADE_NAMES = { sec3: '٣ ثانوي', sec2: '٢ ثانوي (بكالوريا)', y3: 'السنة الثالثة', y4: 'السنة الرابعة' };
 
         function gradeName(g) {
             return (appState.gradeNames && appState.gradeNames[g]) || DEFAULT_GRADE_NAMES[g];
@@ -1833,6 +1852,8 @@
         function applyGradeNames() {
             $('grade-btn-sec3').innerText = gradeName('sec3');
             $('grade-btn-sec2').innerText = gradeName('sec2');
+            $('grade-btn-y3').innerText = gradeName('y3');
+            $('grade-btn-y4').innerText = gradeName('y4');
             $('hero-grade').innerText = gradeName(currentGrade);
         }
 
@@ -1849,7 +1870,9 @@
             const g2 = $('inp-grade2').value.trim();
             appState.gradeNames = {
                 sec3: g3 || DEFAULT_GRADE_NAMES.sec3,
-                sec2: g2 || DEFAULT_GRADE_NAMES.sec2
+                sec2: g2 || DEFAULT_GRADE_NAMES.sec2,
+                y3: $('inp-grade-y3').value.trim() || DEFAULT_GRADE_NAMES.y3,
+                y4: $('inp-grade-y4').value.trim() || DEFAULT_GRADE_NAMES.y4
             };
             applyGradeNames();
             const name = $('inp-name').value.trim();
@@ -1957,6 +1980,7 @@
             document.querySelectorAll('.seg button').forEach(el => el.classList.remove('active'));
             btn.classList.add('active');
             currentGrade = grade;
+            boardDirty = true;
             renderPageButtons();
             drawPage(currentPageData());
             renderHome();
@@ -3438,7 +3462,7 @@
                 pdf.addImage(im.data, 'PNG', 0, 0, im.W, im.H);
             });
 
-            const name = `شرح_السبورة_${currentGrade === 'sec3' ? 'ثالثة' : 'ثانية'}_ثانوي_${Date.now()}.pdf`;
+            const name = `شرح_السبورة_${({ sec3: 'ثالثة_ثانوي', sec2: 'ثانية_ثانوي', y3: 'السنة_الثالثة', y4: 'السنة_الرابعة' })[currentGrade] || 'سبورة'}_${Date.now()}.pdf`;
             const base64 = pdf.output('datauristring').split(',').pop();
             try {
                 const path = await api.savePdf(name, base64);
@@ -3903,7 +3927,19 @@
             return coverPending.get(book.id);
         }
 
+        function waitPdf() {
+            return new Promise(res => {
+                if (window.pdfjsLib) return res();
+                let n = 0;
+                const t = setInterval(() => { if (window.pdfjsLib || ++n > 150) { clearInterval(t); res(); } }, 100);
+            });
+        }
+        function setupPdfWorker() {
+            if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
+
         async function renderCoverImage(book) {
+            await waitPdf();
             if (!window.pdfjsLib) throw new Error('pdf.js غير محمّل');
             const doc = await pdfjsLib.getDocument({ url: book.url }).promise;
             try {
@@ -4105,7 +4141,7 @@
         const courseMedia = new Map();   // cid -> [{name,url}]
         let detailId = null;
         let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal'];
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal'];
 
         function findCourse(id) {
             return (appState.courses || []).find(c => c.id === id) || null;
@@ -4659,7 +4695,8 @@
 
             let doc;
             try {
-                if (!window.pdfjsLib) throw new Error('pdf.js غير محمّل');
+                await waitPdf();
+            if (!window.pdfjsLib) throw new Error('pdf.js غير محمّل');
                 doc = await pdfjsLib.getDocument({ url: book.url }).promise;
             } catch (e) {
                 if (t === reader.token) showReaderError(e);
@@ -5434,10 +5471,8 @@
         // ==========================================
         // التشغيل
         // ==========================================
-        window.addEventListener('load', async () => {
-            if (window.pdfjsLib) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-            }
+        (async () => {
+            setupPdfWorker();
             paintIcons();
             await loadAppState();
             applyTheme(appState.theme);
@@ -5461,7 +5496,7 @@
             applyBoardBgStyles(boardBg());
             if (window.ResizeObserver) new ResizeObserver(() => resizeCanvas()).observe($('board-stage'));
             await loadBooks();
-        });
+        })();
     </script>
 </body>
 </html>
