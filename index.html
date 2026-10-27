@@ -260,6 +260,7 @@
         .ptab { padding: 7px 12px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); font-weight: 700; cursor: pointer; font-size: 13px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .ptab.active { background: #ffffff; color: #0f172a; }
         .ptab-add { padding: 6px 10px; border-radius: 9px; border: 1px dashed var(--line); background: transparent; color: var(--text); font-weight: 700; cursor: pointer; font-size: 13px; }
+        .ptab-del { color: #f87171; border-color: rgba(248,113,113,0.6); }
         .board-bg-btn { width: auto; min-height: 38px; padding: 0 10px; gap: 8px; display: inline-flex; align-items: center; justify-content: center; }
         .board-bg-dot {
             width: 20px; height: 20px; flex: 0 0 20px; display: inline-block; border-radius: 6px;
@@ -297,6 +298,8 @@
         .modal.open { display: flex; }
         /* اجعل نافذة اختيار شكل الصفحة فوق السبورة عند ملء الشاشة */
         body.board-fs #board-paper-style-modal { z-index: 1200 !important; }
+        /* النوافذ الجديدة لازم تظهر فوق السبورة وهي ملء الشاشة (السبورة z-index 500) */
+        body.board-fs #page-name-modal, body.board-fs #mindmap-modal, body.board-fs #sticky-picker-modal, body.board-fs #confirm-modal { z-index: 1200 !important; }
 
         .modal-box {
             width: min(560px, 92vw); max-height: 88vh; overflow-y: auto; padding: 24px; border-radius: 24px;
@@ -350,6 +353,7 @@
         }
         .rn-tool.active, .nsize.active { background: rgba(255,255,255,0.22); outline: 2px solid #60a5fa; }
         .rn-tool .ico { width: 19px; height: 19px; }
+        .rn-tool .nib { fill: var(--pc, #dc2626); stroke: rgba(0,0,0,0.35); stroke-width: .5; }
         .nsize .dot { border-radius: 50%; background: currentColor; display: block; }
         .ncolor { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.65); cursor: pointer; }
         .ncolor.active { outline: 2px solid #60a5fa; outline-offset: 2px; }
@@ -792,15 +796,42 @@
             padding: 6px; font: inherit; font-size: inherit; color: #422006; line-height: 1.5;
         }
         .sticky textarea::placeholder { color: rgba(66,32,6,0.45); }
-        .sticky.sh-round { border-radius: 50%; }
-        .sticky.sh-round .sticky-head { border-radius: 50% 50% 0 0; padding: 0 22px; }
-        .sticky.sh-bubble { border-radius: 22px; overflow: visible; }
-        .sticky.sh-bubble .sticky-head { border-radius: 22px 22px 0 0; }
-        .sticky.sh-bubble textarea { border-radius: 0 0 22px 22px; }
-        .sticky.sh-bubble::after {
-            content: ''; position: absolute; left: 28px; bottom: -16px; width: 0; height: 0;
+        /* الملاحظة نفسها شفافة، والشكل الأصفر بيترسم في ::before عشان زر × يفضل ظاهر دايماً */
+        .sticky { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; }
+        .sticky::before, .sp-prev::before {
+            content: ''; position: absolute; inset: 0; background: #fde047; border-radius: 4px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.25); z-index: -1;
+        }
+        .sticky-head { background: rgba(0,0,0,0.08); border-radius: 4px 4px 0 0; }
+        .sticky-del { min-width: 24px; min-height: 24px; color: #422006; }
+        .sticky-ink { position: absolute; left: 0; top: 24px; width: 100%; height: calc(100% - 24px); touch-action: none; cursor: crosshair; border-radius: 0 0 4px 4px; }
+        .sticky.moving { opacity: 0.85; }
+        .sticky.moving .sticky-head { cursor: grabbing; }
+        /* 10 أشكال للملاحظة */
+        .sh-round::before { border-radius: 50%; }
+        .sh-bubble::before { border-radius: 22px; }
+        .sh-bubble::after {
+            content: ''; position: absolute; left: 28px; bottom: -16px; width: 0; height: 0; z-index: -1;
             border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 18px solid #fde047;
         }
+        .sh-dogear::before { clip-path: polygon(0 0, 100% 0, 100% 74%, 74% 100%, 0 100%); }
+        .sh-diamond::before { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); border-radius: 0; }
+        .sh-triangle::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); border-radius: 0; }
+        .sh-hexagon::before { clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); border-radius: 0; }
+        .sh-star::before { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border-radius: 0; }
+        .sh-octagon::before { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); border-radius: 0; }
+        .sh-tag::before { clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%); border-radius: 0; }
+        /* نافذة Sticky Notes (صفرا) */
+        .sticky-picker { background: #fde047; color: #422006; }
+        .sticky-picker .modal-head h2 { color: #422006; }
+        .sp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 6px 0 16px; }
+        .sp-tile { background: rgba(255,255,255,0.55); border: 2px solid transparent; border-radius: 12px; padding: 8px 4px; cursor: pointer; color: #422006; font-weight: 700; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .sp-tile.on { border-color: #422006; background: #ffffff; }
+        .sp-prev { display: block; position: relative; width: 44px; height: 44px; z-index: 0; isolation: isolate; }
+        .sp-modes { display: flex; gap: 10px; margin-bottom: 14px; }
+        .sp-mode { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #422006; background: transparent; color: #422006; font-weight: 800; cursor: pointer; }
+        .sp-mode.on { background: #422006; color: #fde047; }
+        .sp-create { width: 100%; padding: 12px; border-radius: 12px; border: 0; background: #422006; color: #fde047; font-weight: 800; font-size: 15px; cursor: pointer; }
         .sticky-btn svg { width: 26px; height: 26px; }
         .rn-tool.sticky-btn svg { width: 28px; height: 28px; }
 
@@ -979,7 +1010,7 @@
 
                         <div class="bgrp">
                             <button class="ibtn" id="shape-open" title="الأشكال" onclick="openShapes('board')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
-                            <button class="ibtn sticky-btn" title="ملاحظة دائرية" aria-label="ملاحظة دائرية" onclick="addBoardSticky('round')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#fde047" stroke="#a16207" stroke-width="1.2"/><line x1="8" y1="10" x2="16" y2="10" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13.5" x2="14" y2="13.5" stroke="#a16207" stroke-width="1.6"/></svg></button><button class="ibtn sticky-btn" title="ملاحظة فقاعة" aria-label="ملاحظة فقاعة" onclick="addBoardSticky('bubble')"><svg viewBox="0 0 24 24"><path d="M4 5 H20 V16 H11 L6.5 20 V16 H4 Z" fill="#fde047" stroke="#a16207" stroke-width="1.2" stroke-linejoin="round"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="12.5" x2="14" y2="12.5" stroke="#a16207" stroke-width="1.6"/></svg></button>
+                            <button class="ibtn sticky-btn" title="Sticky Notes" aria-label="Sticky Notes" onclick="openStickyPicker()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fde047" stroke="#a16207" stroke-width="1.2"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
                         </div>
                         <div class="bgrp board-color-group">
                             <button class="ibtn board-bg-btn" id="board-bg-btn" title="خلفية السبورة" aria-label="اختيار لون خلفية السبورة" onclick="openBoardBg()">
@@ -1261,6 +1292,18 @@
             </div>
         </div>
     </div>
+    <div id="sticky-picker-modal" class="modal" onclick="if (event.target === this) closeModal('sticky-picker-modal')">
+        <div class="modal-box sticky-picker">
+            <div class="modal-head"><h2>Sticky Notes</h2><button class="ibtn" onclick="closeModal('sticky-picker-modal')"><i data-icon="x"></i></button></div>
+            <p style="font-size:13px;line-height:1.7;margin-bottom:10px;">اختار الشكل، وبعدين اختار هتكتب نص ولا ترسم بالقلم.</p>
+            <div class="sp-grid"><button type="button" class="sp-tile on" data-shape="rect" onclick="pickStickyShape('rect')"><span class="sp-prev sh-rect"></span><span>مستطيل</span></button><button type="button" class="sp-tile" data-shape="round" onclick="pickStickyShape('round')"><span class="sp-prev sh-round"></span><span>دائرة</span></button><button type="button" class="sp-tile" data-shape="bubble" onclick="pickStickyShape('bubble')"><span class="sp-prev sh-bubble"></span><span>فقاعة</span></button><button type="button" class="sp-tile" data-shape="dogear" onclick="pickStickyShape('dogear')"><span class="sp-prev sh-dogear"></span><span>ورقة</span></button><button type="button" class="sp-tile" data-shape="diamond" onclick="pickStickyShape('diamond')"><span class="sp-prev sh-diamond"></span><span>معين</span></button><button type="button" class="sp-tile" data-shape="triangle" onclick="pickStickyShape('triangle')"><span class="sp-prev sh-triangle"></span><span>مثلث</span></button><button type="button" class="sp-tile" data-shape="hexagon" onclick="pickStickyShape('hexagon')"><span class="sp-prev sh-hexagon"></span><span>سداسي</span></button><button type="button" class="sp-tile" data-shape="star" onclick="pickStickyShape('star')"><span class="sp-prev sh-star"></span><span>نجمة</span></button><button type="button" class="sp-tile" data-shape="octagon" onclick="pickStickyShape('octagon')"><span class="sp-prev sh-octagon"></span><span>ثماني</span></button><button type="button" class="sp-tile" data-shape="tag" onclick="pickStickyShape('tag')"><span class="sp-prev sh-tag"></span><span>شارة</span></button></div>
+            <div class="sp-modes">
+                <button type="button" class="sp-mode on" data-mode="text" onclick="pickStickyMode('text')">كتابة نص</button>
+                <button type="button" class="sp-mode" data-mode="draw" onclick="pickStickyMode('draw')">رسم بالقلم</button>
+            </div>
+            <button type="button" class="sp-create" onclick="createStickyFromPicker()">إنشاء الملاحظة</button>
+        </div>
+    </div>
     <div id="board-paper-style-modal" class="modal" onclick="if (event.target === this) closeModal('board-paper-style-modal')">
         <div class="modal-box">
             <div class="modal-head"><h2>شكل صفحة السبورة</h2><button class="ibtn" onclick="closeModal('board-paper-style-modal')"><i data-icon="x"></i></button></div>
@@ -1318,11 +1361,11 @@
         <div class="reader-notes">
             <button class="reader-btn" id="ann-toggle" onclick="toggleAnnotate()"><i data-icon="feather"></i><span>كتابة</span></button>
             <span class="rn-sep"></span>
-            <button class="rn-tool" id="tool-normal" title="قلم حبر" onclick="setNoteTool('normal')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r1a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient><linearGradient id="r1n" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><ellipse cx="13" cy="38.5" rx="3" ry=".8" fill="#000" opacity=".25"/><rect x="7.5" y="1.5" width="11" height="19" rx="3.5" fill="url(#r1a)"/><rect x="7.5" y="18" width="11" height="3.5" fill="#334155"/><rect x="9" y="3" width="1.4" height="14" rx=".7" fill="#ffffff" opacity=".55"/><path d="M8 21.5 L18 21.5 L15.4 35.5 Q13 40 10.6 35.5 Z" fill="url(#r1n)" stroke="#475569" stroke-width=".4"/><line x1="13" y1="23" x2="13" y2="34" stroke="#0f172a" stroke-width=".8"/></svg></button>
-            <button class="rn-tool" id="tool-feather" title="قلم ريشة" onclick="setNoteTool('feather')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r2a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0f172a"/><stop offset=".35" stop-color="#4b5563"/><stop offset=".6" stop-color="#4b5563"/><stop offset="1" stop-color="#020617"/></linearGradient></defs><rect x="9.8" y="1.5" width="6.4" height="25" rx="2.2" fill="url(#r2a)"/><rect x="9.8" y="23.5" width="6.4" height="3" fill="#94a3b8"/><path d="M9.8 26.5 L16.2 26.5 L13 39 Z" fill="#475569"/><line x1="11.5" y1="3" x2="11.5" y2="22" stroke="#ffffff" stroke-width=".7" opacity=".35"/></svg></button>
-            <button class="rn-tool" id="tool-hl" title="تظليل" onclick="setNoteTool('hl')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r3a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="1.5" width="12" height="23.5" rx="5.5" fill="url(#r3a)"/><rect x="7" y="18.5" width="12" height="4.5" fill="#a855f7"/><path d="M8 23 H18 L16.6 36 Q13 40 9.4 36 Z" fill="#475569"/><rect x="9" y="3" width="1.4" height="13" rx=".7" fill="#ffffff" opacity=".45"/></svg></button>
-            <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="setNoteTool('broad')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r4a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="6.3" y="1.5" width="13.4" height="26" rx="3" fill="url(#r4a)"/><rect x="6.3" y="21.5" width="13.4" height="3.5" fill="#ef4444"/><path d="M6.3 25 H19.7 L17 38.5 H9 Z" fill="#6b7280"/><rect x="8" y="3" width="1.4" height="16" rx=".7" fill="#ffffff" opacity=".4"/></svg></button>
-            <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="setNoteTool('pencil')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r5a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#78350f"/><stop offset=".35" stop-color="#fde047"/><stop offset=".6" stop-color="#fde047"/><stop offset="1" stop-color="#92400e"/></linearGradient></defs><rect x="9" y="5.5" width="8" height="20" fill="url(#r5a)"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" fill="#f9a8d4"/><rect x="9" y="25.5" width="8" height="2.5" fill="#94a3b8"/><path d="M9 28 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
+            <button class="rn-tool" id="tool-normal" title="قلم حبر" onclick="readerPenTap('normal')"><svg viewBox="0 0 26 40"><rect x="7.5" y="1.5" width="11" height="19" rx="3.5" fill="#1f2937"/><rect x="7.5" y="18" width="11" height="3.5" fill="#475569"/><rect x="9" y="3" width="1.4" height="14" rx=".7" fill="#fff" opacity=".35"/><path class="nib" d="M8.5 21.5 H17.5 L14.8 30 Q13 34 11.2 30 Z"/><circle class="nib" cx="13" cy="35.6" r="2.3"/></svg></button>
+            <button class="rn-tool" id="tool-feather" title="قلم ريشة" onclick="readerPenTap('feather')"><svg viewBox="0 0 26 40"><rect x="11" y="1" width="4" height="22" rx="2" fill="#92400e"/><rect x="11" y="18" width="4" height="4" fill="#451a03"/><path class="nib" d="M11 22 H15 L13.6 33 L9.6 39 Z"/></svg></button>
+            <button class="rn-tool" id="tool-hl" title="تظليل" onclick="readerPenTap('hl')"><svg viewBox="0 0 26 40"><rect x="6" y="1.5" width="14" height="20" rx="2.5" fill="#374151"/><rect x="6" y="17" width="14" height="3" fill="#1f2937"/><path class="nib" d="M5 21.5 H21 V25 L5 31 Z"/></svg></button>
+            <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="readerPenTap('broad')"><svg viewBox="0 0 26 40"><rect x="6.5" y="1.5" width="13" height="15" rx="3" fill="#111827"/><rect x="6.5" y="13" width="13" height="2.5" fill="#64748b"/><rect class="nib" x="7.5" y="16" width="11" height="12" rx="5.5"/></svg></button>
+            <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="readerPenTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
             <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#r6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
             <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
             <span class="rn-sep"></span>
@@ -1615,7 +1658,18 @@
             $('hero-name').innerText = `أهلاً بك يا ${t.name}`;
         }
 
+        const BG_CACHE_KEY = 'platform-bg-v1';
+        // أول ما الصفحة تفتح نطبّق آخر خلفية اختارها المستخدم من غير ما نستنى السيرفر
+        try {
+            const cachedBg = JSON.parse(localStorage.getItem(BG_CACHE_KEY) || 'null');
+            if (cachedBg && (cachedBg.type === 'preset' || (cachedBg.type === 'image' && cachedBg.data))) {
+                appState.bg = cachedBg;
+                applyBg();   // نرسم الخلفية فوراً قبل ما الصفحة تظهر
+            }
+        } catch (e) { /* التخزين المحلي مش متاح، نكمّل عادي */ }
+
         function applyBg() {
+            try { localStorage.setItem(BG_CACHE_KEY, JSON.stringify(appState.bg)); } catch (e) { /* تجاهل */ }
             const layer = $('bg-layer');
             const bg = appState.bg;
             if (bg.type === 'image' && bg.data) {
@@ -2010,12 +2064,108 @@
             head.addEventListener('pointercancel', end);
         }
 
+        function drawInk(el, n) {
+            const c = el.querySelector('canvas.sticky-ink');
+            if (!c) return;
+            const W = c.clientWidth, H = c.clientHeight;
+            if (!W || !H) return;
+            const dpr = window.devicePixelRatio || 1;
+            if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) {
+                c.width = Math.round(W * dpr);
+                c.height = Math.round(H * dpr);
+            }
+            const g = c.getContext('2d');
+            g.setTransform(dpr, 0, 0, dpr, 0, 0);
+            g.clearRect(0, 0, W, H);
+            g.lineCap = 'round';
+            g.lineJoin = 'round';
+            g.strokeStyle = '#1e293b';
+            (n.ink || []).forEach(st => {
+                if (!st.pts || !st.pts.length) return;
+                g.lineWidth = Math.max(1.5, st.w * W);
+                g.beginPath();
+                st.pts.forEach((p, i) => { const x = p[0] * W, y = p[1] * H; if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+                if (st.pts.length === 1) g.lineTo(st.pts[0][0] * W + 0.01, st.pts[0][1] * H);
+                g.stroke();
+            });
+        }
+
+        function bindInk(cv, n, el) {
+            let pid = null, start = null, st = null;
+            const norm = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+            cv.addEventListener('pointerdown', e => {
+                if (el.classList.contains('moving')) return;
+                pid = e.pointerId; start = norm(e); st = null;
+            });
+            cv.addEventListener('pointermove', e => {
+                if (pid !== e.pointerId || el.classList.contains('moving')) return;
+                const p = norm(e);
+                if (!st) {
+                    if (Math.hypot((p[0] - start[0]) * cv.clientWidth, (p[1] - start[1]) * cv.clientHeight) < 3) return;
+                    st = { w: 2.5 / cv.clientWidth, pts: [start] };
+                    n.ink = n.ink || [];
+                    n.ink.push(st);
+                }
+                st.pts.push(p);
+                drawInk(el, n);
+            });
+            const up = e => {
+                if (pid !== e.pointerId) return;
+                pid = null;
+                if (st) { st = null; scheduleSave(); }
+            };
+            cv.addEventListener('pointerup', up);
+            cv.addEventListener('pointercancel', up);
+        }
+
+        // امسك الملاحظة بضغطة مطوّلة (أو من الشريط العلوي) وحرّكها
+        function bindHoldDrag(el, n) {
+            let timer = null, start = null, dragging = false, pid = null, ox = 0, oy = 0;
+            el.addEventListener('pointerdown', e => {
+                if (e.target.closest('.sticky-head')) return;
+                // لو المستخدم بيكتب في النص (الخانة فيها مؤشر)، ما نحركش الملاحظة
+                if (e.target.tagName === 'TEXTAREA' && document.activeElement === e.target) return;
+                pid = e.pointerId; start = { x: e.clientX, y: e.clientY }; ox = n.x; oy = n.y; dragging = false;
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    dragging = true;
+                    el.classList.add('moving');
+                    try { el.setPointerCapture(pid); } catch (_) {}
+                    if (navigator.vibrate) navigator.vibrate(15);
+                }, 380);
+            });
+            el.addEventListener('pointermove', e => {
+                if (!start || e.pointerId !== pid) return;
+                const dx = e.clientX - start.x, dy = e.clientY - start.y;
+                if (!dragging) { if (Math.hypot(dx, dy) > 8) { clearTimeout(timer); start = null; } return; }
+                e.preventDefault();
+                n.x = ox + dx / view.s;
+                n.y = oy + dy / view.s;
+                renderStickies();
+            });
+            const end = () => {
+                clearTimeout(timer);
+                if (dragging) { dragging = false; el.classList.remove('moving'); scheduleSave(); }
+                start = null;
+            };
+            el.addEventListener('pointerup', end);
+            el.addEventListener('pointercancel', end);
+        }
+
         function makeBoardSticky(n) {
             const el = makeStickyBase();
             if (n.shape && n.shape !== 'rect') el.classList.add('sh-' + n.shape);
-            const ta = el.querySelector('textarea');
-            ta.value = n.text || '';
-            ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
+            if (n.mode === 'draw') {
+                el.querySelector('textarea').remove();
+                const cv = document.createElement('canvas');
+                cv.className = 'sticky-ink';
+                el.appendChild(cv);
+                bindInk(cv, n, el);
+            } else {
+                const ta = el.querySelector('textarea');
+                ta.value = n.text || '';
+                ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
+            }
             el.querySelector('.sticky-del').addEventListener('click', () => {
                 const pg = currentPage();
                 pg.notes = (pg.notes || []).filter(x => x.id !== n.id);
@@ -2023,6 +2173,7 @@
                 renderStickies();
             });
             bindStickyDrag(el, n, null, () => scheduleSave(), false);
+            bindHoldDrag(el, n);
             return el;
         }
 
@@ -2045,19 +2196,43 @@
                 el.style.width = (n.w * s) + 'px';
                 el.style.height = (n.h * s) + 'px';
                 el.style.fontSize = Math.max(9, 14 * s) + 'px';
+                if (n.mode === 'draw') drawInk(el, n);
             });
         }
 
-        function addBoardSticky(shape) {
+        const STICKY_SHAPES = ['rect', 'round', 'bubble', 'dogear', 'diamond', 'triangle', 'hexagon', 'star', 'octagon', 'tag'];
+        const STICKY_SIZE = { bubble: { w: 210, h: 150 }, tag: { w: 220, h: 120 }, star: { w: 190, h: 190 } };
+        let stickyPick = { shape: 'rect', mode: 'text' };
+
+        function openStickyPicker() {
+            pickStickyShape(stickyPick.shape);
+            pickStickyMode(stickyPick.mode);
+            openModal('sticky-picker-modal');
+        }
+        function pickStickyShape(shape) {
+            if (!STICKY_SHAPES.includes(shape)) return;
+            stickyPick.shape = shape;
+            document.querySelectorAll('.sp-tile').forEach(t => t.classList.toggle('on', t.dataset.shape === shape));
+        }
+        function pickStickyMode(mode) {
+            stickyPick.mode = mode === 'draw' ? 'draw' : 'text';
+            document.querySelectorAll('.sp-mode').forEach(b => b.classList.toggle('on', b.dataset.mode === stickyPick.mode));
+        }
+        function createStickyFromPicker() {
+            closeModal('sticky-picker-modal');
+            createBoardSticky(stickyPick.shape, stickyPick.mode);
+        }
+        function createBoardSticky(shape, mode) {
             const pg = currentPage();
             pg.notes = pg.notes || [];
             const cx = (stageEl.clientWidth / 2 - view.tx) / view.s;
             const cy = (stageEl.clientHeight / 2 - view.ty) / view.s;
-            const sz = shape === 'bubble' ? { w: 210, h: 150 } : { w: 170, h: 170 };
-            pg.notes.push({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), x: cx - sz.w / 2, y: cy - sz.h / 2, w: sz.w, h: sz.h, text: '', shape: shape === 'bubble' || shape === 'round' ? shape : 'rect' });
+            const sz = STICKY_SIZE[shape] || { w: 170, h: 170 };
+            pg.notes.push({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), x: cx - sz.w / 2, y: cy - sz.h / 2, w: sz.w, h: sz.h, text: '', shape, mode, ink: [] });
             scheduleSave();
             renderStickies();
         }
+        function addBoardSticky(shape) { createBoardSticky(shape || 'rect', 'text'); }
 
         // ---- الملاحظات اللاصقة في القارئ (مواضعها بالنسبة لحجم الصفحة) ----
         function stickiesFor(pageNo) {
@@ -2821,6 +2996,33 @@
             mm.innerText = 'خريطة ذهنية';
             mm.onclick = () => openModal('mindmap-modal');
             bar.appendChild(mm);
+            const del = document.createElement('button');
+            del.className = 'ptab-add ptab-del';
+            del.innerText = 'حذف الصفحة';
+            del.onclick = () => askDeletePage(s.currentIndex);
+            bar.appendChild(del);
+        }
+
+        // ---- حذف صفحة (بعد رسالة تأكيد) ----
+        function askDeletePage(index) {
+            const s = wbGrade();
+            const p = s.pages[index];
+            if (!p) return;
+            const name = p.name || `صفحة ${index + 1}`;
+            const text = s.pages.length === 1
+                ? `هتمسح محتوى "${name}"؟ دي آخر صفحة، وهتفضل صفحة فاضية.`
+                : `هتحذف "${name}" نهائياً؟ كل الكتابة والرسم والملاحظات اللي فيها هتتمسح.`;
+            askConfirm(text, () => deletePage(index));
+        }
+        function deletePage(index) {
+            const s = wbGrade();
+            if (!s.pages[index]) return;
+            if (s.pages.length === 1) s.pages[0] = { strokes: [] };
+            else s.pages.splice(index, 1);
+            const next = Math.min(index, s.pages.length - 1);
+            switchPage(next);
+            renderStickies();
+            toast('تم حذف الصفحة');
         }
 
         // ---- تغيير اسم الصفحة ----
@@ -3305,7 +3507,7 @@
         const courseMedia = new Map();   // cid -> [{name,url}]
         let detailId = null;
         let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal'];
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal'];
 
         function findCourse(id) {
             return (appState.courses || []).find(c => c.id === id) || null;
@@ -3834,6 +4036,8 @@
             book: null, doc: null, page: 1, total: 0, spread: false, token: 0,
             annotate: false, tool: 'normal', color: '#dc2626', size: 7
         };
+        // لون كل قلم في القارئ (زي السبورة): كل قلم بيحتفظ بلونه
+        const readerPenColors = { normal: '#dc2626', feather: '#dc2626', hl: '#fde047', broad: '#dc2626', pencil: '#334155' };
         const NOTE_W = 1000;      // عرض مرجعي للرسم: الخطوط تتناسب مع أي حجم شاشة
         let noteUndo = [];
         let activeStroke = null;
@@ -3912,21 +4116,55 @@
             const sc = layer.width / NOTE_W;
             for (const s of strokes) {
                 if (!s.pts || !s.pts.length) continue;
-                const isHl = s.t === 'hl';
+                const pts = s.pts.map(p => [p[0] * layer.width, p[1] * layer.height]);
+                const w = s.w * sc;
                 g.save();
-                g.lineCap = (s.s === 'feather' || s.s === 'broad' || isHl) ? 'square' : 'round';
-                g.lineJoin = s.s === 'shape' ? 'miter' : 'round';
-                g.miterLimit = 6;
                 g.strokeStyle = s.c;
-                g.lineWidth = s.w * sc * (isHl ? 3 : s.s === 'broad' ? 2.5 : s.s === 'pencil' ? 0.6 : 1);
-                g.globalAlpha = isHl ? 0.35 : (s.s === 'pencil' ? 0.85 : 1);
-                g.beginPath();
-                s.pts.forEach((p, i) => {
-                    const x = p[0] * layer.width, y = p[1] * layer.height;
-                    if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-                });
-                if (s.pts.length === 1) g.lineTo(s.pts[0][0] * layer.width + 0.01, s.pts[0][1] * layer.height);
-                g.stroke();
+                g.lineJoin = 'round';
+                g.lineCap = 'round';
+                g.globalAlpha = 1;
+                if (s.s === 'shape') {
+                    g.lineJoin = 'miter';
+                    g.miterLimit = 6;
+                    g.lineWidth = w;
+                    g.beginPath();
+                    pts.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])));
+                    g.stroke();
+                } else if (s.s === 'feather') {
+                    // قلم الريشة: سن مايل (زي السبورة)
+                    g.lineCap = 'butt';
+                    const a = -0.6, ux = Math.cos(a), uy = Math.sin(a);
+                    g.lineWidth = Math.max(1, w * 0.3);
+                    for (let k = -3; k <= 3; k++) {
+                        const off = (k / 3) * w * 0.9;
+                        tracePath(g, pts, ux * off, uy * off);
+                    }
+                } else if (s.s === 'broad') {
+                    g.lineCap = 'square';
+                    g.lineJoin = 'bevel';
+                    g.lineWidth = w * 2.6;
+                    g.globalAlpha = 0.92;
+                    tracePath(g, pts, 0, 0);
+                } else if (s.t === 'hl' || s.s === 'hl') {
+                    g.lineCap = 'square';
+                    g.lineWidth = w * 3.2;
+                    g.globalAlpha = 0.38;
+                    tracePath(g, pts, 0, 0);
+                } else if (s.s === 'pencil') {
+                    // قلم الرصاص بحبيبات (زي السبورة)
+                    g.lineWidth = Math.max(1, w * 0.7);
+                    for (let k = 0; k < 3; k++) {
+                        g.globalAlpha = 0.45;
+                        const jit = pts.map((p, i) => {
+                            const r = Math.sin((i + 1) * (k + 3) * 12.9898) * 43758.5453;
+                            return [p[0] + ((r - Math.floor(r)) - 0.5) * w * 0.9, p[1] + ((Math.sin(r) * 0.5 + 0.5) - 0.5) * w * 0.9];
+                        });
+                        tracePath(g, jit, 0, 0);
+                    }
+                } else {
+                    g.lineWidth = w;
+                    tracePath(g, pts, 0, 0);
+                }
                 g.restore();
             }
         }
@@ -4266,12 +4504,32 @@
         function setNoteTool(t) {
             reader.tool = t;
             reader.annotate = true;
+            if (readerPenColors[t]) reader.color = readerPenColors[t];
             syncAnnotateUI();
         }
 
+        // ضغطة = اختيار القلم، ضغطتين بسرعة = قائمة ألوان القلم ده
+        let readerLastTap = { tool: null, t: 0 };
+        function readerPenTap(t) {
+            const now = Date.now();
+            if (readerLastTap.tool === t && now - readerLastTap.t < 450) {
+                readerLastTap = { tool: null, t: 0 };
+                setNoteTool(t);
+                openPalette('reader');
+            } else {
+                readerLastTap = { tool: t, t: now };
+                setNoteTool(t);
+            }
+        }
+
         function setNoteColor(c) {
-            reader.color = c;
             if (reader.tool === 'eraser') reader.tool = 'normal';
+            reader.color = c;
+            if (readerPenColors[reader.tool]) {
+                readerPenColors[reader.tool] = c;
+                appState.readerPenColors = { ...readerPenColors };
+                scheduleSave();
+            }
             reader.annotate = true;
             syncAnnotateUI();
         }
@@ -4289,6 +4547,10 @@
                 l.style.cursor = reader.annotate ? 'crosshair' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
+            ['normal', 'feather', 'hl', 'broad', 'pencil'].forEach(t => {
+                const b = $('tool-' + t);
+                if (b) b.style.setProperty('--pc', readerPenColors[t]);
+            });
             ['normal', 'feather', 'hl', 'broad', 'pencil', 'eraser', 'shape'].forEach(t => {
                 $('tool-' + t).classList.toggle('active', reader.annotate && reader.tool === t);
             });
@@ -4367,6 +4629,8 @@
             applyGradeNames();
             buildPalette();
             if (appState.penColors) Object.assign(penColors, appState.penColors);
+            if (appState.readerPenColors) Object.assign(readerPenColors, appState.readerPenColors);
+            reader.color = readerPenColors[reader.tool] || reader.color;
             penColor = penColors[penStyle] || penColor;
             markCurrentColor(penColor);
             // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
