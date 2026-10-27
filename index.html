@@ -4405,7 +4405,13 @@
             layer.addEventListener('pointercancel', up);
         })();
 
-        function confirmCrop() {
+        let cropBusy = false;
+        async function confirmCrop() {
+            if (!cropState || cropBusy) return;
+            cropBusy = true;
+            try { await confirmCropInner(); } finally { cropBusy = false; }
+        }
+        async function confirmCropInner() {
             if (!cropState) return;
             const l = Math.min(cropState.x1, cropState.x2), r = Math.max(cropState.x1, cropState.x2);
             const t = Math.min(cropState.y1, cropState.y2), b = Math.max(cropState.y1, cropState.y2);
@@ -4420,16 +4426,41 @@
             if (!best || bestArea <= 0) { toast('المساحة دي مش على الصفحة'); return; }
             const src = best.w.querySelector('canvas');
             const wr = best.wr;
-            const sx = (Math.max(l, wr.left) - wr.left) / wr.width * src.width;
-            const sy = (Math.max(t, wr.top) - wr.top) / wr.height * src.height;
-            const sw = best.ix / wr.width * src.width;
-            const sh = best.iy / wr.height * src.height;
-            const k = Math.min(1, 1000 / sw);
-            const out = document.createElement('canvas');
-            out.width = Math.max(1, Math.round(sw * k));
-            out.height = Math.max(1, Math.round(sh * k));
-            out.getContext('2d').drawImage(src, sx, sy, sw, sh, 0, 0, out.width, out.height);
-            addImageToBoard(out.toDataURL('image/jpeg', 0.9), out.width, out.height);
+            // نِسَب المنطقة المقصوصة من الصفحة (0..1)
+            const fx = (Math.max(l, wr.left) - wr.left) / wr.width;
+            const fy = (Math.max(t, wr.top) - wr.top) / wr.height;
+            const fw = best.ix / wr.width, fh = best.iy / wr.height;
+            const pageNo = Number(best.w.dataset.page);
+            const MAXW = 2400, MAXH = 4000;
+            let out = null;
+            // الأفضل: نعيد رسم المنطقة المقصوصة بس من الـ PDF نفسه بدقة عالية (مش من صورة الصفحة المعروضة)
+            try {
+                const page = await reader.doc.getPage(pageNo);
+                const base = page.getViewport({ scale: 1 });
+                const cw = fw * base.width, ch = fh * base.height;
+                const scale = Math.max(1, Math.min(6, MAXW / cw, MAXH / ch));
+                const vp = page.getViewport({ scale });
+                out = document.createElement('canvas');
+                out.width = Math.max(1, Math.round(cw * scale));
+                out.height = Math.max(1, Math.round(ch * scale));
+                const octx = out.getContext('2d');
+                octx.fillStyle = '#fff'; octx.fillRect(0, 0, out.width, out.height);
+                await page.render({
+                    canvasContext: octx, viewport: vp,
+                    transform: [1, 0, 0, 1, -fx * base.width * scale, -fy * base.height * scale]
+                }).promise;
+            } catch (err) {
+                out = null;
+            }
+            if (!out) {   // احتياطي: القص من صورة الصفحة المعروضة
+                const sx = fx * src.width, sy = fy * src.height, sw = fw * src.width, sh = fh * src.height;
+                const k = Math.min(1, MAXW / sw);
+                out = document.createElement('canvas');
+                out.width = Math.max(1, Math.round(sw * k));
+                out.height = Math.max(1, Math.round(sh * k));
+                out.getContext('2d').drawImage(src, sx, sy, sw, sh, 0, 0, out.width, out.height);
+            }
+            addImageToBoard(out.toDataURL('image/jpeg', 0.95), out.width, out.height);
             cancelCrop();
             toast('اتضافت الصورة للسبورة');
         }
@@ -4614,12 +4645,12 @@
         let readerPinch = null;
         let readerNoTap = false;
         const pageCache = new Map();   // صفحات اترسمت قبل كده (التقليب يبقى أسرع)
-        let readerQuality = 2;         // دقة الرسم (بتزيد مع التكبير عشان الكتاب يفضل واضح)
+        let readerQuality = 3;         // دقة الرسم (بتزيد مع التكبير عشان الكتاب يفضل واضح)
         let readerSharpTimer = null;
 
         function applyReaderView() {
             // لو المستخدم كبّر، نعيد رسم الصفحة بدقة أعلى بدل ما نكبّر صورة صغيرة (ده اللي بيخليها باهتة)
-            const wantQ = Math.min(4, Math.max(2, readerView.z * 2));
+            const wantQ = Math.min(6, Math.max(3, readerView.z * 3));
             if (readerView.z > 1.05 && wantQ > readerQuality + 0.5) {
                 readerQuality = wantQ;
                 clearTimeout(readerSharpTimer);
@@ -4728,8 +4759,9 @@
                 if (token !== reader.token) return;
                 const base = page.getViewport({ scale: 1 });
                 const fit = Math.min((cssW / count) / base.width, cssH / base.height);
-                const q = Math.max(dpr, readerQuality);
-                const renderScale = Math.min(fit * q, 4096 / Math.max(base.width, base.height));
+                const q = Math.max(dpr, readerQuality, document.body.classList.contains('lite') ? 0 : 3);
+                const maxPx = document.body.classList.contains('lite') ? 4096 : 6144;   // حد أقصى لأبعاد الكانفاس
+                const renderScale = Math.min(fit * q, maxPx / Math.max(base.width, base.height));
                 const vp = page.getViewport({ scale: renderScale });
                 const key = cacheKey(pageNo, vp.width, vp.height, q);
                 let pc = pageCache.get(key);
@@ -4740,7 +4772,7 @@
                     await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
                     if (token !== reader.token) return;
                     pageCache.set(key, pc);
-                    if (pageCache.size > 10) pageCache.delete(pageCache.keys().next().value);
+                    if (pageCache.size > 8) pageCache.delete(pageCache.keys().next().value);
                 }
                 const cssWpx = (base.width * fit) + 'px';
                 const cssHpx = (base.height * fit) + 'px';
@@ -4783,6 +4815,49 @@
             applyReaderView();
             updateReaderInfo();
             syncAnnotateUI();
+            prefetchReaderPages(token, count, dpr, cssW, cssH);
+        }
+
+        // تجهيز الصفحات اللي جنب الصفحة الحالية في الخلفية (بنفس الدقة بالظبط) عشان التقليب يبقى فوري
+        let prefetchTimer = null;
+        function prefetchReaderPages(token, count, dpr, cssW, cssH) {
+            clearTimeout(prefetchTimer);
+            // ما نجهّزش مسبقاً على الأجهزة الضعيفة أو في وضع الأداء، عشان ما نستهلكش ذاكرة ومعالج
+            const weak = document.body.classList.contains('lite') || (navigator.deviceMemory && navigator.deviceMemory <= 4) || (navigator.hardwareConcurrency || 8) <= 4;
+            if (weak || (navigator.connection && navigator.connection.saveData)) return;
+            const idle = window.requestIdleCallback || (cb => setTimeout(cb, 120));
+            const q = Math.max(dpr, readerQuality, document.body.classList.contains('lite') ? 0 : 3);
+            const maxPx = document.body.classList.contains('lite') ? 4096 : 6144;
+            const step = count;   // لو عرض صفحتين، التقليب بيتم صفحتين صفحتين
+            const targets = [reader.page + count, reader.page - step].filter(n => n >= 1 && n <= reader.total);
+            let i = 0;
+            const next = () => {
+                if (token !== reader.token || i >= targets.length || readerView.z > 1.05) return;   // نوقف لو المستخدم مكبّر أو بيقلّب
+                const pageNo = targets[i++];
+                idle(async () => {
+                    if (token !== reader.token) return;
+                    try {
+                        const page = await reader.doc.getPage(pageNo);
+                        if (token !== reader.token) return;
+                        const base = page.getViewport({ scale: 1 });
+                        const fit = Math.min((cssW / count) / base.width, cssH / base.height);
+                        const vp = page.getViewport({ scale: Math.min(fit * q, maxPx / Math.max(base.width, base.height)) });
+                        const key = cacheKey(pageNo, vp.width, vp.height, q);
+                        if (!pageCache.has(key)) {
+                            const pc = document.createElement('canvas');
+                            pc.width = Math.floor(vp.width);
+                            pc.height = Math.floor(vp.height);
+                            await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
+                            if (token !== reader.token) return;   // المستخدم قلّب: نرمي النتيجة بدل ما نعطّله
+                            pageCache.set(key, pc);
+                            // ما نطردش الصفحة الحالية من الكاش: نحدّ الحجم بس
+                            if (pageCache.size > 8) pageCache.delete(pageCache.keys().next().value);
+                        }
+                    } catch (e) { /* التجهيز المسبق اختياري */ }
+                    next();
+                });
+            };
+            prefetchTimer = setTimeout(next, 300);
         }
 
         function updateReaderInfo() {
