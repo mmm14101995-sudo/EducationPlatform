@@ -1311,7 +1311,7 @@
     <div id="mindmap-modal" class="modal" onclick="if (event.target === this) closeModal('mindmap-modal')">
         <div class="modal-box mm-box">
             <div class="modal-head"><h2>خرائط ذهنية جاهزة</h2><button class="ibtn" onclick="closeModal('mindmap-modal')"><i data-icon="x"></i></button></div>
-            <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:10px;">الخريطة بتتضاف فاضية للصفحة الحالية، اكتب عليها أو امسح زي أي شكل.</p>
+            <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:10px;">الخريطة بتتضاف فاضية للصفحة الحالية، ارسم عليها بالقلم أو امسح بالممحاة زي الاستيكي نوتس.</p>
             <div id="mm-list"></div>
         </div>
     </div>
@@ -2129,9 +2129,9 @@
             g.clearRect(0, 0, W, H);
             g.lineCap = 'round';
             g.lineJoin = 'round';
-            g.strokeStyle = '#1e293b';
             (n.ink || []).forEach(st => {
                 if (!st.pts || !st.pts.length) return;
+                g.strokeStyle = st.c || '#1e293b';
                 g.lineWidth = Math.max(1.5, st.w * W);
                 g.beginPath();
                 st.pts.forEach((p, i) => { const x = p[0] * W, y = p[1] * H; if (i) g.lineTo(x, y); else g.moveTo(x, y); });
@@ -2172,7 +2172,7 @@
                 const p = norm(e);
                 if (!st) {
                     if (Math.hypot((p[0] - start[0]) * cv.clientWidth, (p[1] - start[1]) * cv.clientHeight) < 3) return;
-                    st = { w: 2.5 / cv.clientWidth, pts: [start] };
+                    st = { w: Math.max(1.5, penWidth) / cv.clientWidth, c: penColor, pts: [start] };
                     n.ink = n.ink || [];
                     n.ink.push(st);
                 }
@@ -2233,6 +2233,10 @@
                 im.src = n.src;
                 im.draggable = false;
                 el.appendChild(im);
+                const icv = document.createElement('canvas');
+                icv.className = 'sticky-ink';
+                el.appendChild(icv);
+                bindInk(icv, n, el);
             } else if (n.mode === 'draw') {
                 el.querySelector('textarea').remove();
                 const cv = document.createElement('canvas');
@@ -2274,7 +2278,7 @@
                 el.style.width = (n.w * s) + 'px';
                 el.style.height = (n.h * s) + 'px';
                 el.style.fontSize = Math.max(9, 14 * s) + 'px';
-                if (n.mode === 'draw') drawInk(el, n);
+                if (n.mode === 'draw' || n.mode === 'image') drawInk(el, n);
             });
         }
 
@@ -3190,7 +3194,7 @@
         // ---- خرائط ذهنية جاهزة: فاضية، تتضاف للصفحة الحالية، والكتابة والمسح زي أي شكل ----
         const mmUid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         // المكان بيتحسب بالمركز (cx, cy)، والـ x/y هي الركن العلوي
-        const mkNode = (cx, cy, w, h, shape) => ({ id: mmUid(), x: cx - w / 2, y: cy - h / 2, cx, cy, w, h, text: '', shape, mode: 'text', ink: [] });
+        const mkNode = (cx, cy, w, h, shape) => ({ id: mmUid(), x: cx - w / 2, y: cy - h / 2, cx, cy, w, h, text: '', shape, mode: 'draw', ink: [] });
         const mkLink = (a, b) => ({ t: 'pen', c: '#475569', w: 3, s: 'shape', kind: 'line', pts: [[a.cx, a.cy], [b.cx, b.cy]] });
         const mkLinks = (pairs) => pairs.map(([a, b]) => mkLink(a, b));
         const mkRing = (n, rx, ry, a0, w, h, shape) => Array.from({ length: n }, (_, i) => {
