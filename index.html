@@ -818,13 +818,16 @@
             min-width: 40px; min-height: 40px; overflow: hidden;
         }
         .sticky-head {
-            height: 24px; flex: none; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 6px; background: rgba(0,0,0,0.1); cursor: grab; touch-action: none; user-select: none; font-size: 12px;
+            position: absolute; left: 0; right: 0; top: -27px; height: 25px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 4px; background: rgba(15,23,42,0.12); border-radius: 5px 5px 0 0;
+            cursor: grab; touch-action: none; user-select: none; font-size: 12px; z-index: 8;
         }
         .sticky-del { background: none; border: 0; color: #422006; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px; }
         .sticky textarea {
-            flex: 1; width: 100%; min-height: 0; background: transparent; border: 0; outline: none; resize: none;
-            padding: 6px; font: inherit; font-size: inherit; color: #422006; line-height: 1.5;
+            position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0;
+            background: transparent; border: 0; outline: none; resize: none; box-sizing: border-box;
+            padding: 8px; font: inherit; font-size: inherit; color: #422006; line-height: 1.5;
         }
         .sticky textarea::placeholder { color: rgba(66,32,6,0.45); }
         /* الملاحظة نفسها شفافة، والشكل الأصفر بيترسم في ::before عشان زر × يفضل ظاهر دايماً */
@@ -835,7 +838,7 @@
         }
         .sticky-head { background: rgba(0,0,0,0.08); border-radius: 4px 4px 0 0; }
         .sticky-del { min-width: 24px; min-height: 24px; color: #422006; }
-        .sticky-ink { position: absolute; left: 0; top: 24px; width: 100%; height: calc(100% - 24px); touch-action: none; cursor: crosshair; border-radius: 0 0 4px 4px; }
+        .sticky-ink { position: absolute; left: 0; top: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; border-radius: 4px; }
         .sticky.moving { opacity: 0.85; }
         .sticky.moving .sticky-head { cursor: grabbing; }
         /* 10 أشكال للملاحظة */
@@ -871,7 +874,7 @@
         .crop-cancel { background: transparent; color: #fff; border: 1px solid #fff; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
         /* صورة مقصوصة جوه ملاحظة السبورة (بتتحرك وتتمسح زي الملاحظات) */
         .sticky.sh-image::before { display: none; }
-        .sticky-img { position: absolute; left: 0; top: 24px; width: 100%; height: calc(100% - 24px); object-fit: contain; background: #ffffff; border-radius: 0 0 4px 4px; user-select: none; -webkit-user-drag: none; }
+        .sticky-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; background: #ffffff; border-radius: 0 0 4px 4px; user-select: none; -webkit-user-drag: none; }
         .sticky-btn svg { width: 26px; height: 26px; }
         .rn-tool.sticky-btn svg { width: 28px; height: 28px; }
 
@@ -2303,12 +2306,29 @@
             head.addEventListener('pointerdown', e => {
                 e.preventDefault();
                 d = { x: e.clientX, y: e.clientY, ox: n.x, oy: n.y, r: getRect ? getRect() : null };
+                if (n.groupId && !isReader) {
+                    const pg = currentPage();
+                    (pg.notes || []).filter(x => x.groupId === n.groupId).forEach(x => { x._dragX = x.x; x._dragY = x.y; });
+                    (pg.strokes || []).filter(x => x.groupId === n.groupId).forEach(st => { st._dragPts = st.pts.map(p => [p[0], p[1]]); });
+                }
                 head.setPointerCapture(e.pointerId);
             });
             head.addEventListener('pointermove', e => {
                 if (!d) return;
                 const dx = e.clientX - d.x, dy = e.clientY - d.y;
-                if (isReader) {
+                if (n.groupId && !isReader) {
+                    const pg = currentPage();
+                    const groupNotes = (pg.notes || []).filter(x => x.groupId === n.groupId);
+                    const dxBoard = dx / view.s, dyBoard = dy / view.s;
+                    groupNotes.forEach(x => { x.x = (x._dragX ?? x.x) + dxBoard; x.y = (x._dragY ?? x.y) + dyBoard; });
+                    (pg.strokes || []).filter(x => x.groupId === n.groupId).forEach(st => {
+                        if (!st._dragPts) st._dragPts = st.pts.map(p => [p[0], p[1]]);
+                        st.pts = st._dragPts.map(p => [p[0] + dxBoard, p[1] + dyBoard]);
+                    });
+                    renderStickies();
+                    requestRender();
+                    boardDirty = true;
+                } else if (isReader) {
                     n.x = Math.min(0.95, Math.max(-0.05, d.ox + dx / d.r.width));
                     n.y = Math.min(0.95, Math.max(-0.05, d.oy + dy / d.r.height));
                     el.style.left = (n.x * 100) + '%';
@@ -2319,7 +2339,15 @@
                     renderStickies();
                 }
             });
-            const end = () => { if (d) { d = null; onEnd(); } };
+            const end = () => {
+                if (!d) return;
+                if (n.groupId && !isReader) {
+                    const pg = currentPage();
+                    (pg.notes || []).filter(x => x.groupId === n.groupId).forEach(x => { delete x._dragX; delete x._dragY; });
+                    (pg.strokes || []).filter(x => x.groupId === n.groupId).forEach(st => { delete st._dragPts; });
+                }
+                d = null; onEnd();
+            };
             head.addEventListener('pointerup', end);
             head.addEventListener('pointercancel', end);
         }
@@ -2400,6 +2428,7 @@
 
         // امسك الملاحظة بضغطة مطوّلة (أو من الشريط العلوي) وحرّكها
         function bindHoldDrag(el, n) {
+            if (n.groupId) return; // الخريطة الذهنية تتحرك من شريط المجموعة فقط
             let timer = null, start = null, dragging = false, pid = null, ox = 0, oy = 0;
             el.addEventListener('pointerdown', e => {
                 if (e.target.closest('.sticky-head')) return;
@@ -2460,9 +2489,16 @@
             }
             el.querySelector('.sticky-del').addEventListener('click', () => {
                 const pg = currentPage();
-                pg.notes = (pg.notes || []).filter(x => x.id !== n.id);
+                if (n.groupId) {
+                    pg.notes = (pg.notes || []).filter(x => x.groupId !== n.groupId);
+                    pg.strokes = (pg.strokes || []).filter(x => x.groupId !== n.groupId);
+                } else {
+                    pg.notes = (pg.notes || []).filter(x => x.id !== n.id);
+                }
+                boardDirty = true;
                 scheduleSave();
                 renderStickies();
+                requestRender();
             });
             bindStickyDrag(el, n, null, () => scheduleSave(), false);
             bindHoldDrag(el, n);
@@ -3622,10 +3658,11 @@
             pg.notes = pg.notes || [];
             pg.strokes = pg.strokes || [];
             const { nodes, links } = tpl.build();
+            const groupId = 'mm-' + mmUid();
             const ox = (stageEl.clientWidth / 2 - view.tx) / view.s;
             const oy = (stageEl.clientHeight / 2 - view.ty) / view.s;
-            links.forEach(st => pg.strokes.push({ ...st, pts: st.pts.map(([x, y]) => [x + ox, y + oy]) }));
-            nodes.forEach(({ cx, cy, ...n }) => pg.notes.push({ ...n, x: n.x + ox, y: n.y + oy }));
+            links.forEach(st => pg.strokes.push({ ...st, groupId, pts: st.pts.map(([x, y]) => [x + ox, y + oy]) }));
+            nodes.forEach(({ cx, cy, ...n }) => pg.notes.push({ ...n, groupId, x: n.x + ox, y: n.y + oy }));
             boardDirty = true;
             scheduleSave();
             renderStickies();
