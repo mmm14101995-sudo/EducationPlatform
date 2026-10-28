@@ -288,14 +288,49 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self.send_json({"ok": True, "path": d})
 
         if path == "/api/open-folder":
+            # التوافق مع index.html الحالي: زر إضافة الاختبارات يستدعي openFolder(grade).
+            # بدل فتح مجلد يدويًا، نعرض نافذة اختيار ملفات PDF وننسخها إلى مكتبة التطبيق.
             grade = str(payload.get("grade", "sec3")).lower()
             if grade not in GRADES:
                 return self.send_json({"ok": False}, 400)
-            folder = os.path.join(BOOKS_DIR, grade.upper(), "exams")
-            os.makedirs(folder, exist_ok=True)
-            if hasattr(os, "startfile"):
-                os.startfile(folder)  # يفتح المجلد في مستكشف الويندوز
-            return self.send_json({"ok": True, "path": folder})
+
+            wins = webview.windows
+            if not wins:
+                return self.send_json({"ok": False, "error": "window_unavailable"}, 500)
+
+            try:
+                picked = wins[0].create_file_dialog(
+                    webview.OPEN_DIALOG,
+                    allow_multiple=True,
+                    file_types=("PDF files (*.pdf)",),
+                )
+            except Exception as exc:
+                return self.send_json({"ok": False, "error": str(exc)}, 500)
+
+            if not picked:
+                return self.send_json({"ok": False, "cancelled": True})
+
+            target = os.path.join(BOOKS_DIR, grade.upper(), "exams")
+            os.makedirs(target, exist_ok=True)
+            count = 0
+            for src in picked:
+                try:
+                    if os.path.isfile(src) and src.lower().endswith(".pdf"):
+                        name = os.path.basename(src)
+                        dest = os.path.join(target, name)
+                        # لا نستبدل ملفًا موجودًا بنفس الاسم؛ نضيف رقمًا للاسم الجديد.
+                        if os.path.exists(dest):
+                            stem, ext = os.path.splitext(name)
+                            number = 2
+                            while os.path.exists(os.path.join(target, f"{stem} ({number}){ext}")):
+                                number += 1
+                            dest = os.path.join(target, f"{stem} ({number}){ext}")
+                        shutil.copy2(src, dest)
+                        count += 1
+                except OSError:
+                    continue
+
+            return self.send_json({"ok": True, "count": count})
 
         if path == "/api/open-external":
             url = str(payload.get("url", ""))
