@@ -6,8 +6,8 @@
     <title>المنصة التعليمية الشاملة للمرحلة الثانوية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" media="print" onload="this.media='all'">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" onload="window.setupPdfWorker && setupPdfWorker()"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" onload="window.setupPdfWorker && setupPdfWorker()" onerror="window.loadLibFallback && loadLibFallback('pdf')"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="window.loadLibFallback && loadLibFallback('jspdf')"></script>
     <style>
 
         :root {
@@ -27,7 +27,7 @@
             --solid: #ffffff;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', 'Segoe UI', 'Noto Sans Arabic', Tahoma, system-ui, sans-serif; }
         html, body { height: 100%; }
         html { background: #0b1020; }
         body { display: flex; overflow: hidden; color: var(--text); -webkit-tap-highlight-color: transparent; }
@@ -303,7 +303,7 @@
         .paper-size-choice { flex: 1 1 64px; min-height: 38px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; }
         .paper-size-choice.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border-color: transparent; }
         #custom-canvas {
-            display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair;
+            display: block; width: 100%; height: 100%; touch-action: none; cursor: default;
             background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 24px 24px;
         }
 
@@ -815,7 +815,7 @@
         }
         .sticky-head { background: rgba(0,0,0,0.08); border-radius: 4px 4px 0 0; }
         .sticky-del { min-width: 24px; min-height: 24px; color: #422006; }
-        .sticky-ink { position: absolute; left: 0; top: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; border-radius: 4px; }
+        .sticky-ink { position: absolute; left: 0; top: 0; width: 100%; height: 100%; touch-action: none; cursor: default; border-radius: 4px; }
         .sticky.moving { opacity: 0.85; }
         .sticky.moving .sticky-head { cursor: grabbing; }
         /* الخريطة الذهنية مجموعة واحدة: رأس/إغلاق واحد فقط على العقدة الرئيسية */
@@ -1014,6 +1014,139 @@
             .seg::-webkit-scrollbar { display: none; }
             .seg button { flex: none; white-space: nowrap; padding: 8px 12px; }
         }
+        #eraser-ring {
+            position: absolute; left: 0; top: 0; display: none; pointer-events: none; z-index: 3; border-radius: 50%;
+            border: 2px solid rgba(15,23,42,0.55); background: rgba(148,163,184,0.18);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.7); transform: translate(-50%, -50%);
+        }
+        #custom-canvas, .board-stage { cursor: none; }
+        body.board-select #custom-canvas, body.board-select .board-stage { cursor: default; }
+        .brand { gap: 12px; margin-bottom: 14px; }
+        .brand span { font-size: 16px; font-weight: 800; line-height: 1.3; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* =====================================================================
+           الهوية البصرية الموحّدة (v3)
+           ألوان + مسافات + أنصاف أقطار + ظلال + حالات الأزرار. الزجاج للإطارات والنوافذ فقط.
+           ===================================================================== */
+        :root {
+            --bg: #10141d; --surface: #1b2230; --surface-2: #232c3d;
+            --accent: #638bff; --accent2: #35d6c2;
+            --text: #f1f4fa; --muted: #a3adbd;
+            --line: rgba(241,244,250,0.10); --line-strong: rgba(241,244,250,0.18);
+            --card: rgba(27,34,48,0.78); --solid: #1b2230;
+            --flat-bg: rgba(27,34,48,0.72); --flat-bg-hover: rgba(35,44,61,0.9); --flat-line: rgba(241,244,250,0.09);
+            --hover: rgba(241,244,250,0.07); --press: rgba(241,244,250,0.12);
+            --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-xl: 24px;
+            --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.22);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.28);
+            --t: 0.18s ease;
+        }
+        [data-theme="light"] {
+            --bg: #f3f5fa; --surface: #ffffff; --surface-2: #eef1f8;
+            --accent: #3f6bf0; --accent2: #0fa597;
+            --text: #141b2d; --muted: #556077;
+            --line: rgba(20,27,45,0.10); --line-strong: rgba(20,27,45,0.18);
+            --card: rgba(255,255,255,0.86); --solid: #ffffff;
+            --flat-bg: rgba(255,255,255,0.92); --flat-bg-hover: #ffffff; --flat-line: rgba(20,27,45,0.09);
+            --hover: rgba(20,27,45,0.05); --press: rgba(20,27,45,0.09);
+            --shadow-sm: 0 1px 4px rgba(20,27,45,0.08);
+            --shadow-md: 0 10px 28px rgba(20,27,45,0.12);
+        }
+        html { background: var(--bg); }
+        #bg-layer::after { background: rgba(16,20,29,0.55); }
+        [data-theme="light"] #bg-layer::after { background: rgba(243,245,250,0.78); }
+
+        /* الإطارات: زجاج خفيف */
+        .sidebar, .topbar {
+            background: var(--card) !important;
+            border: 1px solid var(--line) !important;
+            box-shadow: var(--shadow-md) !important;
+            backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+            border-radius: var(--r-xl);
+        }
+        .modal-box { background: var(--solid) !important; border: 1px solid var(--line-strong) !important; box-shadow: var(--shadow-md) !important; border-radius: var(--r-xl); }
+
+        /* الكروت: هادية */
+        .hero, .stat, .qa-card, .course-card, .exam-card, .ai-card, .lib-toolbar, .teacher, .seg, .detail-item {
+            background: var(--flat-bg) !important; border: 1px solid var(--flat-line) !important; box-shadow: var(--shadow-sm) !important;
+        }
+        .qa-card:hover, .course-card:hover, .exam-card:hover, .ai-card:hover { background: var(--flat-bg-hover) !important; border-color: var(--line-strong) !important; }
+        .qa-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md) !important; }
+        .qa-card, .course-card, .exam-card, .stat, .btn-ghost, .btn-primary, .ibtn, .nav, .seg button { transition: background var(--t), border-color var(--t), box-shadow var(--t), transform var(--t), color var(--t); }
+        .nav:active, .qa-card:active, .course-card:active, .stat:active, .ai-card:active,
+        .btn-ghost:active, .btn-primary:active, .ibtn:active, .seg button:active { transform: scale(0.97); }
+
+        /* الشريط الجانبي */
+        .brand { padding: 2px 4px; }
+        .nav { gap: 12px; padding: 8px 10px; border-radius: var(--r-md); font-size: 15px; color: var(--muted); }
+        .nav:hover { background: var(--hover); color: var(--text); }
+        .nav .ico { width: 36px; height: 36px; padding: 8px; border-radius: 10px; background: transparent; box-shadow: none; color: inherit; }
+        .nav.active { background: rgba(99,139,255,0.16); color: var(--text); box-shadow: inset -3px 0 0 var(--accent); }
+        .nav.active .ico { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 12px rgba(99,139,255,0.35); }
+        [data-theme="light"] .nav.active { background: rgba(63,107,240,0.10); }
+        .teacher { padding: 10px 12px; }
+        .side-foot .btn-ghost { background: var(--hover); box-shadow: none; border: 1px solid var(--line); }
+
+        /* الأزرار */
+        .btn-primary { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent2))); color: #fff; border-radius: var(--r-md); box-shadow: 0 6px 16px rgba(99,139,255,0.30); }
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+        .btn-ghost { border-radius: var(--r-md); background: var(--hover); border: 1px solid var(--line); color: var(--text); }
+        .btn-ghost:hover { background: var(--press); }
+        .ibtn:hover:not(:disabled) { background: var(--press); }
+        .seg button.active { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 65%, var(--accent2))); box-shadow: 0 4px 12px rgba(99,139,255,0.30); }
+
+        /* الرئيسية */
+        .hero { border-radius: var(--r-xl); padding: 28px 30px; background: linear-gradient(120deg, rgba(99,139,255,0.20), rgba(53,214,194,0.07) 60%), var(--flat-bg) !important; }
+        .hero::after { background: radial-gradient(circle, var(--accent2), transparent 70%); opacity: 0.22; }
+        .hero h2 { font-size: 28px; letter-spacing: 0; }
+        .hero p { font-size: 15px; max-width: 560px; }
+        .hero-actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-4); position: relative; z-index: 1; }
+        .hero-actions .btn-primary, .hero-actions .btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 0 0 auto; width: auto; }
+        .hero-actions .ico { width: 18px; height: 18px; }
+        .stat .si { border-radius: var(--r-md); }
+        .stat b { font-size: 24px; }
+        .section-title { margin: 28px 0 var(--sp-3); }
+        .section-title h3 { font-size: 18px; }
+        .qa-card:first-child { background: linear-gradient(135deg, rgba(99,139,255,0.28), rgba(53,214,194,0.12)), var(--flat-bg) !important; border-color: rgba(99,139,255,0.45) !important; }
+        .qa-card .ico { color: var(--accent); }
+
+        /* المكتبة: رفوف رقمية حديثة بدل الخشب */
+        .shelf-wood {
+            background: var(--flat-bg); border: 1px solid var(--flat-line); border-bottom: 0; border-radius: var(--r-lg);
+            box-shadow: var(--shadow-sm); padding: 24px 20px 28px; gap: 26px 20px;
+        }
+        .shelf-wood::after { display: none; }
+        .shelf-wood > .book-card::after { content: none; }
+        .book-card { color: var(--text); }
+        .shelf-empty { color: var(--muted); }
+        .cover { border-radius: 6px 10px 10px 6px; box-shadow: -3px 6px 14px rgba(0,0,0,0.35); }
+        .book-card:hover .cover { transform: translateY(-4px); box-shadow: -4px 12px 20px rgba(0,0,0,0.4); }
+        .progress { background: var(--press); }
+        .book-meta { color: var(--muted); opacity: 1; }
+
+        /* القارئ */
+        .reader-overlay { background: #0e121a; }
+        .reader-bar, .reader-foot { background: #151b27; color: var(--text); border-color: var(--line); }
+        .reader-notes { background: #151b27; border-top: 1px solid var(--line); }
+        .reader-btn { border-radius: var(--r-md); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); }
+        .reader-btn:hover { background: rgba(255,255,255,0.12); }
+        .rd-side, .rd-btn { background: rgba(21,27,39,0.78); border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+        .rn-tool.active { box-shadow: 0 0 0 2px var(--accent); background: rgba(99,139,255,0.18); }
+        .board-bar .pen-3d.active { box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 0 0 2px var(--accent); background: rgba(99,139,255,0.18); }
+
+        /* السبورة: شريط أدوات أنضف في الوضع العادي (الملء الشاشة والسحب زي ما هم) */
+        .board:not(.fs) .board-bar { background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); gap: 8px; padding: 10px 12px; }
+        .board:not(.fs) .bgrp { background: var(--hover); border: 1px solid var(--line); box-shadow: none; border-radius: var(--r-md); }
+        .board:not(.fs) .board-bar .bar-break { display: none; }
+        .board:not(.fs) .board-bar .pen-3d { width: 40px; height: 48px; }
+        .board:not(.fs) .board-bar .ibtn { width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; }
+        .board:not(.fs) .board-bar .ibtn.pen-3d { height: 48px !important; }
+        .board:not(.fs) .board-bar .ibtn svg { width: 24px !important; height: 24px !important; }
+        .board:not(.fs) .board-bar .ibtn.pen-3d svg, .board:not(.fs) .board-bar #eraser-btn svg { width: 22px !important; height: 36px !important; }
+
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .toast { background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); }
 </style>
 </head>
 <body data-theme="dark">
@@ -1064,6 +1197,10 @@
                     <div class="kicker" id="hero-grade">الصف الثالث الثانوي</div>
                     <h2 id="hero-name">أهلاً بك</h2>
                     <p>مساحتك التعليمية: كتبك وملازمك وسبورتك واختباراتك في مكان واحد، ومحفوظة على جهازك.</p>
+                    <div class="hero-actions">
+                        <button class="btn-primary" onclick="switchView('board', document.querySelector('[data-view=board]'))"><i data-icon="pen"></i><span>افتح السبورة</span></button>
+                        <button class="btn-ghost" onclick="switchView('books', document.querySelector('[data-view=books]'))"><i data-icon="book"></i><span>المكتبة</span></button>
+                    </div>
                 </div>
 
                 <div class="stats">
@@ -1168,6 +1305,7 @@
                         <div class="board-paper" id="board-paper">
                             <canvas id="custom-canvas"></canvas>
                         </div>
+                        <div id="eraser-ring" aria-hidden="true"></div>
                     </div>
                 </div>
             </section>
@@ -1830,15 +1968,13 @@
             if (bg.type === 'image' && bg.data) {
                 layer.style.backgroundImage = `url("${bg.data}")`;
                 layer.style.backgroundColor = '#0b1020';
-                document.documentElement.style.setProperty('--accent', '#38bdf8');
-                document.documentElement.style.setProperty('--accent2', '#818cf8');
+                /* الهوية ثابتة: لون الخلفية ما بيغيرش ألوان الواجهة */
                 return;
             }
             if (BG_SCENES[bg.value]) {
                 layer.style.backgroundImage = `url("${BG_SCENES[bg.value]}")`;
                 layer.style.backgroundColor = '#0a0f2c';
-                document.documentElement.style.setProperty('--accent', '#38bdf8');
-                document.documentElement.style.setProperty('--accent2', '#a78bfa');
+                /* الهوية ثابتة */
                 return;
             }
             const p = BG_PRESETS[bg.value] || BG_PRESETS.indigo;
@@ -1846,8 +1982,7 @@
                 `radial-gradient(900px 500px at 85% -10%, ${p[2]}55, transparent 60%), ` +
                 `radial-gradient(700px 500px at 0% 110%, ${p[2]}33, transparent 60%), ` +
                 `linear-gradient(160deg, ${p[0]}, ${p[1]})`;
-            document.documentElement.style.setProperty('--accent', p[2]);
-            document.documentElement.style.setProperty('--accent2', p[2]);
+            /* الهوية ثابتة */
         }
         if (earlyBgApplied) applyBg();   // نرسم الخلفية فوراً قبل ما الصفحة تظهر
         else if (!NATIVE) {
@@ -2956,18 +3091,20 @@
         }
 
         // سرعة الممحاة: لما تحركها بسرعة حجمها بيكبر (وقفتها بتكون بالحجم الأساسي)
-        let eraseTrail = { t: 0, x: 0, y: 0, v: 0 };
+        let eraseTrail = { t: 0, x: 0, y: 0, v: 0, f: 1 };
         function eraseSpeedFactor(e) {
-            const now = performance.now();
+            const now = (e && e.timeStamp) || performance.now();
             if (!e || e.type === 'pointerdown' || !eraseTrail.t) {
-                eraseTrail = { t: now, x: e ? e.clientX : 0, y: e ? e.clientY : 0, v: 0 };
+                eraseTrail = { t: now, x: e ? e.clientX : 0, y: e ? e.clientY : 0, v: 0, f: 1 };
                 return 1;
             }
-            const dt = Math.max(1, now - eraseTrail.t);
+            const dt = now - eraseTrail.t;
+            if (dt <= 0) return eraseTrail.f;   // نفس الحدث اتحسب قبل كده
             const d = Math.hypot(e.clientX - eraseTrail.x, e.clientY - eraseTrail.y);
-            const v = 0.6 * eraseTrail.v + 0.4 * (d / dt);
-            eraseTrail = { t: now, x: e.clientX, y: e.clientY, v };
-            return 1 + Math.min(1.6, v * 1.6);
+            const v = 0.5 * eraseTrail.v + 0.5 * (d / Math.max(2, dt));
+            const f = 1 + Math.min(2, v * 1.8);
+            eraseTrail = { t: now, x: e.clientX, y: e.clientY, v, f };
+            return f;
         }
 
         // أقرب مسافة من نقطة لقطعة خط (عشان الممحاة تمسح الخط حتى لو الخط بين نقطتين بس)
@@ -2984,6 +3121,33 @@
                 if (hit[i] && hit[i + 1]) continue;
                 if (distToSeg(px, py, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]) < R) { hit[i] = true; hit[i + 1] = true; }
             }
+        }
+
+        // الممحاة على السبورة: كل ما تحركها أسرع المساحة بتكبر، ولو الحركة سريعة بنمسح الفراغ اللي بين النقط كمان
+        let lastErase = null;
+        const eraserRing = document.getElementById('eraser-ring');
+        function hideEraserRing() { if (eraserRing) eraserRing.style.display = 'none'; }
+        function showEraserRing(ev, f) {
+            if (!eraserRing) return;
+            const r = stageEl.getBoundingClientRect();
+            const d = eraserWidth * f;
+            eraserRing.style.width = eraserRing.style.height = d + 'px';
+            eraserRing.style.left = (ev.clientX - r.left) + 'px';
+            eraserRing.style.top = (ev.clientY - r.top) + 'px';
+            eraserRing.style.display = 'block';
+        }
+        function eraseStep(ev) {
+            const f = 1 + Math.min(3, (eraseSpeedFactor(ev) - 1) * 1.5);
+            const R = (eraserWidth / 2) * f / view.s;
+            const p = worldPoint(ev);
+            if (lastErase) {
+                const dx = p[0] - lastErase[0], dy = p[1] - lastErase[1];
+                const steps = Math.min(60, Math.floor(Math.hypot(dx, dy) / Math.max(1, R * 0.6)));
+                for (let i = 1; i <= steps; i++) eraseBoardAt([lastErase[0] + dx * i / (steps + 1), lastErase[1] + dy * i / (steps + 1)], R);
+            }
+            eraseBoardAt(p, R);
+            lastErase = p;
+            return f;
         }
 
         function eraseBoardAt(p, R) {
@@ -3068,7 +3232,8 @@
             if (erase) {
                 activeMode = 'erase';
                 eraseTrail.t = 0;
-                eraseBoardAt(worldPoint(e), (eraserWidth / 2) * eraseSpeedFactor(e) / view.s);
+                lastErase = null;
+                showEraserRing(e, eraseStep(e));
             } else {
                 activeMode = 'draw';
                 const [x, y] = worldPoint(e);
@@ -3094,6 +3259,7 @@
             if (activeMode === 'select' || activeMode === 'selmove') { selectMove(e); return; }
             const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
             const list = evs.length ? evs : [e];
+            let lastF = 1;
             for (const ce of list) {
                 const [x, y] = worldPoint(ce);
                 if (activeMode === 'draw' && cur) {
@@ -3104,9 +3270,10 @@
                         if (Math.hypot(x - last[0], y - last[1]) * view.s > 0.8) cur.pts.push([x, y]);
                     }
                 } else if (activeMode === 'erase') {
-                    eraseBoardAt([x, y], (eraserWidth / 2) * eraseSpeedFactor(e) / view.s);
+                    lastF = eraseStep(ce);
                 }
             }
+            if (activeMode === 'erase') showEraserRing(e, lastF);
             if (activeMode === 'draw') requestRender();
         });
 
@@ -3126,6 +3293,8 @@
                 cur = null;
                 activeId = null;
                 activeMode = null;
+                lastErase = null;
+                hideEraserRing();
                 afterChange();
             }
             try {
@@ -3134,6 +3303,7 @@
                 }
             } catch (err) { /* تجاهل */ }
         }
+        stageEl.addEventListener('pointerleave', hideEraserRing);
         stageEl.addEventListener('pointerup', endPointer);
         stageEl.addEventListener('pointercancel', endPointer);
 
@@ -3224,7 +3394,8 @@
 
         // ---- الأدوات ----
         function applyToolState() {
-            canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+            document.body.classList.toggle('board-select', tool === 'select');
+            if (tool !== 'eraser') hideEraserRing();
         }
 
         function refreshToolButtons() {
@@ -3409,8 +3580,34 @@
             if (!document.fullscreenElement && $('board').classList.contains('fs')) setBoardFs(false);
         });
 
+        // زرار إخفاء الأدوات ينزل تحت شريط القارئ مهما كان ارتفاعه (الشريط بيتكسر لسطرين في الشاشات الضيقة)
+        function placeReaderCorner() {
+            const R = $('reader'), corner = R && R.querySelector('.rd-corner');
+            if (!corner) return;
+            const top0 = R.getBoundingClientRect().top;
+            let y = 0;
+            for (const sel of ['.reader-bar', '.reader-notes']) {
+                const el = R.querySelector(sel);
+                if (!el) continue;
+                const cs = getComputedStyle(el);
+                if (cs.display === 'none' || cs.position === 'absolute' || cs.position === 'fixed') continue;
+                y = Math.max(y, el.getBoundingClientRect().bottom - top0);
+            }
+            corner.style.top = (y + 12) + 'px';
+        }
+        (function () {
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(placeReaderCorner);
+                document.querySelectorAll('#reader .reader-bar, #reader .reader-notes').forEach(el => ro.observe(el));
+            }
+            window.addEventListener('resize', placeReaderCorner);
+            const R = document.getElementById('reader');
+            if (R && window.MutationObserver) new MutationObserver(placeReaderCorner).observe(R, { attributes: true, attributeFilter: ['class'] });
+        })();
+
         function toggleReaderBars() {
             $('reader').classList.toggle('bars-hidden');
+            placeReaderCorner();
             renderReader();
         }
 
@@ -3961,11 +4158,32 @@
             return new Promise(res => {
                 if (window.pdfjsLib) return res();
                 let n = 0;
-                const t = setInterval(() => { if (window.pdfjsLib || ++n > 150) { clearInterval(t); res(); } }, 100);
+                const t = setInterval(() => { if (window.pdfjsLib || ++n > 250) { clearInterval(t); res(); } }, 100);
             });
         }
+        // لو الـ CDN الأساسي مش شغال (إنترنت ضعيف أو محجوب) نجرب مصادر تانية
+        const PDF_SOURCES = [
+            ['https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js', 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js'],
+            ['https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js', 'https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js']
+        ];
+        const JSPDF_SOURCES = [
+            'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+            'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
+        ];
+        let pdfWorkerUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        const fallbackTried = { pdf: 0, jspdf: 0 };
+        function loadLibFallback(which) {
+            const list = which === 'pdf' ? PDF_SOURCES : JSPDF_SOURCES;
+            const i = fallbackTried[which]++;
+            if (i >= list.length) return;
+            const sc = document.createElement('script');
+            sc.src = which === 'pdf' ? list[i][0] : list[i];
+            sc.onload = () => { if (which === 'pdf') { pdfWorkerUrl = list[i][1]; setupPdfWorker(); } };
+            sc.onerror = () => loadLibFallback(which);
+            document.head.appendChild(sc);
+        }
         function setupPdfWorker() {
-            if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
         }
 
         async function renderCoverImage(book) {
@@ -5503,6 +5721,8 @@
         // ==========================================
         (async () => {
             setupPdfWorker();
+            setTimeout(() => { if (!window.pdfjsLib) loadLibFallback('pdf'); }, 8000);
+            setTimeout(() => { if (!window.jspdf) loadLibFallback('jspdf'); }, 8000);
             paintIcons();
             document.querySelectorAll('button[title]:not([aria-label])').forEach(b => b.setAttribute('aria-label', b.getAttribute('title')));
             document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('nav')) { e.preventDefault(); e.target.click(); } });
