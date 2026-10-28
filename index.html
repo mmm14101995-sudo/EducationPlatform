@@ -1627,6 +1627,37 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             .lib-toolbar .search { flex: 1 1 100%; min-width: 0; }
             .lib-toolbar select { min-width: 0; max-width: 100%; }
         }
+
+        /* ===== التبويبات الرئيسية في الجنب بنفس شكل الويندوز (قائمة بالأسماء) داخل تطبيق الأندرويد ===== */
+        body.native .app { flex-direction: row !important; align-items: stretch; gap: 14px; padding: 14px; height: auto; min-height: 100dvh; }
+        body.native .sidebar {
+            flex: 0 0 clamp(200px, 26vw, 262px); width: clamp(200px, 26vw, 262px); max-width: 262px; min-width: 0; height: auto; min-height: 0;
+            flex-direction: column; align-items: stretch; justify-content: flex-start;
+            gap: 6px; padding: 18px; overflow: hidden; border-radius: 24px;
+        }
+        body.native .sidebar .nav { width: 100%; margin: 0; padding: 12px 14px; border-radius: 14px; white-space: nowrap; gap: 12px; font-size: 15px; }
+        body.native .sidebar .nav span { display: inline; }
+        body.native .sidebar .nav .ico { width: 22px !important; height: 22px !important; min-width: 22px; padding: 0; border-radius: 0; background: none; box-shadow: none; color: inherit; }
+        body.native .sidebar .nav.active .ico { background: none; color: inherit; box-shadow: none; }
+        body.native .nav.active { box-shadow: inset -3px 0 0 var(--accent); }
+        body.native .side-foot { flex-direction: column; width: 100%; margin: 0; gap: 8px; }
+        body.native .side-foot .btn-ghost { width: 100%; flex: 0 0 auto; padding: 11px 10px; }
+        body.native .side-foot .btn-ghost span { display: inline; }
+        body.native .main { flex: 1 1 auto; min-width: 0; width: auto; gap: 14px; }
+        body.native .app-header { border-radius: 0; }
+        /* الهواتف الصغيرة (أقل من 600px): شريط أيقونات رفيع على الجنب عشان المحتوى ياخد مساحة */
+        @media (max-width: 599px) {
+            body.native .app { gap: 8px; padding: 8px; }
+            body.native .sidebar { flex: 0 0 62px; width: 62px; max-width: 62px; min-width: 62px; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; border-radius: 18px; }
+            body.native .sidebar .nav { width: 100%; justify-content: center; padding: 12px 0; font-size: 0; gap: 0; }
+            body.native .sidebar .nav span { display: none; }
+            body.native .sidebar .nav .ico { width: 40px !important; height: 40px !important; min-width: 40px; padding: 9px; border-radius: 12px; background: transparent; }
+            body.native .sidebar .nav.active .ico { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+            body.native .side-foot .btn-ghost span { display: none; }
+            body.native .side-foot .btn-ghost { padding: 12px 0; }
+        }
+        body.native.board-active .app { padding: 0; gap: 0; }
+        body.native.board-active .sidebar { display: none !important; }
 </style>
 </head>
 <body data-theme="dark">
