@@ -6364,6 +6364,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const el = $(id);
             if (!el) return;
             if (id === 'player-modal') {
+                saveVpPos(true);
                 const v = $('player');
                 v.pause();
                 v.removeAttribute('src');
@@ -6683,7 +6684,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         vpVideo.addEventListener('timeupdate', vpUpdate);
-        vpVideo.addEventListener('loadedmetadata', vpUpdate);
+        vpVideo.addEventListener('loadedmetadata', () => {
+            vpUpdate();
+            if (vpResumeDone || !vpResumeKey) return;
+            vpResumeDone = true;
+            const sp = (appState.videoPos || {})[vpResumeKey];
+            if (sp && sp.t >= 5 && sp.t < vpVideo.duration - 10) {
+                vpVideo.currentTime = sp.t;
+                toast('استكملنا الفيديو من ' + vpFmt(sp.t));
+            }
+        });
+        vpVideo.addEventListener('timeupdate', () => saveVpPos(false));
+        window.addEventListener('pagehide', () => saveVpPos(true));
+        document.addEventListener('visibilitychange', () => { if (document.hidden) saveVpPos(true); });
         vpVideo.addEventListener('play', () => { vpUpdate(); vpWake(); });
         vpVideo.addEventListener('pause', () => {
             vpUpdate();
@@ -6808,7 +6821,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const res = await fetch('/api/media/native-play', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ course: vpCurrent.cid, name: vpCurrent.name })
+                    body: JSON.stringify({ course: vpCurrent.cid, name: vpCurrent.name, start: vpVideo.currentTime || 0 })
                 });
                 const j = await res.json();
                 if (j && j.ok) { closeModal('player-modal'); return true; }
@@ -6816,8 +6829,34 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return false;
         }
 
+        // ---- استكمال الفيديو من نفس المكان ----
+        // بنحفظ مكان المشاهدة لكل فيديو (بالرابط) في الحفظ العام، فيفضل محفوظ حتى لو قفلت التطبيق
+        let vpResumeKey = null, vpResumeDone = false, vpSaveAt = 0;
+        function saveVpPos(force) {
+            const v = vpVideo;
+            if (!vpResumeKey || !v.src || !isFinite(v.duration) || v.duration <= 0) return;
+            const now = Date.now();
+            if (!force && now - vpSaveAt < 3000) return;
+            vpSaveAt = now;
+            appState.videoPos ||= {};
+            const t = v.currentTime;
+            if (t < 5 || v.duration - t < 10) {
+                delete appState.videoPos[vpResumeKey];      // بدايته أو خلص: يبدأ من الأول المرة الجاية
+            } else {
+                appState.videoPos[vpResumeKey] = { t: Math.floor(t), d: Math.floor(v.duration), at: now };
+            }
+            const keys = Object.keys(appState.videoPos);
+            if (keys.length > 300) {                         // نحافظ على الحجم: نشيل الأقدم
+                keys.sort((a, b) => (appState.videoPos[a].at || 0) - (appState.videoPos[b].at || 0))
+                    .slice(0, keys.length - 300).forEach(k => delete appState.videoPos[k]);
+            }
+            scheduleSave();
+        }
+
         function openPlayer(url, title) {
             $('player-title').innerText = title;
+            vpResumeKey = url;
+            vpResumeDone = false;
             vpVideo.src = url;
             vpVideo.playbackRate = 1;
             $('vp-speed').value = '1';

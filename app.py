@@ -24,6 +24,7 @@ BOOKS_DIR = os.path.join(APP_DIR, "books")
 DATA_DIR = os.path.join(APP_DIR, "data")
 EXPORT_DIR = os.path.join(APP_DIR, "exports")
 STATE_FILE = os.path.join(DATA_DIR, "state.json")
+VIDEO_POS_FILE = os.path.join(DATA_DIR, "video_pos.json")   # مكان المشاهدة في مشغّل mpv
 
 # الواجهة تتحدث تلقائياً من GitHub: تعدّل index.html على GitHub مرة واحدة ويتطبق على الكمبيوتر
 UI_URL = "https://raw.githubusercontent.com/mmm14101995-sudo/EducationPlatform/main/index.html"
@@ -110,6 +111,25 @@ def load_state():
             return json.load(f)
     except (OSError, ValueError):
         return {}
+
+
+def load_video_pos():
+    try:
+        with open(VIDEO_POS_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def save_video_pos(data):
+    try:
+        tmp = VIDEO_POS_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        os.replace(tmp, VIDEO_POS_FILE)
+    except OSError:
+        pass
 
 
 def save_state(data):
@@ -248,9 +268,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             target = os.path.join(d, name)
             if not os.path.isfile(target):
                 return self.send_json({"ok": False}, 404)
+            key = f"{payload.get('course', '')}/{name}"
+            try:
+                start = float(payload.get("start") or 0)
+            except (TypeError, ValueError):
+                start = 0.0
+            if start < 5:
+                start = float(load_video_pos().get(key, 0) or 0)
             try:
                 subprocess.Popen(
-                    native_player_cmd(target, os.path.splitext(name)[0]),
+                    native_player_cmd(target, os.path.splitext(name)[0], key, start),
                     creationflags=getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
                 )
             except OSError:
@@ -384,15 +411,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 # ---------- المشغّل الأصلي للفيديو (libmpv + شريط تحكم) ----------
 SPEEDS = ["0.5x", "0.75x", "1x", "1.25x", "1.5x", "2x", "2.5x", "3x"]
 
-def native_player_cmd(path, title):
+def native_player_cmd(path, title, key="", start=0):
+    args = ["--player", path, title, key, str(start)]
     if IS_FROZEN:
-        return [sys.executable, "--player", path, title]
-    return [sys.executable, os.path.abspath(__file__), "--player", path, title]
+        return [sys.executable, *args]
+    return [sys.executable, os.path.abspath(__file__), *args]
 
-def player_main(path, title):
+def player_main(path, title, key="", start=0.0):
     import time
     import tkinter as tk
     from tkinter import ttk, messagebox
+    try:
+        start = float(start or 0)
+    except ValueError:
+        start = 0.0
+    if start < 5:
+        start = 0.0
     root = tk.Tk()
     root.title(title or "مشغّل الفيديو")
     root.geometry("1280x720")
@@ -402,9 +436,11 @@ def player_main(path, title):
     root.update()
     try:
         import mpv
+        mpv_opts = {"start": str(start)} if start else {}
         player = mpv.MPV(
             wid=str(video.winfo_id()),
             keep_open=True,
+            **mpv_opts,
             input_default_bindings=False,
             input_vo_keyboard=False,
             osc=False,
@@ -508,6 +544,9 @@ def player_main(path, title):
             pos = player.time_pos or 0
             dur = player.duration or 0
             time_lbl.config(text=fmt(pos) + " / " + fmt(dur))
+            if int(time.time()) % 5 == 0 and not st.get("saved_at") == int(time.time()):
+                st["saved_at"] = int(time.time())
+                save_pos()
             if dur and not st["drag"]:
                 seek_var.set(pos / dur * 1000)
             b_play.config(text="تشغيل" if player.pause else "إيقاف")
@@ -518,7 +557,24 @@ def player_main(path, title):
             pass
         root.after(250, tick)
 
+    def save_pos(final=False):
+        # نحفظ مكان المشاهدة عشان لما نفتح الفيديو تاني يكمّل من نفس المكان
+        if not key:
+            return
+        try:
+            pos = float(player.time_pos or 0)
+            dur = float(player.duration or 0)
+        except Exception:
+            return
+        data = load_video_pos()
+        if pos < 5 or (dur and dur - pos < 10):
+            data.pop(key, None)
+        else:
+            data[key] = pos
+        save_video_pos(data)
+
     def close():
+        save_pos(True)
         try:
             player.terminate()
         except Exception:
@@ -558,6 +614,12 @@ def main():
 if __name__ == "__main__":
     if "--player" in sys.argv:
         i = sys.argv.index("--player")
-        player_main(sys.argv[i + 1], sys.argv[i + 2] if len(sys.argv) > i + 2 else "")
+        rest = sys.argv[i + 1:]
+        player_main(
+            rest[0],
+            rest[1] if len(rest) > 1 else "",
+            rest[2] if len(rest) > 2 else "",
+            rest[3] if len(rest) > 3 else 0,
+        )
     else:
         main()
