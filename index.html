@@ -1454,6 +1454,179 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 .qres-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line,rgba(255,255,255,.12))}.qres-row .qn{flex:1}
 #qr-foot button,.qc-acts button{flex:0 0 auto;width:auto;min-width:110px}
 @media print{#quiz-run{display:none!important}}
+
+        /* ===== إصلاح العرض على شاشات أندرويد الصغيرة ومنع القص الأفقي ===== */
+        html, body { max-width: 100%; }
+        body { min-width: 0; overflow-x: hidden; }
+        .app-header, .app, .main, .topbar, .view, .dash, .dash-main, .dash-side,
+        .hero, .shortcuts, .lib-toolbar, .shelf, .shelf-wood, #exams-list {
+            min-width: 0;
+            max-width: 100%;
+        }
+        .app-header, .app { width: 100%; box-sizing: border-box; }
+
+        /* داخل تطبيق أندرويد، لا نعتمد فقط على عرض الـ WebView الذي قد يكون أكبر من الشاشة الفعلية. */
+        body.native {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body.native .app-header {
+            display: flex;
+            flex-wrap: wrap !important;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 10px 12px 4px;
+            gap: 10px;
+        }
+        body.native .ah-brand { flex: 1 1 calc(100% - 58px); min-width: 0; }
+        body.native .ah-title { min-width: 0; max-width: 100%; }
+        body.native .ah-title b { white-space: normal; overflow-wrap: anywhere; font-size: clamp(14px, 4vw, 18px); }
+        body.native .ah-title small { display: none; }
+        body.native .gsearch { order: 3; flex: 1 1 100%; width: 100%; max-width: none; min-width: 0; margin: 0; }
+        body.native .app-header #theme-btn { flex: 0 0 auto; padding: 9px 10px; }
+        body.native .app-header #theme-btn span { display: none; }
+
+        body.native .app {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            height: auto;
+            min-height: 0;
+            padding: 8px;
+            gap: 10px;
+            overflow-x: hidden;
+        }
+        body.native .sidebar {
+            display: flex;
+            flex: 0 0 auto;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            gap: 4px;
+            padding: 8px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+        }
+        body.native .brand, body.native .teacher { display: none !important; }
+        body.native .nav { flex: 0 0 auto; white-space: nowrap; padding: 8px 10px; }
+        body.native .nav.settings-nav { margin-top: 0; border-top: 0; }
+        body.native .side-foot { flex: 0 0 auto; margin: 0; }
+        body.native .side-foot .btn-ghost { flex: 0 0 auto; padding: 8px; }
+        body.native .side-foot .btn-ghost span { display: none; }
+
+        body.native .main {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            gap: 10px;
+        }
+        body.native .topbar {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 10px;
+            gap: 10px;
+        }
+        body.native .topbar h1 { font-size: 17px; overflow-wrap: anywhere; }
+        body.native .seg {
+            display: flex;
+            flex-wrap: wrap !important;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow: visible;
+            gap: 6px;
+        }
+        body.native .seg button {
+            flex: 1 1 125px;
+            min-width: 0;
+            max-width: 100%;
+            padding: 8px 10px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        body.native .view {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+            padding-inline: 0;
+        }
+        body.native .dash, body.native .dash-main, body.native .dash-side,
+        body.native .hero, body.native .shortcuts, body.native .lib-toolbar,
+        body.native .shelf, body.native .shelf-wood, body.native #exams-list {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+        body.native .hero { padding: clamp(14px, 4vw, 22px); }
+        body.native .hero h2 { font-size: clamp(21px, 6vw, 28px); line-height: 1.45; overflow-wrap: anywhere; }
+        body.native .hero p { overflow-wrap: anywhere; }
+        body.native .shortcuts { grid-template-columns: minmax(0, 1fr); }
+        body.native .shelf-wood {
+            grid-template-columns: repeat(auto-fill, minmax(min(130px, 38vw), 1fr));
+            gap: 20px 12px;
+            padding: 16px 12px 18px;
+        }
+        body.native .lib-toolbar .search { flex: 1 1 100%; min-width: 0; }
+        body.native .lib-toolbar select { min-width: 0; max-width: 100%; }
+        body.native .modal-box { width: calc(100vw - 24px); max-width: 560px; }
+        body.native img, body.native video, body.native canvas { max-width: 100%; }
+
+        /* الحفاظ على وضع السبورة وملء الشاشة بعد إصلاح تخطيط الهاتف. */
+        body.native.board-active .app { padding: 0; gap: 0; height: 100dvh; min-height: 0; overflow: hidden; }
+        body.native.board-active .app-header,
+        body.native.board-active .sidebar,
+        body.native.board-active .topbar { display: none !important; }
+        body.native.board-active .main { height: 100%; min-height: 0; gap: 0; }
+        body.native.board-active #view-board.active { display: flex; height: 100dvh; min-height: 0; padding: 0; overflow: hidden; }
+        body.native.board-active .board { height: 100%; border-radius: 0; border: 0; }
+
+        @media (max-width: 820px) {
+            html, body { width: 100%; min-width: 0; overflow-x: hidden; }
+            .app-header, .app, .main, .topbar, .view, .dash, .dash-main, .dash-side,
+            .hero, .shortcuts, .lib-toolbar, .shelf, .shelf-wood, #exams-list {
+                width: 100%; max-width: 100%; min-width: 0;
+            }
+            .app-header { flex-wrap: wrap !important; padding: 10px 12px 4px; }
+            .ah-brand { min-width: 0; }
+            .ah-title { min-width: 0; }
+            .ah-title b { white-space: normal; overflow-wrap: anywhere; }
+            .gsearch { flex: 1 1 100%; width: 100%; max-width: none; min-width: 0; }
+            .app { overflow-x: hidden; }
+            .sidebar { max-width: 100%; min-width: 0; }
+            .main { min-width: 0; }
+            .topbar { flex-direction: column; align-items: stretch; }
+            .seg { width: 100%; max-width: 100%; min-width: 0; flex-wrap: wrap !important; overflow: visible; }
+            .seg button { flex: 1 1 125px; min-width: 0; white-space: normal; }
+            .view { overflow-x: hidden; padding-inline: 0; }
+            .hero { min-width: 0; padding: clamp(14px, 4vw, 22px); }
+            .hero h2 { font-size: clamp(21px, 6vw, 28px); overflow-wrap: anywhere; }
+            .hero p { overflow-wrap: anywhere; }
+            .shortcuts { grid-template-columns: minmax(0, 1fr); }
+            .shelf-wood { grid-template-columns: repeat(auto-fill, minmax(min(130px, 38vw), 1fr)); gap: 20px 12px; }
+            .lib-toolbar .search { flex: 1 1 100%; min-width: 0; }
+            .lib-toolbar select { min-width: 0; max-width: 100%; }
+        }
 </style>
 </head>
 <body data-theme="dark">
@@ -2153,7 +2326,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
     <script>
         const $ = id => document.getElementById(id);
         const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        const NATIVE = window.Native || null;   // موجود داخل تطبيق الأندرويد فقط
+        const NATIVE = window.Native || window.Android || null; // يدعم اسمي الجسر في نسخ أندرويد المختلفة
         if (NATIVE) document.body.classList.add('native');
 
 
@@ -2235,7 +2408,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         const api = {
             async books() {
-                if (NATIVE) return JSON.parse(NATIVE.listBooks());
+                if (NATIVE && typeof NATIVE.listBooks === 'function') return JSON.parse(NATIVE.listBooks());
+                if (NATIVE && typeof NATIVE.listPdfs === 'function') {
+                    const legacy = JSON.parse(NATIVE.listPdfs() || '[]');
+                    return legacy.map(name => ({ id: 'legacy:' + name, title: String(name).replace(/\.pdf$/i, ''), url: '/pdfs/' + encodeURIComponent(name), grade: 'sec3', kind: 'books' }));
+                }
                 const res = await fetch('/api/books', { cache: 'no-store' });
                 return res.json();
             },
@@ -2280,7 +2457,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 api.openExternal(url);
             },
             async importBook(grade, kind) {
-                if (NATIVE) { const r = NATIVE.importBook(grade, kind); setTimeout(() => loadBooks(), 1500); return r; }
+                // (تسجيل الاستيراد المعلّق بيحصل داخل markPendingImport)
+                if (NATIVE) {
+                    if (typeof NATIVE.importBook !== 'function') {
+                        toast('نسخة أندرويد الحالية لا تدعم إضافة الكتب حسب السنة والتصنيف. يلزم تحديث Android مرة واحدة لتفعيلها.');
+                        return { ok: false, unsupported: true };
+                    }
+                    markPendingImport(grade, kind);
+                    const r = NATIVE.importBook(grade, kind);
+                    [1500, 4000, 9000, 16000].forEach(ms => setTimeout(() => loadBooks(), ms));
+                    return r;
+                }
+                markPendingImport(grade, kind);
                 const res = await postJson('/api/books/pick', { grade, kind });
                 const j = await res.json();
                 if (!res.ok || !j || !j.ok) {
@@ -5271,13 +5459,46 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function isDone(p) { return !!(p && p.total && p.page >= p.total); }
         function pctOf(p) { return p && p.total ? Math.min(100, Math.round(p.page / p.total * 100)) : 0; }
 
+        // ---- ربط الكتب الجديدة بالسنة اللي اتضافت منها ----
+        // الأندرويد والويندوز ممكن يرجعوا الكتاب بسنة غلط (زي ثالثة بدل الثالثة/الرابعة) أو يخفوه لو كان متحذوف قبل كده.
+        // فبنسجل الكتب الموجودة قبل الاستيراد، وأي كتاب جديد يظهر بعدها ياخد السنة والتصنيف اللي اخترتهم ويتظهر تلقائياً.
+        const PENDING_IMPORT_MS = 15 * 60 * 1000;
+        let visibleBookIds = [];
+        function applyBookMeta(list) {
+            appState.bookMeta ||= {};
+            appState.hiddenBooks ||= [];
+            let changed = false;
+            const pend = appState.pendingImport;
+            if (pend && Date.now() - (pend.at || 0) < PENDING_IMPORT_MS) {
+                const before = new Set(pend.before || []);
+                list.forEach(b => {
+                    if (before.has(b.id) || appState.bookMeta[b.id]) return;
+                    appState.bookMeta[b.id] = { grade: pend.grade, kind: pend.kind };
+                    appState.hiddenBooks = appState.hiddenBooks.filter(id => id !== b.id);
+                    changed = true;
+                });
+            }
+            list.forEach(b => {
+                const m = appState.bookMeta[b.id];
+                if (m) { b.grade = m.grade; b.kind = m.kind; }
+            });
+            if (changed) scheduleSave();
+            return list;
+        }
+
+        function markPendingImport(grade, kind) {
+            appState.pendingImport = { grade, kind, at: Date.now(), before: [...visibleBookIds] };
+            scheduleSave();
+        }
+
         async function loadBooks() {
             try {
-                booksCache = await api.books();
+                booksCache = applyBookMeta(await api.books());
             } catch (e) {
                 console.warn('تعذر تحميل قائمة الكتب', e);
                 booksCache = [];
             }
+            visibleBookIds = booksCache.map(b => b.id);
             booksCache = booksCache.filter(b => !(appState.hiddenBooks || []).includes(b.id));
             bookById.clear();
             booksCache.forEach(b => bookById.set(b.id, b));
@@ -6828,6 +7049,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function drawNotesOn(layer, strokes) {
             const g = layer.getContext('2d');
             g.clearRect(0, 0, layer.width, layer.height);
+            paintNoteStrokes(g, layer, strokes);
+        }
+
+        // يرسم الخطوط فوق الكانفاس من غير مسح (نفس الرسم بالظبط، بنفس الدقة)
+        function paintNoteStrokes(g, layer, strokes) {
             const sc = layer.width / NOTE_W;
             for (const s of strokes) {
                 if (!s.pts || !s.pts.length) continue;
@@ -6894,6 +7120,46 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
         }
 
+        // ---- رسم الكتابة في القارئ بسلاسة (من غير تقليل الدقة) ----
+        // قبل كده كل حركة قلم كانت بتمسح وتعيد رسم كل خطوط الصفحة على كانفاس كبير (ده سبب التقطيع).
+        // دلوقتي: الخطوط القديمة تترسم مرة واحدة في نسخة مخبأة، والخط الجاري بس يتعاد رسمه مرة كل إطار.
+        const liveInk = { layer: null, cache: null, stroke: null, raf: 0, full: null };
+        function liveInkBegin(layer, pageNo, stroke) {
+            liveInkStop();
+            const cache = document.createElement('canvas');
+            cache.width = layer.width;
+            cache.height = layer.height;
+            paintNoteStrokes(cache.getContext('2d'), cache, pageStrokes(pageNo).filter(x => x !== stroke));
+            liveInk.layer = layer; liveInk.cache = cache; liveInk.stroke = stroke;
+            liveInkFrame();
+        }
+        function liveInkFrame() {
+            liveInk.raf = 0;
+            if (!liveInk.layer || !liveInk.cache) return;
+            const g = liveInk.layer.getContext('2d');
+            g.clearRect(0, 0, liveInk.layer.width, liveInk.layer.height);
+            g.drawImage(liveInk.cache, 0, 0);
+            paintNoteStrokes(g, liveInk.layer, [liveInk.stroke]);
+        }
+        function liveInkSchedule() {
+            if (!liveInk.raf) liveInk.raf = requestAnimationFrame(liveInkFrame);
+        }
+        function liveInkStop() {
+            if (liveInk.raf) cancelAnimationFrame(liveInk.raf);
+            liveInk.raf = 0; liveInk.layer = null; liveInk.cache = null; liveInk.stroke = null;
+        }
+        // للممحاة: إعادة رسم الصفحة كلها مرة واحدة كل إطار بدل مرة لكل حركة
+        const noteRedrawQ = new Map();
+        function scheduleNoteRedraw(layer, pageNo) {
+            if (noteRedrawQ.has(layer)) { noteRedrawQ.get(layer).pageNo = pageNo; return; }
+            const job = { pageNo, raf: 0 };
+            job.raf = requestAnimationFrame(() => {
+                noteRedrawQ.delete(layer);
+                drawNotesOn(layer, pageStrokes(job.pageNo));
+            });
+            noteRedrawQ.set(layer, job);
+        }
+
         function notePoint(layer, e) {
             const r = layer.getBoundingClientRect();
             const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
@@ -6950,7 +7216,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             if (changed) {
                 setPageStrokes(pageNo, out);
-                drawNotesOn(layer, out);
+                scheduleNoteRedraw(layer, pageNo);
             }
         }
 
@@ -6971,24 +7237,34 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     const s = { t: reader.tool === 'hl' ? 'hl' : 'pen', s: isShape ? 'shape' : reader.tool, kind: shapeKind, start: isShape ? p : undefined, c: reader.color, w: reader.size, pts: isShape ? [p, p] : [p] };
                     setPageStrokes(pageNo, [...pageStrokes(pageNo), s]);
                     activeStroke = { layer, pageNo, pid: e.pointerId, stroke: s };
-                    drawNotesOn(layer, pageStrokes(pageNo));
+                    liveInkBegin(layer, pageNo, s);
                 }
             });
 
             layer.addEventListener('pointermove', e => {
                 if (!activeStroke || activeStroke.layer !== layer || activeStroke.pid !== e.pointerId) return;
-                const p = notePoint(layer, e);
                 if (activeStroke.erase) {
-                    eraseAt(pageNo, p, layer, e);
-                } else {
-                    if (activeStroke.stroke.start) activeStroke.stroke.pts = buildShape(activeStroke.stroke.kind, activeStroke.stroke.start, p);
-                    else activeStroke.stroke.pts.push(p);
-                    drawNotesOn(layer, pageStrokes(pageNo));
+                    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+                    (evs.length ? evs : [e]).forEach(ev => eraseAt(pageNo, notePoint(layer, ev), layer, ev));
+                    return;
                 }
+                const st = activeStroke.stroke;
+                if (st.start) {
+                    st.pts = buildShape(st.kind, st.start, notePoint(layer, e));
+                } else {
+                    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+                    for (const ev of (evs.length ? evs : [e])) {
+                        const p = notePoint(layer, ev);
+                        const last = st.pts[st.pts.length - 1];
+                        if (!last || p[0] !== last[0] || p[1] !== last[1]) st.pts.push(p);
+                    }
+                }
+                liveInkSchedule();
             });
 
             const finish = e => {
                 if (activeStroke && activeStroke.layer === layer && activeStroke.pid === e.pointerId) {
+                    if (activeStroke.stroke) { liveInkStop(); drawNotesOn(layer, pageStrokes(activeStroke.pageNo)); }
                     activeStroke = null;
                     scheduleSave();
                 }
@@ -7047,6 +7323,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             // إصبعين: نلغي أي كتابة كانت بتبدأ بالإصبع الأول
             if (activeStroke) {
                 if (activeStroke.stroke) {
+                    liveInkStop();
                     setPageStrokes(activeStroke.pageNo, pageStrokes(activeStroke.pageNo).filter(s => s !== activeStroke.stroke));
                     drawNotesOn(activeStroke.layer, pageStrokes(activeStroke.pageNo));
                 }
@@ -7385,6 +7662,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             reader.doc = null;
             reader.book = null;
             reader.annotate = false;
+            liveInkStop();
             activeStroke = null;
             $('reader-stage').innerHTML = '';
             syncAnnotateUI();
