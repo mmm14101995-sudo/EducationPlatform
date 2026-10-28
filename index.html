@@ -1419,6 +1419,41 @@
         .sc-ai .sc-ico { background: linear-gradient(135deg, #9484c2, #7664a8); }
         .sc-board .sc-art { background: linear-gradient(135deg, var(--accent-strong), var(--accent2)); box-shadow: 0 14px 30px rgba(var(--accent-rgb), 0.35); }
         .sc-ico { box-shadow: 0 6px 14px rgba(0,0,0,0.22); }
+
+/* ===== اختبارات إلكترونية ===== */
+.quiz-card{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 18px;margin-bottom:12px;border-radius:var(--r-lg,18px);background:var(--flat-bg,rgba(255,255,255,.06));border:1px solid var(--line,rgba(255,255,255,.12))}
+.quiz-card .qc-main{flex:1 1 220px}.quiz-card h3{margin:0 0 4px;font-size:18px}.quiz-card p{margin:0;opacity:.7;font-size:14px}
+.qc-acts{display:flex;gap:8px;flex-wrap:wrap}
+.qe-box{max-width:760px;width:94vw;max-height:90vh;overflow:auto}
+.qe-q{padding:14px;margin:12px 0;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:14px}
+.qe-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.qe-head b{flex:1}.qe-pts input{width:64px;margin-inline-start:6px}
+.qe-text{width:100%;box-sizing:border-box;font:inherit;padding:10px;border-radius:10px;resize:vertical}
+.qe-opt{display:flex;align-items:center;gap:8px;margin:6px 0}.qe-opt input[type=text]{flex:1}.qe-l{width:22px;text-align:center;font-weight:700}
+.qe-min{display:flex;flex-direction:column;font-size:13px;gap:4px;min-width:150px}
+#quiz-run{display:none;position:fixed;inset:0;z-index:9000;background:var(--bg,#0f172a);color:inherit;flex-direction:column;padding:18px clamp(14px,4vw,48px)}
+body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
+#quiz-run.open{display:flex}
+.qr-top{display:flex;align-items:center;gap:14px;font-size:20px}.qr-top b{flex:1}
+#qr-timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:24px}#qr-timer.low{color:#ef4444}
+#qr-pal{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#qr-pal button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.2));background:transparent;color:inherit;font:inherit;cursor:pointer}
+#qr-pal button.ans{background:rgba(var(--accent-rgb,59,130,246),.25)}#qr-pal button.cur{outline:2px solid var(--accent,#3b82f6)}
+#qr-body{flex:1;overflow:auto;padding:6px 0}
+.qr-card{max-width:900px;margin:0 auto 16px;padding:clamp(16px,3vw,32px);border-radius:22px;background:var(--flat-bg,rgba(255,255,255,.06));border:1px solid var(--line,rgba(255,255,255,.12))}
+.qr-q{font-size:clamp(22px,3.2vw,38px);line-height:1.6;font-weight:700;margin-bottom:10px;white-space:pre-wrap}
+.qr-pts{opacity:.65;margin-bottom:18px}
+.qr-opt{display:flex;align-items:center;gap:14px;width:100%;text-align:right;margin:10px 0;padding:14px 18px;border-radius:16px;border:2px solid var(--line,rgba(255,255,255,.2));background:transparent;color:inherit;font:inherit;font-size:clamp(18px,2.4vw,28px);cursor:pointer}
+.qr-opt .ol{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:rgba(127,127,127,.2);font-weight:700;flex:none}
+.qr-opt.sel{border-color:var(--accent,#3b82f6);background:rgba(var(--accent-rgb,59,130,246),.15)}
+.qr-opt.right{border-color:#10b981;background:rgba(16,185,129,.2)}.qr-opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.18)}
+.qr-essay{width:100%;min-height:180px;box-sizing:border-box;font:inherit;font-size:20px;padding:14px;border-radius:14px}
+.qr-model,.rv-ans{margin-top:12px;padding:12px 14px;border-radius:12px;background:rgba(16,185,129,.12);white-space:pre-wrap}.rv-ans{background:rgba(127,127,127,.12)}
+#qr-foot{display:flex;justify-content:center;gap:12px;padding-top:10px}
+.qr-sum{max-width:900px;margin:0 auto 16px;text-align:center}.qr-sum b{display:block;font-size:48px}
+.rv-line.ok{color:#10b981}.rv-line.bad{color:#ef4444}.rv-grade{display:block;margin-top:10px}.rv-grade input{width:80px}
+.qres-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line,rgba(255,255,255,.12))}.qres-row .qn{flex:1}
+#qr-foot button,.qc-acts button{flex:0 0 auto;width:auto;min-width:110px}
+@media print{#quiz-run{display:none!important}}
 </style>
 </head>
 <body data-theme="dark">
@@ -1706,6 +1741,14 @@
                     <span class="shelf-count" id="count-exams"></span>
                 </div>
                 <div id="exams-list"></div>
+                <div class="shelf-head" style="margin:28px 0 14px;">
+                    <h2>الاختبارات الإلكترونية</h2>
+                    <span class="shelf-count" id="count-quizzes"></span>
+                    <span style="flex:1"></span>
+                    <button class="btn-ghost" onclick="openQuizImport()"><span>استيراد من Word / PDF</span></button>
+                    <button class="btn-primary" onclick="newQuiz()"><span>+ اختبار جديد</span></button>
+                </div>
+                <div id="quiz-list"></div>
             </section>
 
             <!-- الذكاء الاصطناعي -->
@@ -1730,6 +1773,62 @@
     </div>
 
     <!-- الإعدادات -->
+    <div id="quiz-edit-modal" class="modal" onclick="if (event.target === this) closeModal('quiz-edit-modal')">
+        <div class="modal-box qe-box">
+            <div class="modal-head"><h2>محرّر الاختبار</h2><button class="ibtn" onclick="closeModal('quiz-edit-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
+            <div class="field-row"><input type="text" id="qe-title" placeholder="عنوان الاختبار" maxlength="80"><label class="qe-min">الوقت (دقيقة، 0 = بدون)<input type="number" id="qe-min" min="0" max="300" value="0"></label></div>
+            <div id="qe-list"></div>
+            <div class="modal-actions">
+                <button class="btn-ghost" onclick="qeAdd('mcq')">+ اختيار من متعدد</button>
+                <button class="btn-ghost" onclick="qeAdd('essay')">+ سؤال مقالي</button>
+                <button class="btn-primary" onclick="qeSave()">حفظ الاختبار</button>
+            </div>
+        </div>
+    </div>
+    <div id="quiz-import-modal" class="modal" onclick="if (event.target === this) closeModal('quiz-import-modal')">
+        <div class="modal-box qe-box">
+            <div class="modal-head"><h2>استيراد اختبار</h2><button class="ibtn" onclick="closeModal('quiz-import-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
+            <div class="field"><label>ملف الاختبار (Word أو PDF أو نص)</label><input type="file" id="qi-file" accept=".docx,.pdf,.txt" onchange="qiFile(this)"></div>
+            <div class="field"><label>النص المستخرج (راجعه أو الصق نصاً مباشرة)</label><textarea id="qi-text" rows="7" class="qe-text" placeholder="1. سؤال ...&#10;أ) ...  ب) ...  ج) ...  د) ...&#10;الإجابة: ب"></textarea></div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="qi-gem" onclick="qiGemini()">تحويل بواسطة Gemini</button>
+                <button class="btn-ghost" onclick="qiLocal()">تحويل محلي (بدون إنترنت)</button>
+                <button class="btn-ghost" onclick="qiCopy()">نسخ الطلب لـ Gemini</button>
+            </div>
+            <div class="field"><label>ناتج Gemini (إن استخدمت النسخ واللصق)</label><textarea id="qi-paste" rows="3" class="qe-text"></textarea>
+                <button class="btn-ghost" onclick="qiPasteImport()">استيراد من الناتج الملصوق</button></div>
+            <div class="hint" id="qi-status"></div>
+            <div class="hint">التحويل بـ Gemini يحتاج مفتاح API مجاني تضيفه من الإعدادات، ومحتوى الملف يُرسل إلى Google. دائماً راجع الأسئلة والإجابات قبل الحفظ.</div>
+        </div>
+    </div>
+    <div id="quiz-start-modal" class="modal" onclick="if (event.target === this) closeModal('quiz-start-modal')">
+        <div class="modal-box">
+            <div class="modal-head"><h2>بدء الاختبار</h2><button class="ibtn" onclick="closeModal('quiz-start-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
+            <div class="field"><label>اسم الطالب</label><input type="text" id="qs-name" maxlength="40" placeholder="اختياري"></div>
+            <div class="hint" id="qs-info"></div>
+            <div class="modal-actions"><button class="btn-primary" onclick="quizBegin()">ابدأ</button></div>
+        </div>
+    </div>
+    <div id="quiz-results-modal" class="modal" onclick="if (event.target === this) closeModal('quiz-results-modal')">
+        <div class="modal-box qe-box">
+            <div class="modal-head"><h2 id="qres-title">النتائج</h2><button class="ibtn" onclick="closeModal('quiz-results-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
+            <div id="qres-list"></div>
+        </div>
+    </div>
+    <div id="quiz-print-modal" class="modal" onclick="if (event.target === this) closeModal('quiz-print-modal')">
+        <div class="modal-box">
+            <div class="modal-head"><h2 id="qp-title">طباعة</h2><button class="ibtn" onclick="closeModal('quiz-print-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
+            <input type="hidden" id="qp-id">
+            <label class="qe-min" style="flex-direction:row;gap:10px"><input type="checkbox" id="qp-key" style="width:22px;height:22px"> نسخة المعلم (مع الإجابات)</label>
+            <div class="modal-actions"><button class="btn-primary" onclick="quizPrintGo('pdf')">حفظ PDF</button><button class="btn-ghost" onclick="quizPrintGo('print')">طباعة</button></div>
+        </div>
+    </div>
+    <div id="quiz-run">
+        <div class="qr-top"><button class="ibtn" onclick="quizClose()" aria-label="إغلاق">✕</button><b id="qr-title"></b><span id="qr-prog"></span><span id="qr-timer"></span></div>
+        <div id="qr-pal"></div>
+        <div id="qr-body"></div>
+        <div id="qr-foot"></div>
+    </div>
     <div id="ink-modal" class="modal" onclick="if (event.target === this) closeModal('ink-modal')">
         <div class="modal-box ink-modal-box">
             <div class="modal-head"><h2>اكتب المهمة بالقلم</h2><button class="ibtn" onclick="closeModal('ink-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
@@ -1797,6 +1896,11 @@
             <div class="field">
                 <label for="inp-hijri">ضبط التاريخ الهجري</label>
                 <select id="inp-hijri" onchange="setHijriAdjust(this.value)"><option value="-1">يوم أقل</option><option value="0">كما هو (أم القرى)</option><option value="1">يوم أكثر</option></select>
+            </div>
+            <div class="field">
+                <label for="inp-gkey">مفتاح Gemini API (للتحويل التلقائي للاختبارات)</label>
+                <div class="field-row"><input type="password" id="inp-gkey" autocomplete="off" placeholder="AIza..."><input type="text" id="inp-gmodel" placeholder="gemini-flash-latest" style="max-width:190px"><button class="btn-ghost" onclick="saveGemini()">حفظ</button></div>
+                <div class="hint">مفتاح مجاني من aistudio.google.com/apikey ويُحفظ على جهازك فقط. بدونه تقدر تستخدم النسخ واللصق.</div>
             </div>
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
@@ -2175,12 +2279,19 @@
                 if (NATIVE && NATIVE.openAi) { NATIVE.openAi(url); return; }
                 api.openExternal(url);
             },
-            importBook(grade, kind) {
-                if (NATIVE) return NATIVE.importBook(grade, kind);
-                return postJson('/api/books/pick', { grade, kind })
-                    .then(r => r.json())
-                    .then(j => { if (j && j.ok) loadBooks(); })
-                    .catch(() => {});
+            async importBook(grade, kind) {
+                if (NATIVE) { const r = NATIVE.importBook(grade, kind); setTimeout(() => loadBooks(), 1500); return r; }
+                const res = await postJson('/api/books/pick', { grade, kind });
+                const j = await res.json();
+                if (!res.ok || !j || !j.ok) {
+                    if (j && j.cancelled) return j;
+                    throw new Error('تعذر استيراد ملفات PDF');
+                }
+                // إعادة إضافة ملف كان مخفياً تُظهره من جديد
+                if (j.ids && j.ids.length && appState.hiddenBooks) { appState.hiddenBooks = appState.hiddenBooks.filter(id => !j.ids.includes(id)); scheduleSave(); }
+                await loadBooks();
+                toast(j.count ? `تمت إضافة ${j.count} ملف PDF إلى المكتبة` : 'لم يتم العثور على ملفات PDF لإضافتها');
+                return j;
             },
             async listMedia(cid) {
                 if (NATIVE) return JSON.parse(NATIVE.listMedia(cid));
@@ -2273,6 +2384,7 @@
             appState.teacher = { ...DEFAULT_STATE.teacher, ...(appState.teacher || {}) };
             appState.bg = appState.bg || { type: 'preset', value: 'indigo' };
             appState.whiteboard ||= {};
+            appState.quizzes ||= []; appState.quizResults ||= [];
             for (const g of ['sec3', 'sec2', 'y3', 'y4']) {
                 const s = appState.whiteboard[g];
                 if (!s || !Array.isArray(s.pages) || !s.pages.length) {
@@ -2383,6 +2495,7 @@
             $('inp-grade2').value = gradeName('sec2');
             $('inp-grade-y3').value = gradeName('y3');
             $('inp-grade-y4').value = gradeName('y4');
+            $('inp-gkey').value = appState.geminiKey || ''; $('inp-gmodel').value = appState.geminiModel || '';
             $('inp-lite').checked = document.body.classList.contains('lite');
             renderPresets();
             $('settings').classList.add('open');
@@ -2520,7 +2633,7 @@
             document.body.classList.toggle('board-active', view === 'board');
             if (view === 'board') setTimeout(resizeCanvas, 50);
             if (view === 'books') renderLibrary();
-            if (view === 'exams') renderExams();
+            if (view === 'exams') { renderExams(); renderQuizzes(); }
             if (view === 'home') renderHome();
             const sc = document.querySelector('#view-' + view); if (sc && view !== 'board') sc.scrollTop = 0;
         }
@@ -2536,7 +2649,7 @@
             drawPage(currentPageData());
             renderHome();
             renderLibrary();
-            renderExams();
+            renderExams(); renderQuizzes();
         }
 
         // ==========================================
@@ -5170,7 +5283,7 @@
             booksCache.forEach(b => bookById.set(b.id, b));
             renderHome();
             renderLibrary();
-            renderExams();
+            renderExams(); renderQuizzes();
         }
 
         function sortBooks(list, sort, shelfKey) {
@@ -5340,10 +5453,12 @@
         }
         // لو الـ CDN الأساسي مش شغال (إنترنت ضعيف أو محجوب) نجرب مصادر تانية
         const PDF_SOURCES = [
+            ['/lib/pdf.min.js', '/lib/pdf.worker.min.js'],
             ['https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js', 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js'],
             ['https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.min.js', 'https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js']
         ];
         const JSPDF_SOURCES = [
+            '/lib/jspdf.umd.min.js',
             'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
             'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'
         ];
@@ -5467,8 +5582,9 @@
             scheduleSave();
         }
 
-        function importForShelf(kind) {
-            api.importBook(currentGrade, kind);
+        async function importForShelf(kind) {
+            try { await api.importBook(currentGrade, kind); }
+            catch (e) { console.error(e); toast('تعذر إضافة ملفات PDF. تأكد أن التطبيق يعمل بشكل صحيح ثم حاول مرة أخرى.'); }
         }
 
         // ==========================================
@@ -5477,6 +5593,420 @@
         // ==========================================
         // الاختبارات: ملفات PDF تُحمَّل من الجهاز وتُفتح في القارئ
         // ==========================================
+        // ==========================================
+        // الاختبارات الإلكترونية: بناء + استيراد (Word/PDF/نص بمساعدة Gemini) + عرض أثناء الشرح + اختبار طالب + طباعة
+        // ==========================================
+        const AR_LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
+        const qid = () => 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        const quizzesOfGrade = () => (appState.quizzes || []).filter(q => q.grade === currentGrade);
+        const findQuiz = id => (appState.quizzes || []).find(q => q.id === id);
+        function newQ(type) { return type === 'essay' ? { id: qid(), t: 'essay', q: '', o: [], c: -1, p: 2, m: '' } : { id: qid(), t: 'mcq', q: '', o: ['', '', '', ''], c: 0, p: 1, m: '' }; }
+
+        function renderQuizzes() {
+            const box = $('quiz-list');
+            if (!box) return;
+            const list = quizzesOfGrade();
+            $('count-quizzes').textContent = list.length ? list.length + ' اختبار' : '';
+            box.innerHTML = '';
+            if (!list.length) {
+                const p = document.createElement('p'); p.className = 'exam-empty';
+                p.textContent = 'لا توجد اختبارات إلكترونية. أنشئ اختباراً جديداً أو استورده من ملف Word أو PDF.';
+                box.appendChild(p); return;
+            }
+            list.forEach(qz0 => {
+                const res = (appState.quizResults || []).filter(r => r.quizId === qz0.id).length;
+                const mcq = qz0.qs.filter(q => q.t === 'mcq').length, ess = qz0.qs.length - mcq;
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.innerHTML = '<div class="qc-main"><h3></h3><p></p></div><div class="qc-acts"></div>';
+                card.querySelector('h3').textContent = qz0.title || 'اختبار بدون عنوان';
+                card.querySelector('p').textContent = mcq + ' اختيارات · ' + ess + ' مقالي' + (qz0.minutes ? ' · ' + qz0.minutes + ' دقيقة' : '') + (res ? ' · ' + res + ' محاولة' : '');
+                const acts = card.querySelector('.qc-acts');
+                [['عرض أثناء الشرح', () => quizStart(qz0.id, 'present'), 'btn-primary'], ['بدء اختبار', () => quizStart(qz0.id, 'test'), 'btn-ghost'],
+                 ['تعديل', () => editQuiz(qz0.id), 'btn-ghost'], ['طباعة', () => quizPrint(qz0.id), 'btn-ghost'], ['النتائج', () => quizResults(qz0.id), 'btn-ghost'], ['حذف', null, 'btn-ghost danger']].forEach(([t, fn, cls]) => {
+                    const b = document.createElement('button'); b.className = cls; b.textContent = t;
+                    if (fn) b.onclick = fn; else b.onclick = () => armable(b, () => { appState.quizzes = appState.quizzes.filter(x => x.id !== qz0.id); appState.quizResults = (appState.quizResults || []).filter(r => r.quizId !== qz0.id); scheduleSave(); renderQuizzes(); });
+                    acts.appendChild(b);
+                });
+                box.appendChild(card);
+            });
+        }
+
+        // ---------- المحرّر ----------
+        let qe = null;
+        function newQuiz() { openQuizEditor({ id: qid(), grade: currentGrade, title: '', minutes: 0, qs: [newQ('mcq')], at: Date.now(), isNew: true }); }
+        function editQuiz(id) { const q = findQuiz(id); if (q) openQuizEditor(JSON.parse(JSON.stringify(q))); }
+        function openQuizEditor(q) {
+            qe = q;
+            $('qe-title').value = q.title || ''; $('qe-min').value = q.minutes || 0;
+            renderQE(); openModal('quiz-edit-modal');
+        }
+        function renderQE() {
+            const box = $('qe-list'); box.innerHTML = '';
+            qe.qs.forEach((q, i) => {
+                const d = document.createElement('div'); d.className = 'qe-q';
+                const head = document.createElement('div'); head.className = 'qe-head';
+                head.innerHTML = '<b>' + (i + 1) + '. ' + (q.t === 'mcq' ? 'اختيار من متعدد' : 'مقالي') + '</b><span class="qe-pts">الدرجة <input type="number" min="0" step="0.5" value="' + (q.p != null ? q.p : 1) + '"></span>';
+                head.querySelector('input').oninput = e => { q.p = Number(e.target.value) || 0; };
+                const mv = (lbl, fn, dis) => { const b = document.createElement('button'); b.className = 'ibtn'; b.textContent = lbl; b.disabled = dis; b.onclick = fn; head.appendChild(b); };
+                mv('↑', () => { [qe.qs[i - 1], qe.qs[i]] = [qe.qs[i], qe.qs[i - 1]]; renderQE(); }, i === 0);
+                mv('↓', () => { [qe.qs[i + 1], qe.qs[i]] = [qe.qs[i], qe.qs[i + 1]]; renderQE(); }, i === qe.qs.length - 1);
+                mv('✕', () => { qe.qs.splice(i, 1); renderQE(); }, false);
+                d.appendChild(head);
+                const ta = document.createElement('textarea'); ta.className = 'qe-text'; ta.rows = 2; ta.placeholder = 'نص السؤال'; ta.value = q.q;
+                ta.oninput = () => { q.q = ta.value; }; d.appendChild(ta);
+                if (q.t === 'mcq') {
+                    q.o.forEach((o, k) => {
+                        const r = document.createElement('div'); r.className = 'qe-opt';
+                        const rad = document.createElement('input'); rad.type = 'radio'; rad.name = 'qe-c-' + q.id; rad.checked = q.c === k; rad.title = 'الإجابة الصحيحة';
+                        rad.onchange = () => { q.c = k; };
+                        const inp = document.createElement('input'); inp.type = 'text'; inp.value = o; inp.placeholder = 'الاختيار ' + AR_LETTERS[k];
+                        inp.oninput = () => { q.o[k] = inp.value; };
+                        const x = document.createElement('button'); x.className = 'ibtn'; x.textContent = '✕'; x.disabled = q.o.length <= 2;
+                        x.onclick = () => { q.o.splice(k, 1); if (q.c >= q.o.length) q.c = 0; else if (q.c > k) q.c--; renderQE(); };
+                        const lt = document.createElement('span'); lt.className = 'qe-l'; lt.textContent = AR_LETTERS[k];
+                        r.append(rad, lt, inp, x); d.appendChild(r);
+                    });
+                    if (q.o.length < 6) { const a = document.createElement('button'); a.className = 'btn-ghost'; a.textContent = '+ اختيار'; a.onclick = () => { q.o.push(''); renderQE(); }; d.appendChild(a); }
+                    if (q.c < 0) { const w = document.createElement('div'); w.className = 'hint'; w.textContent = 'حدّد الإجابة الصحيحة بالدائرة قبل الحفظ.'; d.appendChild(w); }
+                } else {
+                    const m = document.createElement('textarea'); m.className = 'qe-text'; m.rows = 2; m.placeholder = 'الإجابة النموذجية (تظهر للمدرس عند التصحيح)'; m.value = q.m || '';
+                    m.oninput = () => { q.m = m.value; }; d.appendChild(m);
+                }
+                box.appendChild(d);
+            });
+        }
+        function qeAdd(t) { qe.qs.push(newQ(t)); renderQE(); const l = $('qe-list'); l.lastChild.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        function qeSave() {
+            qe.title = $('qe-title').value.trim() || 'اختبار جديد'; qe.minutes = Math.max(0, Number($('qe-min').value) || 0);
+            qe.qs = qe.qs.filter(q => q.q.trim());
+            if (!qe.qs.length) return toast('أضف سؤالاً واحداً على الأقل');
+            for (const q of qe.qs) {
+                if (q.t === 'mcq') { q.o = q.o.map(o => o.trim()).filter(Boolean); if (q.o.length < 2) return toast('كل سؤال اختياري يحتاج اختيارين على الأقل'); if (q.c < 0 || q.c >= q.o.length) return toast('حدّد الإجابة الصحيحة للسؤال: ' + q.q.slice(0, 30)); }
+            }
+            appState.quizzes = appState.quizzes || [];
+            delete qe.isNew;
+            const k = appState.quizzes.findIndex(x => x.id === qe.id);
+            if (k >= 0) appState.quizzes[k] = qe; else appState.quizzes.unshift(qe);
+            scheduleSave(); closeModal('quiz-edit-modal'); renderQuizzes(); toast('تم حفظ الاختبار');
+        }
+
+        // ---------- الاستيراد ----------
+        let qi = { pdf: null, name: '' };
+        const GEMINI_PROMPT = 'حوّل محتوى هذا الاختبار إلى أسئلة منظّمة. التزم بنص الأسئلة والاختيارات كما هي بدون تغيير أو اختراع. ' +
+            'الأسئلة التي لها اختيارات اجعلها type="mcq" مع options (مصفوفة نصوص بدون الحروف أ ب ج د) و correct (رقم الإجابة الصحيحة بدءاً من 0). ' +
+            'إذا كان مفتاح الإجابة موجوداً في الملف فاستخدمه، وإلا فاختر الإجابة الصحيحة بنفسك. الأسئلة بدون اختيارات اجعلها type="essay" مع modelAnswer مختصرة. ' +
+            'أعد JSON فقط بهذا الشكل: {"title":"...","questions":[{"type":"mcq","text":"...","options":["..",".."],"correct":0,"points":1},{"type":"essay","text":"...","modelAnswer":"...","points":2}]}';
+        function openQuizImport() { qi = { pdf: null, name: '' }; $('qi-text').value = ''; $('qi-file').value = ''; $('qi-paste').value = ''; $('qi-status').textContent = ''; openModal('quiz-import-modal'); }
+        const qiStatus = t => { $('qi-status').textContent = t; };
+        async function qiFile(inp) {
+            const f = inp.files[0]; if (!f) return;
+            qi.name = f.name.replace(/\.[^.]+$/, ''); qi.pdf = null;
+            try {
+                if (/\.txt$/i.test(f.name)) { $('qi-text').value = await f.text(); qiStatus('تم تحميل النص.'); }
+                else if (/\.docx$/i.test(f.name)) { qiStatus('جارٍ قراءة ملف Word…'); $('qi-text').value = await docxText(await f.arrayBuffer()); qiStatus('تمت قراءة Word. راجع النص ثم اختر طريقة التحويل.'); }
+                else if (/\.pdf$/i.test(f.name)) {
+                    if (f.size > 14 * 1048576) qiStatus('الملف كبير (أكثر من 14MB)؛ هيتم استخراج النص محلياً فقط.');
+                    else qi.pdf = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(f); });
+                    qiStatus('جارٍ استخراج النص من PDF…');
+                    try { $('qi-text').value = await pdfText(await f.arrayBuffer()); } catch (e) { $('qi-text').value = ''; }
+                    qiStatus(qi.pdf ? 'تم تجهيز PDF. التحويل بـ Gemini بيقرأ الملف نفسه (أدق من النص المستخرج).' : 'تم استخراج النص.');
+                } else qiStatus('نوع الملف غير مدعوم. استخدم Word أو PDF أو نص.');
+            } catch (e) { qiStatus('تعذر قراءة الملف: ' + (e.message || e)); }
+        }
+        async function docxText(buf) {
+            const u8 = new Uint8Array(buf), dv = new DataView(buf);
+            let eocd = -1; for (let i = u8.length - 22; i >= 0; i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+            if (eocd < 0) throw new Error('ملف Word غير صالح');
+            const n = dv.getUint16(eocd + 10, true); let p = dv.getUint32(eocd + 16, true), xml = null;
+            for (let k = 0; k < n; k++) {
+                const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+                const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+                if (name === 'word/document.xml') {
+                    const lnl = dv.getUint16(off + 26, true), lel = dv.getUint16(off + 28, true), start = off + 30 + lnl + lel, data = u8.subarray(start, start + csize);
+                    xml = method === 0 ? new TextDecoder().decode(data) : new TextDecoder().decode(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+                    break;
+                }
+                p += 46 + nl + el + cl;
+            }
+            if (!xml) throw new Error('لا يوجد نص في الملف');
+            const doc = new DOMParser().parseFromString(xml, 'application/xml'), W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+            const lines = []; let qn = 0, on = 0;
+            Array.from(doc.getElementsByTagNameNS(W, 'p')).forEach(par => {
+                let t = '';
+                Array.from(par.getElementsByTagNameNS(W, '*')).forEach(n2 => { if (n2.localName === 't') t += n2.textContent; else if (n2.localName === 'tab') t += ' '; else if (n2.localName === 'br') t += '\n'; });
+                t = t.trim(); if (!t) return;
+                const num = par.getElementsByTagNameNS(W, 'numPr')[0];
+                if (num) {
+                    const il = num.getElementsByTagNameNS(W, 'ilvl')[0]; const lvl = il ? Number(il.getAttributeNS(W, 'val')) : 0;
+                    if (lvl === 0 && !/^\s*[\d٠-٩]+\s*[\.\-\)]/.test(t)) { qn++; on = 0; t = qn + '. ' + t; }
+                    else if (lvl > 0 && !/^\s*\(?[أبجدabcd]\s*[\)\.\-]/i.test(t)) { t = (AR_LETTERS[on++] || '') + ') ' + t; }
+                }
+                lines.push(t);
+            });
+            return lines.join('\n');
+        }
+        async function pdfText(buf) {
+            await waitPdf(); if (!window.pdfjsLib) throw new Error('pdf.js');
+            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise; let out = [];
+            for (let i = 1; i <= doc.numPages; i++) {
+                const tc = await (await doc.getPage(i)).getTextContent(), rows = new Map();
+                tc.items.forEach(it => { if (!it.str.trim()) return; const y = Math.round(it.transform[5] / 4); (rows.get(y) || rows.set(y, []).get(y)).push(it); });
+                [...rows.entries()].sort((a, b) => b[0] - a[0]).forEach(([, its]) => out.push(its.sort((a, b) => b.transform[4] - a.transform[4]).map(x => x.str).join(' ')));
+            }
+            return out.join('\n');
+        }
+        const toLatinDigits = s => s.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+        const LETTER_IDX = { 'أ': 0, 'ا': 0, 'a': 0, 'ب': 1, 'b': 1, 'ج': 2, 'c': 2, 'د': 3, 'd': 3, 'ه': 4, 'هـ': 4, 'e': 4, 'و': 5 };
+        function parseExamText(text) {
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean), qs = []; let cur = null;
+            const optRe = /(?:^|\s)\(?([أابجدهوabcdeABCDE]ـ?)\s*[\)\.\-\]]\s+/g;
+            const qRe = /^(?:السؤال\s*)?(?:\(?\s*)([\d٠-٩]{1,3})\s*[\.\-\)\]:ـ]\s*(.+)$/;
+            const ansRe = /^(?:الإجابة|الاجابة|الجواب|الإجابة الصحيحة|answer|ans)\s*[:：\-]?\s*\(?\s*([أابجدهوabcdeABCDE]ـ?)(?=\s|$|[\)\.،,])/i;
+            const push = () => { if (cur) { cur.q = cur.q.trim(); if (cur.q) qs.push(cur); } cur = null; };
+            const addOpts = s => {
+                const parts = []; let m, last = -1, lastL = null; optRe.lastIndex = 0;
+                const idxs = []; while ((m = optRe.exec(s))) idxs.push({ i: m.index + (m[0].startsWith(' ') ? 1 : 0), l: m[1], end: m.index + m[0].length });
+                if (!idxs.length) return false;
+                idxs.forEach((x, k) => { const txt = s.slice(x.end, k + 1 < idxs.length ? idxs[k + 1].i : s.length).trim(); parts.push([x.l, txt]); });
+                parts.forEach(([l, t]) => { const k = LETTER_IDX[l.toLowerCase()]; if (k != null && cur) { while (cur.o.length < k) cur.o.push(''); cur.o[k] = t; } });
+                return true;
+            };
+            for (let raw of lines) {
+                const line = raw;
+                const am = ansRe.exec(line);
+                if (am && cur) { cur.c = LETTER_IDX[am[1].toLowerCase()] ?? -1; continue; }
+                const qm = qRe.exec(line);
+                if (qm && !/^\(?[أابجد]\s*[\)\.]/.test(line)) { push(); cur = { id: qid(), t: 'essay', q: '', o: [], c: -1, p: 1, m: '' }; const rest = qm[2]; const first = rest.search(/(?:^|\s)\(?[أابجدabcd]ـ?\s*[\)\.\-\]]\s+/); if (first > 0) { cur.q = rest.slice(0, first); addOpts(rest.slice(first)); } else cur.q = rest; continue; }
+                if (!cur) continue;
+                if (/^\(?[أابجدهوabcdeABCDE]ـ?\s*[\)\.\-\]]\s+/.test(line) || (cur.o.length && /(?:^|\s)\(?[أابجدabcd]ـ?\s*[\)\.\-\]]\s+/.test(line))) addOpts(line);
+                else if (cur.o.length) cur.o[cur.o.length - 1] += ' ' + line; else cur.q += ' ' + line;
+            }
+            push();
+            qs.forEach(q => { q.o = q.o.map(o => (o || '').trim()).filter((o, i, a) => o || i < a.length); if (q.o.filter(Boolean).length >= 2) { q.t = 'mcq'; q.o = q.o.map(o => o || '—'); if (q.c < 0) q.c = 0; q.p = 1; } else { q.t = 'essay'; q.o = []; q.c = -1; q.p = 2; } });
+            return qs;
+        }
+        function importDraft(qs, title) {
+            if (!qs.length) return qiStatus('ما قدرتش أستخرج أسئلة. تأكد إن الأسئلة مرقّمة والاختيارات بـ أ) ب) ج) د)، أو جرّب Gemini.');
+            closeModal('quiz-import-modal');
+            openQuizEditor({ id: qid(), grade: currentGrade, title: title || qi.name || 'اختبار مستورد', minutes: 0, qs, at: Date.now(), isNew: true });
+            toast('راجع الأسئلة وحدّد الإجابات الصحيحة قبل الحفظ');
+        }
+        function qiLocal() { importDraft(parseExamText($('qi-text').value), qi.name); }
+        function fromGeminiJson(txt) {
+            let t = String(txt).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+            const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b < 0) throw new Error('الناتج مش JSON');
+            const j = JSON.parse(t.slice(a, b + 1));
+            const qs = (j.questions || []).map(x => {
+                const mcq = x.type === 'mcq' && Array.isArray(x.options) && x.options.length >= 2;
+                return mcq ? { id: qid(), t: 'mcq', q: String(x.text || ''), o: x.options.map(String), c: Math.min(Math.max(0, Number(x.correct) || 0), x.options.length - 1), p: Number(x.points) || 1, m: '' }
+                           : { id: qid(), t: 'essay', q: String(x.text || ''), o: [], c: -1, p: Number(x.points) || 2, m: String(x.modelAnswer || '') };
+            });
+            return { title: j.title, qs };
+        }
+        async function qiGemini() {
+            const key = (appState.geminiKey || '').trim();
+            if (!key) return qiStatus('أضف مفتاح Gemini من الإعدادات أولاً، أو استخدم "نسخ الطلب" وألصق الناتج.');
+            const text = $('qi-text').value.trim();
+            if (!qi.pdf && !text) return qiStatus('اختر ملفاً أو الصق نص الاختبار.');
+            const parts = [{ text: GEMINI_PROMPT + (qi.pdf ? '' : '\n\nنص الاختبار:\n' + text) }];
+            if (qi.pdf) parts.push({ inlineData: { mimeType: 'application/pdf', data: qi.pdf } });
+            qiStatus('جارٍ إرسال الملف إلى Gemini… (قد يستغرق دقيقة)');
+            $('qi-gem').disabled = true;
+            try {
+                const model = (appState.geminiModel || 'gemini-flash-latest').trim();
+                const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+                    body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } })
+                });
+                const j = await res.json();
+                if (!res.ok) throw new Error((j.error && j.error.message) || ('خطأ ' + res.status));
+                const out = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts.map(p => p.text || '').join('');
+                if (!out) throw new Error('لم يرجع Gemini نتيجة');
+                const r = fromGeminiJson(out); importDraft(r.qs, r.title || qi.name);
+            } catch (e) { qiStatus('تعذر التحويل: ' + (e.message || e)); }
+            $('qi-gem').disabled = false;
+        }
+        async function qiCopy() {
+            const text = $('qi-text').value.trim();
+            if (!text) return qiStatus(qi.pdf ? 'للنسخ محتاج نص. ارفع الملف في Gemini مباشرة وألصق الطلب فقط.' : 'اختر ملفاً أو الصق النص أولاً.');
+            const full = GEMINI_PROMPT + '\n\nنص الاختبار:\n' + text;
+            try { await navigator.clipboard.writeText(full); qiStatus('تم نسخ الطلب. افتح Gemini والصقه، ثم الصق الناتج في المربع بالأسفل.'); }
+            catch (e) { $('qi-paste').value = full; qiStatus('انسخ الطلب من المربع بالأسفل والصقه في Gemini، ثم امسح المربع والصق الناتج مكانه.'); }
+        }
+        function qiPasteImport() {
+            try { const r = fromGeminiJson($('qi-paste').value); importDraft(r.qs, r.title || qi.name); }
+            catch (e) { const qs = parseExamText($('qi-paste').value); if (qs.length) importDraft(qs, qi.name); else qiStatus('الناتج غير مفهوم: ' + (e.message || e)); }
+        }
+
+        // ---------- التشغيل: عرض أثناء الشرح / اختبار ----------
+        const qr = { quiz: null, mode: 'present', i: 0, ans: {}, name: '', left: 0, timer: null, attempt: null, show: {} };
+        function quizStart(id, mode) {
+            const q = findQuiz(id); if (!q || !q.qs.length) return toast('الاختبار فاضي');
+            qr.quiz = q; qr.mode = mode; qr.i = 0; qr.ans = {}; qr.show = {}; qr.attempt = null;
+            if (mode === 'test') { $('qs-name').value = ''; $('qs-info').textContent = q.qs.length + ' سؤال' + (q.minutes ? ' · الوقت ' + q.minutes + ' دقيقة' : ''); openModal('quiz-start-modal'); }
+            else quizBegin();
+        }
+        function quizBegin() {
+            closeModal('quiz-start-modal');
+            qr.name = ($('qs-name').value || '').trim();
+            $('quiz-run').classList.add('open'); document.body.classList.add('quiz-open');
+            clearInterval(qr.timer);
+            if (qr.mode === 'test' && qr.quiz.minutes) {
+                qr.left = qr.quiz.minutes * 60;
+                qr.timer = setInterval(() => { qr.left--; drawTimer(); if (qr.left <= 0) quizSubmit(true); }, 1000);
+            }
+            drawQuiz();
+        }
+        function drawTimer() { const el = $('qr-timer'); if (!el) return; if (qr.mode !== 'test' || !qr.quiz.minutes) { el.textContent = ''; return; } const m = Math.floor(qr.left / 60), s = qr.left % 60; el.textContent = toAr(String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0')); el.classList.toggle('low', qr.left < 60); }
+        function quizClose() { clearInterval(qr.timer); $('quiz-run').classList.remove('open'); document.body.classList.remove('quiz-open'); if (qr.attempt) renderQuizzes(); }
+        function drawQuiz() {
+            const q = qr.quiz, i = qr.i, Q = q.qs[i], test = qr.mode === 'test', body = $('qr-body');
+            $('qr-title').textContent = q.title;
+            $('qr-prog').textContent = toAr(i + 1) + ' / ' + toAr(q.qs.length);
+            drawTimer();
+            const pal = $('qr-pal'); pal.innerHTML = '';
+            q.qs.forEach((x, k) => { const b = document.createElement('button'); b.textContent = toAr(k + 1); b.className = (k === i ? 'cur ' : '') + (qr.ans[x.id] != null && qr.ans[x.id] !== '' ? 'ans' : ''); b.onclick = () => { qr.i = k; drawQuiz(); }; pal.appendChild(b); });
+            body.innerHTML = '';
+            const card = document.createElement('div'); card.className = 'qr-card';
+            const h = document.createElement('div'); h.className = 'qr-q'; h.textContent = Q.q; card.appendChild(h);
+            const pts = document.createElement('div'); pts.className = 'qr-pts'; pts.textContent = (Q.t === 'mcq' ? 'اختر الإجابة الصحيحة' : 'سؤال مقالي') + ' · ' + toAr(Q.p) + ' درجة'; card.appendChild(pts);
+            if (Q.t === 'mcq') {
+                Q.o.forEach((o, k) => {
+                    const b = document.createElement('button'); b.className = 'qr-opt';
+                    const sel = qr.ans[Q.id] === k, shown = !test && qr.show[Q.id] != null;
+                    if (sel) b.classList.add('sel');
+                    if (shown) { if (k === Q.c) b.classList.add('right'); else if (qr.show[Q.id] === k) b.classList.add('wrong'); }
+                    b.innerHTML = '<span class="ol">' + AR_LETTERS[k] + '</span><span class="ot"></span>'; b.querySelector('.ot').textContent = o;
+                    b.onclick = () => { if (test) { qr.ans[Q.id] = k; } else { qr.show[Q.id] = k; qr.ans[Q.id] = k; } drawQuiz(); };
+                    card.appendChild(b);
+                });
+                if (!test) { const r = document.createElement('button'); r.className = 'btn-ghost'; r.textContent = qr.show[Q.id] != null ? 'إخفاء الإجابة' : 'إظهار الإجابة الصحيحة'; r.onclick = () => { if (qr.show[Q.id] != null) { delete qr.show[Q.id]; delete qr.ans[Q.id]; } else qr.show[Q.id] = -2; drawQuiz(); }; card.appendChild(r); }
+            } else if (test) {
+                const ta = document.createElement('textarea'); ta.className = 'qr-essay'; ta.placeholder = 'اكتب إجابتك هنا…'; ta.value = qr.ans[Q.id] || ''; ta.oninput = () => { qr.ans[Q.id] = ta.value; };
+                card.appendChild(ta);
+            } else {
+                const r = document.createElement('button'); r.className = 'btn-ghost'; r.textContent = qr.show[Q.id] != null ? 'إخفاء الإجابة النموذجية' : 'إظهار الإجابة النموذجية';
+                r.onclick = () => { if (qr.show[Q.id] != null) delete qr.show[Q.id]; else qr.show[Q.id] = true; drawQuiz(); }; card.appendChild(r);
+                if (qr.show[Q.id] != null) { const m = document.createElement('div'); m.className = 'qr-model'; m.textContent = Q.m || 'لا توجد إجابة نموذجية مسجّلة.'; card.appendChild(m); }
+            }
+            body.appendChild(card);
+            const foot = $('qr-foot'); foot.innerHTML = '';
+            const mk = (t, cls, fn, dis) => { const b = document.createElement('button'); b.className = cls; b.textContent = t; b.disabled = !!dis; b.onclick = fn; foot.appendChild(b); };
+            mk('السابق', 'btn-ghost', () => { qr.i--; drawQuiz(); }, i === 0);
+            if (i < q.qs.length - 1) mk('التالي', 'btn-primary', () => { qr.i++; drawQuiz(); });
+            else mk(test ? 'تسليم الاختبار' : 'إنهاء', 'btn-primary', () => test ? quizSubmit(false) : quizClose());
+        }
+        function gradeAttempt(a) {
+            const q = findQuiz(a.quizId); let got = 0, total = 0, pend = 0;
+            q.qs.forEach(Q => { total += Q.p; if (Q.t === 'mcq') { if (a.ans[Q.id] === Q.c) got += Q.p; } else if (a.ess[Q.id] != null) got += a.ess[Q.id]; else pend++; });
+            a.score = got; a.total = total; a.pending = pend;
+        }
+        function quizSubmit(auto) {
+            const q = qr.quiz;
+            const un = q.qs.filter(x => qr.ans[x.id] == null || qr.ans[x.id] === '').length;
+            if (!auto && un && !confirm('فيه ' + un + ' سؤال بدون إجابة. تسليم الاختبار؟')) return;
+            clearInterval(qr.timer);
+            const a = { id: qid(), quizId: q.id, name: qr.name, at: Date.now(), ans: { ...qr.ans }, ess: {}, score: 0, total: 0, pending: 0 };
+            gradeAttempt(a); appState.quizResults = appState.quizResults || []; appState.quizResults.unshift(a); scheduleSave();
+            qr.attempt = a; showAttempt(a);
+        }
+        function showAttempt(a) {
+            const q = findQuiz(a.quizId); if (!q) return;
+            qr.attempt = a; qr.quiz = q;
+            $('quiz-run').classList.add('open'); document.body.classList.add('quiz-open');
+            $('qr-title').textContent = q.title + (a.name ? ' · ' + a.name : ''); $('qr-prog').textContent = ''; $('qr-timer').textContent = ''; $('qr-pal').innerHTML = '';
+            const body = $('qr-body'); body.innerHTML = '';
+            const sum = document.createElement('div'); sum.className = 'qr-sum';
+            const draw = () => { gradeAttempt(a); scheduleSave(); sum.innerHTML = '<b>' + toAr(Math.round(a.score * 10) / 10) + ' / ' + toAr(a.total) + '</b><span>' + toAr(a.total ? Math.round(a.score / a.total * 100) : 0) + '٪' + (a.pending ? ' · ' + toAr(a.pending) + ' مقالي بانتظار التصحيح' : '') + '</span>'; };
+            body.appendChild(sum);
+            q.qs.forEach((Q, i) => {
+                const c = document.createElement('div'); c.className = 'qr-card rv';
+                const h = document.createElement('div'); h.className = 'qr-q'; h.textContent = (i + 1) + '. ' + Q.q; c.appendChild(h);
+                if (Q.t === 'mcq') {
+                    const ok = a.ans[Q.id] === Q.c;
+                    const r = document.createElement('div'); r.className = 'rv-line ' + (ok ? 'ok' : 'bad');
+                    r.textContent = (a.ans[Q.id] == null ? 'لم تتم الإجابة' : 'إجابتك: ' + AR_LETTERS[a.ans[Q.id]] + ') ' + Q.o[a.ans[Q.id]]) + (ok ? ' ✓' : ' ✗'); c.appendChild(r);
+                    if (!ok) { const r2 = document.createElement('div'); r2.className = 'rv-line ok'; r2.textContent = 'الصحيحة: ' + AR_LETTERS[Q.c] + ') ' + Q.o[Q.c]; c.appendChild(r2); }
+                } else {
+                    const r = document.createElement('div'); r.className = 'rv-ans'; r.textContent = a.ans[Q.id] ? a.ans[Q.id] : 'لم تتم الإجابة'; c.appendChild(r);
+                    if (Q.m) { const m = document.createElement('div'); m.className = 'qr-model'; m.textContent = 'النموذجية: ' + Q.m; c.appendChild(m); }
+                    const g = document.createElement('label'); g.className = 'rv-grade'; g.innerHTML = 'الدرجة (من ' + toAr(Q.p) + '): ';
+                    const inp = document.createElement('input'); inp.type = 'number'; inp.min = 0; inp.max = Q.p; inp.step = 0.5; inp.value = a.ess[Q.id] != null ? a.ess[Q.id] : '';
+                    inp.oninput = () => { const v = inp.value === '' ? null : Math.min(Q.p, Math.max(0, Number(inp.value) || 0)); if (v == null) delete a.ess[Q.id]; else a.ess[Q.id] = v; draw(); };
+                    g.appendChild(inp); c.appendChild(g);
+                }
+                body.appendChild(c);
+            });
+            draw();
+            const foot = $('qr-foot'); foot.innerHTML = '';
+            const b = document.createElement('button'); b.className = 'btn-primary'; b.textContent = 'إغلاق'; b.onclick = () => { quizClose(); }; foot.appendChild(b);
+        }
+        function quizResults(id) {
+            const q = findQuiz(id); const box = $('qres-list'); box.innerHTML = '';
+            $('qres-title').textContent = 'نتائج: ' + q.title;
+            const list = (appState.quizResults || []).filter(r => r.quizId === id);
+            if (!list.length) { const p = document.createElement('p'); p.className = 'exam-empty'; p.textContent = 'لا توجد محاولات بعد.'; box.appendChild(p); }
+            list.forEach(a => {
+                const r = document.createElement('div'); r.className = 'qres-row';
+                r.innerHTML = '<span class="qn"></span><span class="qs"></span><span class="qd"></span>';
+                r.querySelector('.qn').textContent = a.name || 'بدون اسم';
+                r.querySelector('.qs').textContent = toAr(Math.round(a.score * 10) / 10) + ' / ' + toAr(a.total) + (a.pending ? ' *' : '');
+                r.querySelector('.qd').textContent = timeAgo(a.at);
+                const o = document.createElement('button'); o.className = 'btn-ghost'; o.textContent = 'عرض / تصحيح'; o.onclick = () => { closeModal('quiz-results-modal'); showAttempt(a); };
+                const d = document.createElement('button'); d.className = 'btn-ghost danger'; d.textContent = 'حذف'; d.onclick = () => armable(d, () => { appState.quizResults = appState.quizResults.filter(x => x.id !== a.id); scheduleSave(); quizResults(id); renderQuizzes(); });
+                r.append(o, d); box.appendChild(r);
+            });
+            openModal('quiz-results-modal');
+        }
+
+        // ---------- طباعة الاختبار (ورقة طالب / نسخة معلم بالإجابات) ----------
+        async function quizSheets(q, withKey) {
+            const W = 1240, H = 1754, M = 90, pages = []; let cv, g, y;
+            const F = (w, s) => w + ' ' + s + 'px Tahoma, "Segoe UI", sans-serif';
+            const np = first => { cv = document.createElement('canvas'); cv.width = W; cv.height = H; g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.direction = 'rtl'; g.textAlign = 'right'; y = M;
+                if (first) { g.fillStyle = '#111827'; g.font = F('700', 50); g.fillText(q.title, W - M, y + 44); g.font = F('400', 26); g.fillStyle = '#4b5563';
+                    g.fillText((appState.teacher && appState.teacher.name || '') + ' · ' + gradeName(q.grade) + (q.minutes ? ' · الزمن ' + q.minutes + ' دقيقة' : '') + (withKey ? ' · نسخة المعلم' : ''), W - M, y + 88);
+                    if (!withKey) g.fillText('الاسم: ______________________      التاريخ: ____________', W - M, y + 134);
+                    g.strokeStyle = '#111827'; g.lineWidth = 3; g.beginPath(); g.moveTo(M, y + 156); g.lineTo(W - M, y + 156); g.stroke(); y += 200; }
+                pages.push(cv); };
+            const wrap = (t, s, mw) => { g.font = F('400', s); const out = []; String(t).split('\n').forEach(par => { let cur = ''; par.split(/\s+/).forEach(w => { const x = cur ? cur + ' ' + w : w; if (g.measureText(x).width > mw && cur) { out.push(cur); cur = w; } else cur = x; }); out.push(cur); }); return out; };
+            np(true);
+            q.qs.forEach((Q, i) => {
+                const ql = wrap((i + 1) + '. ' + Q.q + '  (' + Q.p + ')', 32, W - 2 * M);
+                const ol = Q.t === 'mcq' ? Q.o.map((o, k) => wrap(AR_LETTERS[k] + ') ' + o, 30, W - 2 * M - 70)) : [];
+                const ml = withKey && Q.t === 'essay' && Q.m ? wrap('الإجابة النموذجية: ' + Q.m, 28, W - 2 * M - 40) : [];
+                const need = ql.length * 46 + ol.reduce((s, l) => s + l.length * 42, 0) + ml.length * 40 + (Q.t === 'essay' && !withKey ? 260 : 0) + 30;
+                if (y + need > H - M) np(false);
+                g.fillStyle = '#111827'; g.font = F('700', 32); ql.forEach(l => { g.fillText(l, W - M, y + 34); y += 46; });
+                ol.forEach((lines, k) => { const ok = withKey && k === Q.c; g.font = F(ok ? '700' : '400', 30); g.fillStyle = ok ? '#047857' : '#111827'; lines.forEach(l => { g.fillText(l, W - M - 50, y + 32); y += 42; }); });
+                g.fillStyle = '#047857'; g.font = F('400', 28); ml.forEach(l => { g.fillText(l, W - M - 20, y + 30); y += 40; });
+                if (Q.t === 'essay' && !withKey) { g.strokeStyle = '#d1d5db'; g.lineWidth = 1.5; for (let k = 1; k <= 5; k++) { g.beginPath(); g.moveTo(M, y + k * 48); g.lineTo(W - M, y + k * 48); g.stroke(); } y += 260; }
+                y += 30;
+            });
+            return pages.map(p => p.toDataURL('image/png'));
+        }
+        function quizPrint(id) {
+            const q = findQuiz(id); $('qp-title').textContent = q.title; $('qp-id').value = id; openModal('quiz-print-modal');
+        }
+        async function quizPrintGo(kind) {
+            const q = findQuiz($('qp-id').value); if (!q) return;
+            const pages = await quizSheets(q, $('qp-key').checked);
+            if (kind === 'pdf') {
+                if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
+                const { jsPDF } = window.jspdf; const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [1240, 1754] });
+                pages.forEach((d, i) => { if (i) pdf.addPage([1240, 1754], 'portrait'); pdf.addImage(d, 'PNG', 0, 0, 1240, 1754); });
+                try { toast('تم الحفظ في: ' + await api.savePdf('اختبار_' + Date.now() + '.pdf', pdf.output('datauristring').split(',').pop())); } catch (e) { toast('تعذر الحفظ'); }
+            } else {
+                const box = $('print-sheet'); box.innerHTML = ''; pages.forEach(d => { const im = document.createElement('img'); im.src = d; box.appendChild(im); });
+                const cl = () => { box.innerHTML = ''; window.removeEventListener('afterprint', cl); }; window.addEventListener('afterprint', cl);
+                try { setTimeout(() => window.print(), 120); } catch (e) { cl(); toast('الطباعة غير متاحة هنا. استخدم حفظ PDF'); }
+            }
+            closeModal('quiz-print-modal');
+        }
+
+        function saveGemini() { appState.geminiKey = $('inp-gkey').value.trim(); appState.geminiModel = $('inp-gmodel').value.trim(); scheduleSave(); toast('تم حفظ إعدادات Gemini'); }
+
         function renderExams() {
             if (!$('exams-list')) return;
             const items = booksCache
@@ -5566,7 +6096,7 @@
         const courseMedia = new Map();   // cid -> [{name,url}]
         let detailId = null;
         let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal'];
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal', 'quiz-edit-modal', 'quiz-import-modal', 'quiz-start-modal', 'quiz-results-modal', 'quiz-print-modal'];
 
         function findCourse(id) {
             return (appState.courses || []).find(c => c.id === id) || null;
@@ -6860,7 +7390,7 @@
             syncAnnotateUI();
             renderHome();
             renderLibrary();
-            renderExams();
+            renderExams(); renderQuizzes();
         }
 
         // زر الرجوع في الأندرويد يغلق أول نافذة مفتوحة
