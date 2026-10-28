@@ -30,7 +30,7 @@ UI_URL = "https://raw.githubusercontent.com/mmm14101995-sudo/EducationPlatform/m
 UI_CACHE_DIR = os.path.join(DATA_DIR, "ui")
 UI_CACHE = os.path.join(UI_CACHE_DIR, "index.html")
 
-GRADES = {"sec2", "sec3", "y3", "y4"}
+GRADES = {"sec2", "sec3", "y3", "y4"}   # السنة الثالثة والرابعة زي الثانوي
 REVIEW_FOLDERS = {"reviews", "review", "ملازم", "مراجعات"}
 EXAM_FOLDERS = {"exams", "exam", "اختبارات", "اختبار"}
 
@@ -136,32 +136,6 @@ def update_ui():
         pass
 
 
-LIB_DIR = os.path.join(DATA_DIR, "lib")
-LIB_FILES = {
-    "pdf.min.js": "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js",
-    "pdf.worker.min.js": "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js",
-    "jspdf.umd.min.js": "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
-}
-
-
-def cache_libs():
-    """ينزّل مكتبات قارئ PDF مرة واحدة ويحفظها محلياً، فتشتغل الكتب حتى بدون إنترنت."""
-    os.makedirs(LIB_DIR, exist_ok=True)
-    for name, url in LIB_FILES.items():
-        dest = os.path.join(LIB_DIR, name)
-        if os.path.exists(dest) and os.path.getsize(dest) > 10000:
-            continue
-        try:
-            with urllib.request.urlopen(url, timeout=15) as r:
-                data = r.read()
-            if len(data) > 10000:
-                with open(dest + ".tmp", "wb") as f:
-                    f.write(data)
-                os.replace(dest + ".tmp", dest)
-        except Exception:
-            pass
-
-
 LOCAL_UI = os.path.join(APP_DIR, "index.html")
 
 
@@ -198,19 +172,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self.send_json(list_media(query.get("course", [""])[0]))
         if path.startswith("/media/"):
             return self.serve_media(path)
-        if path.startswith("/lib/"):
-            name = os.path.basename(urllib.parse.unquote(path))
-            full = os.path.join(LIB_DIR, name)
-            if name not in LIB_FILES or not os.path.isfile(full):
-                return self.send_error(404)
-            with open(full, "rb") as f:
-                data = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/javascript")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-            return
         if path == "/api/books":
             return self.send_json(scan_books())
         if path == "/api/state":
@@ -272,14 +233,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             ids = []
             for src in picked:
                 name = os.path.basename(src)
-                if name.lower().endswith(".pdf") and os.path.isfile(src):
-                    try:
-                        shutil.copy2(src, os.path.join(target, name))
-                    except OSError:
-                        continue
+                if name.lower().endswith(".pdf"):
+                    shutil.copy2(src, os.path.join(target, name))
                     count += 1
-                    sub = [folder] if folder else []
-                    ids.append("/".join([grade.upper(), *sub, name]))
+                    # نفس المعرّف اللي scan_books بيرجّعه، عشان الكتاب لو كان متحذوف قبل كده يرجع يظهر
+                    ids.append("/".join([grade.upper()] + ([folder] if folder else []) + [name]))
             return self.send_json({"ok": True, "count": count, "ids": ids})
 
         if path == "/api/media/native-play":
@@ -333,49 +291,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self.send_json({"ok": True, "path": d})
 
         if path == "/api/open-folder":
-            # التوافق مع index.html الحالي: زر إضافة الاختبارات يستدعي openFolder(grade).
-            # بدل فتح مجلد يدويًا، نعرض نافذة اختيار ملفات PDF وننسخها إلى مكتبة التطبيق.
             grade = str(payload.get("grade", "sec3")).lower()
             if grade not in GRADES:
                 return self.send_json({"ok": False}, 400)
-
-            wins = webview.windows
-            if not wins:
-                return self.send_json({"ok": False, "error": "window_unavailable"}, 500)
-
-            try:
-                picked = wins[0].create_file_dialog(
-                    webview.OPEN_DIALOG,
-                    allow_multiple=True,
-                    file_types=("PDF files (*.pdf)",),
-                )
-            except Exception as exc:
-                return self.send_json({"ok": False, "error": str(exc)}, 500)
-
-            if not picked:
-                return self.send_json({"ok": False, "cancelled": True})
-
-            target = os.path.join(BOOKS_DIR, grade.upper(), "exams")
-            os.makedirs(target, exist_ok=True)
-            count = 0
-            for src in picked:
-                try:
-                    if os.path.isfile(src) and src.lower().endswith(".pdf"):
-                        name = os.path.basename(src)
-                        dest = os.path.join(target, name)
-                        # لا نستبدل ملفًا موجودًا بنفس الاسم؛ نضيف رقمًا للاسم الجديد.
-                        if os.path.exists(dest):
-                            stem, ext = os.path.splitext(name)
-                            number = 2
-                            while os.path.exists(os.path.join(target, f"{stem} ({number}){ext}")):
-                                number += 1
-                            dest = os.path.join(target, f"{stem} ({number}){ext}")
-                        shutil.copy2(src, dest)
-                        count += 1
-                except OSError:
-                    continue
-
-            return self.send_json({"ok": True, "count": count, "ids": []})
+            folder = os.path.join(BOOKS_DIR, grade.upper(), "exams")
+            os.makedirs(folder, exist_ok=True)
+            if hasattr(os, "startfile"):
+                os.startfile(folder)  # يفتح المجلد في مستكشف الويندوز
+            return self.send_json({"ok": True, "path": folder})
 
         if path == "/api/open-external":
             url = str(payload.get("url", ""))
@@ -448,21 +371,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         full = os.path.abspath(os.path.join(base, rel))
         if not full.startswith(base + os.sep) or not os.path.isfile(full):
             return self.send_error(404)
-        try:
-            size = os.path.getsize(full)
-            self.send_response(200)
-            self.send_header("Content-Type", "application/pdf")
-            self.send_header("Content-Length", str(size))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            with open(full, "rb") as f:
-                while True:
-                    chunk = f.read(262144)
-                    if not chunk:
-                        break
-                    self.wfile.write(chunk)
-        except (BrokenPipeError, ConnectionResetError, OSError):
-            pass
+        with open(full, "rb") as f:
+            data = f.read()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
 
 
@@ -616,7 +531,6 @@ def player_main(path, title):
 
 def main():
     update_ui()
-    threading.Thread(target=cache_libs, daemon=True).start()
     # منفذ عشوائي حر، فلا يتعارض مع أي برنامج آخر
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     port = httpd.server_address[1]
