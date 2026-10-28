@@ -762,7 +762,8 @@
         .shape-sw:hover { transform: scale(1.06); }
         .shape-sw svg { width: 100%; height: 100%; }
         .board-bar .pen-3d { width: 50px; height: 60px; }
-        .pen-style-btn .nib { fill: var(--pc, #0f172a); stroke: rgba(0,0,0,0.35); stroke-width: .5; }
+        .pen-style-btn .nib { fill: var(--pc, #0f172a); stroke: rgba(0,0,0,0.25); stroke-width: .4; }
+        .pen-style-btn .nib-s { fill: none; stroke: var(--pc, #ef4444); stroke-width: 1.3; stroke-linecap: round; }
         .board-bar .pen-3d svg { width: 36px; height: 54px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45)); }
         .rn-tool { width: 46px; height: 54px; }
         .rn-tool svg { width: 30px; height: 46px; }
@@ -1147,19 +1148,166 @@
 
         :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
         .toast { background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); }
+
+        /* =====================================================================
+           الشكل الشامل (v4): شريط علوي + قائمة جانبية + رئيسية بأقسام
+           ===================================================================== */
+        :root {
+            --bg: #0a1128; --surface: #101a38; --surface-2: #17233f;
+            --accent: #4f8cff; --accent2: #35d6c2;
+            --card: rgba(14,24,52,0.82); --solid: #101a38;
+            --flat-bg: rgba(16,27,58,0.78); --flat-bg-hover: rgba(24,38,78,0.92); --flat-line: rgba(110,150,255,0.20);
+            --line: rgba(120,160,255,0.16); --line-strong: rgba(120,160,255,0.30);
+        }
+        #bg-layer::after { background: rgba(7,12,32,0.60); }
+        [data-theme="light"] #bg-layer::after { background: rgba(243,245,250,0.78); }
+        body { flex-direction: column; }
+        .app { flex: 1; min-height: 0; height: auto; padding-top: 0; }
+
+        /* الشريط العلوي */
+        .app-header {
+            display: flex; align-items: center; gap: 18px; padding: 12px 20px 10px; flex: 0 0 auto;
+        }
+        .ah-brand { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+        .ah-brand .app-logo { width: 42px; height: 42px; }
+        .ah-title { display: flex; flex-direction: column; line-height: 1.25; }
+        .ah-title b { font-size: 18px; font-weight: 800; }
+        .ah-title small { font-size: 12px; color: var(--muted); }
+        .gsearch { position: relative; flex: 1 1 auto; max-width: 560px; margin-inline: auto; }
+        .gsearch > .ico, .gsearch > svg { position: absolute; top: 50%; transform: translateY(-50%); inset-inline-start: 14px; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+        .gsearch input {
+            width: 100%; height: 42px; border-radius: 999px; padding: 0 44px; border: 1px solid var(--line-strong);
+            background: var(--flat-bg); color: var(--text); font-size: 14px; outline: none; transition: border-color var(--t), box-shadow var(--t);
+        }
+        .gsearch input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,140,255,0.25); }
+        .gs-results {
+            display: none; position: absolute; top: 48px; inset-inline: 0; z-index: 60; padding: 6px; border-radius: var(--r-lg);
+            background: var(--solid); border: 1px solid var(--line-strong); box-shadow: var(--shadow-md); max-height: 60vh; overflow-y: auto;
+        }
+        .gs-results.open { display: block; }
+        .gs-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); cursor: pointer; }
+        .gs-item:hover, .gs-item:focus { background: var(--press); outline: none; }
+        .gs-kind { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: rgba(79,140,255,0.2); color: var(--accent); }
+        .gs-title { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gs-sub { color: var(--muted); font-size: 12px; flex: 0 0 auto; }
+        .gs-empty { padding: 14px; text-align: center; color: var(--muted); font-size: 14px; }
+        .app-header #theme-btn { flex: 0 0 auto; padding: 9px 14px; display: inline-flex; align-items: center; gap: 8px; }
+
+        /* القائمة الجانبية */
+        .sidebar { padding: 16px 14px; }
+        .teacher { margin-bottom: 8px; }
+        .nav { color: var(--muted); }
+        .nav.active {
+            background: linear-gradient(135deg, #2f6bff, #4f8cff) !important; color: #fff;
+            box-shadow: 0 8px 22px rgba(47,107,255,0.40) !important;
+        }
+        .nav.active .ico { background: rgba(255,255,255,0.20); box-shadow: none; }
+        .nav.settings-nav { margin-top: auto; border-top: 1px solid var(--line); border-radius: var(--r-md); }
+
+        /* الرئيسية */
+        .home-top { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: stretch; }
+        .home-top .hero { margin: 0; display: flex; flex-direction: column; justify-content: center; }
+        .recent { padding: 16px; border-radius: var(--r-xl); background: var(--flat-bg); border: 1px solid var(--flat-line); box-shadow: var(--shadow-sm); }
+        .recent h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+        .recent h3 .ico { width: 18px; height: 18px; color: var(--accent); }
+        .recent-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: var(--r-md); cursor: pointer; }
+        .recent-item:hover, .recent-item:focus { background: var(--press); outline: none; }
+        .ri-ico { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(79,140,255,0.2); color: var(--accent); }
+        .ri-ico .ico { width: 18px; height: 18px; }
+        .ri-txt { min-width: 0; display: flex; flex-direction: column; }
+        .ri-txt b { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ri-txt small { font-size: 11px; color: var(--muted); }
+        .recent-empty { color: var(--muted); font-size: 13px; line-height: 1.8; padding: 6px 4px; }
+
+        .shortcuts { display: grid; grid-template-columns: 1.25fr 1fr 1fr; grid-auto-rows: minmax(92px, auto); gap: 14px; margin: 14px 0 4px; }
+        .sc {
+            position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--r-lg); cursor: pointer;
+            background: var(--flat-bg); border: 1px solid var(--flat-line); box-shadow: var(--shadow-sm);
+            transition: transform var(--t), border-color var(--t), background var(--t), box-shadow var(--t);
+        }
+        .sc:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--flat-bg-hover); box-shadow: var(--shadow-md); }
+        .sc:active { transform: scale(0.98); }
+        .sc h3 { font-size: 16px; font-weight: 800; }
+        .sc p { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+        .sc-txt { flex: 1; min-width: 0; }
+        .sc-ico { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+        .sc-ico .ico { width: 26px; height: 26px; }
+        .sc-go { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--hover); color: var(--muted); }
+        .sc-go .ico { width: 15px; height: 15px; }
+        .sc-books .sc-ico { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+        .sc-videos .sc-ico { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+        .sc-exams .sc-ico { background: linear-gradient(135deg, #f59e0b, #f97316); }
+        .sc-ai .sc-ico { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .sc-board {
+            grid-row: span 2; flex-direction: column; align-items: flex-start; justify-content: flex-end; min-height: 200px;
+            background: radial-gradient(120% 90% at 20% 0%, rgba(79,140,255,0.38), transparent 60%), linear-gradient(160deg, rgba(47,107,255,0.30), rgba(16,27,58,0.9));
+            border-color: rgba(79,140,255,0.55);
+        }
+        .sc-board .sc-art { position: absolute; top: 18px; inset-inline-end: 18px; width: 86px; height: 86px; border-radius: 22px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #2f6bff, #35d6c2); box-shadow: 0 14px 30px rgba(47,107,255,0.45); }
+        .sc-board .sc-art .ico { width: 44px; height: 44px; }
+        .sc-board .sc-txt { flex: 0 0 auto; width: 100%; }
+        .sc-board h3 { font-size: 20px; }
+        .sc-board .sc-go { position: absolute; bottom: 16px; inset-inline-end: 16px; background: var(--accent); color: #fff; }
+        [data-theme="light"] .sc-board { background: radial-gradient(120% 90% at 20% 0%, rgba(63,107,240,0.22), transparent 60%), linear-gradient(160deg, rgba(63,107,240,0.12), #fff); }
+
+        @media (max-width: 1100px) { .home-top { grid-template-columns: 1fr; } .shortcuts { grid-template-columns: 1fr 1fr; } .sc-board { grid-column: 1 / -1; grid-row: auto; min-height: 150px; } }
+        @media (max-width: 820px) {
+            .app-header { flex-wrap: wrap; padding: 10px 12px 4px; gap: 10px; }
+            .ah-title small { display: none; }
+            .ah-brand { flex: 1 1 auto; }
+            .gsearch { order: 3; flex: 1 1 100%; max-width: none; }
+            .app-header #theme-btn span { display: none; }
+            body.board-active .app-header { display: none; }
+            .shortcuts { grid-template-columns: 1fr; }
+        }
+
+        /* ===== السبورة (v4): شريط أدوات مدمج في صفين، مساحة كتابة أكبر ===== */
+        .board:not(.fs) .board-bar { gap: 8px 10px; padding: 8px 12px; align-items: center; }
+        .board:not(.fs) .bgrp { padding: 3px; gap: 3px; }
+        .board:not(.fs) .board-bar .ibtn { width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; flex-basis: 38px; }
+        .board:not(.fs) .board-bar .ibtn.pen-3d { width: 38px !important; height: 46px !important; min-width: 38px !important; }
+        .board:not(.fs) .board-bar .ibtn svg { width: 22px !important; height: 22px !important; }
+        .board:not(.fs) .board-bar .ibtn.pen-3d svg, .board:not(.fs) .board-bar #eraser-btn svg { width: 26px !important; height: 40px !important; }
+        .board:not(.fs) .board-bar .range { width: 90px; }
+        .board:not(.fs) .board-bar .lbl { min-width: 40px; font-size: 12px; }
+        .board:not(.fs) .board-bar .back-btn { background: var(--hover); border: 1px solid var(--line); }
+        .board:not(.fs) .board-bar .ibtn.active, .board:not(.fs) .board-bar .ibtn.pen-3d.active { background: rgba(79,140,255,0.22); box-shadow: 0 0 0 2px var(--accent); }
+        .board:not(.fs) #pages-bar { margin-inline-start: auto; }
+        @media (pointer: coarse) {
+            .board:not(.fs) .board-bar .ibtn { width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; flex-basis: 44px; }
+            .board:not(.fs) .board-bar .ibtn.pen-3d { height: 52px !important; }
+        }
+        body.board-active .topbar { padding: 6px 16px; border-radius: var(--r-lg); }
+        body.board-active .topbar h1 { font-size: 17px; }
+        body.board-active .topbar .seg button { padding: 6px 14px; }
+        body.board-active .app { gap: 10px; }
+        body.board-active .main { gap: 10px; }
 </style>
 </head>
 <body data-theme="dark">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+        <linearGradient id="pn-grad" x1="0" x2="1"><stop offset="0" stop-color="#3a4668"/><stop offset=".5" stop-color="#27304d"/><stop offset="1" stop-color="#1b2238"/></linearGradient>
+        <linearGradient id="pn-metal" x1="0" x2="1"><stop offset="0" stop-color="#c9d2e3"/><stop offset=".5" stop-color="#f2f5fb"/><stop offset="1" stop-color="#9aa6bd"/></linearGradient>
+        <g id="pn-body"><rect x="8" y="17" width="10" height="21" rx="3.2" fill="url(#pn-grad)"/><rect x="10" y="19" width="1.6" height="16" rx=".8" fill="#fff" opacity=".16"/><rect x="8" y="14.5" width="10" height="3.4" rx="1" fill="url(#pn-metal)"/></g>
+    </defs></svg>
 
     <div id="bg-layer"></div>
 
+<header class="app-header">
+        <div class="ah-brand">
+            <svg class="app-logo" viewBox="0 0 40 40" role="img" aria-label="شعار المنصة"><defs><linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#logo-g)"/><path d="M20 14c-3.6-2-8-2-11-1v15c3-1 7.4-1 11 1 3.6-2 8-2 11-1V13c-3-1-7.4-1-11 1z" fill="#fff" fill-opacity=".95"/><path d="M20 14v15" stroke="url(#logo-g)" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <div class="ah-title"><b id="app-title">منصة أستاذ مصطفى محمد</b><small id="app-sub">دفعة 2027</small></div>
+        </div>
+        <div class="gsearch" id="gsearch">
+            <i data-icon="search"></i>
+            <input type="search" id="gs-input" placeholder="ابحث في المنصة: كتب، كورسات، فيديوهات..." aria-label="بحث في المنصة" autocomplete="off" oninput="runSearch()" onfocus="runSearch()">
+            <div class="gs-results" id="gs-results" role="listbox"></div>
+        </div>
+        <button class="btn-ghost" id="theme-btn" onclick="toggleTheme()" aria-label="تبديل الوضع الليلي والنهاري"><i data-icon="sun"></i><span>نهاري</span></button>
+    </header>
+
     <div class="app">
         <aside class="sidebar">
-            <div class="brand">
-                <svg class="app-logo" viewBox="0 0 40 40" role="img" aria-label="شعار المنصة"><defs><linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#logo-g)"/><path d="M20 14c-3.6-2-8-2-11-1v15c3-1 7.4-1 11 1 3.6-2 8-2 11-1V13c-3-1-7.4-1-11 1z" fill="#fff" fill-opacity=".95"/><path d="M20 14v15" stroke="url(#logo-g)" stroke-width="1.6" stroke-linecap="round"/></svg>
-                <span>المنصة التعليمية</span>
-            </div>
-
             <div class="teacher">
                 <div class="avatar" id="t-avatar">م</div>
                 <div>
@@ -1171,13 +1319,11 @@
             <div class="nav active" data-view="home" onclick="switchView('home', this)"><i data-icon="home"></i><span>الرئيسية</span></div>
             <div class="nav" data-view="board" onclick="switchView('board', this)"><i data-icon="pen"></i><span>السبورة التفاعلية</span></div>
             <div class="nav" data-view="books" onclick="switchView('books', this)"><i data-icon="book"></i><span>الكتب والملازم</span></div>
+            <div class="nav" data-view="videos" onclick="goVideos()"><i data-icon="play"></i><span>الفيديوهات</span></div>
             <div class="nav" data-view="exams" onclick="switchView('exams', this)"><i data-icon="file"></i><span>الاختبارات</span></div>
             <div class="nav" data-view="ai" onclick="switchView('ai', this)"><i data-icon="bot"></i><span>المساعد الذكي</span></div>
             <div class="nav settings-nav" role="button" tabindex="0" onclick="openSettings()"><i data-icon="settings"></i><span>الإعدادات</span></div>
 
-            <div class="side-foot">
-                <button class="btn-ghost" id="theme-btn" onclick="toggleTheme()"><i data-icon="sun"></i><span>نهاري</span></button>
-            </div>
         </aside>
 
         <main class="main">
@@ -1193,13 +1339,47 @@
 
             <!-- الرئيسية -->
             <section id="view-home" class="view active">
-                <div class="hero">
-                    <div class="kicker" id="hero-grade">الصف الثالث الثانوي</div>
-                    <h2 id="hero-name">أهلاً بك</h2>
-                    <p>مساحتك التعليمية: كتبك وملازمك وسبورتك واختباراتك في مكان واحد، ومحفوظة على جهازك.</p>
-                    <div class="hero-actions">
-                        <button class="btn-primary" onclick="switchView('board', document.querySelector('[data-view=board]'))"><i data-icon="pen"></i><span>افتح السبورة</span></button>
-                        <button class="btn-ghost" onclick="switchView('books', document.querySelector('[data-view=books]'))"><i data-icon="book"></i><span>المكتبة</span></button>
+                <div class="home-top">
+                    <div class="hero">
+                        <div class="kicker" id="hero-grade">الصف الثالث الثانوي</div>
+                        <h2 id="hero-name">أهلاً بك</h2>
+                        <p>مساحتك التعليمية: كتبك وملازمك وسبورتك واختباراتك في مكان واحد، ومحفوظة على جهازك.</p>
+                        <div class="hero-actions">
+                            <button class="btn-primary" onclick="switchView('board', document.querySelector('[data-view=board]'))"><i data-icon="pen"></i><span>افتح السبورة</span></button>
+                            <button class="btn-ghost" onclick="switchView('books', document.querySelector('[data-view=books]'))"><i data-icon="book"></i><span>المكتبة</span></button>
+                        </div>
+                    </div>
+                    <aside class="recent" aria-label="آخر ما تم استخدامه">
+                        <h3><i data-icon="eye"></i><span>آخر ما تم استخدامه</span></h3>
+                        <div id="recent-list"></div>
+                    </aside>
+                </div>
+
+                <div class="shortcuts">
+                    <div class="sc sc-board" onclick="switchView('board', document.querySelector('[data-view=board]'))">
+                        <div class="sc-art"><i data-icon="pen"></i></div>
+                        <div class="sc-txt"><h3>السبورة التفاعلية</h3><p>اكتب .. اشرح .. تفاعل</p></div>
+                        <span class="sc-go"><i data-icon="chevL"></i></span>
+                    </div>
+                    <div class="sc sc-books" onclick="switchView('books', document.querySelector('[data-view=books]'))">
+                        <div class="sc-ico"><i data-icon="book"></i></div>
+                        <div class="sc-txt"><h3>الكتب والملازم</h3><p>مكتبتك التعليمية</p></div>
+                        <span class="sc-go"><i data-icon="chevL"></i></span>
+                    </div>
+                    <div class="sc sc-videos" onclick="goVideos()">
+                        <div class="sc-ico"><i data-icon="play"></i></div>
+                        <div class="sc-txt"><h3>الفيديوهات</h3><p>شرح مبسط ومركز</p></div>
+                        <span class="sc-go"><i data-icon="chevL"></i></span>
+                    </div>
+                    <div class="sc sc-exams" onclick="switchView('exams', document.querySelector('[data-view=exams]'))">
+                        <div class="sc-ico"><i data-icon="file"></i></div>
+                        <div class="sc-txt"><h3>الاختبارات</h3><p>اختبر مستواك</p></div>
+                        <span class="sc-go"><i data-icon="chevL"></i></span>
+                    </div>
+                    <div class="sc sc-ai" onclick="switchView('ai', document.querySelector('[data-view=ai]'))">
+                        <div class="sc-ico"><i data-icon="bot"></i></div>
+                        <div class="sc-txt"><h3>المساعد الذكي</h3><p>اسأل واحصل على مساعدة</p></div>
+                        <span class="sc-go"><i data-icon="chevL"></i></span>
                     </div>
                 </div>
 
@@ -1227,14 +1407,7 @@
                     <div class="shelf-wood" id="home-continue"></div>
                 </div>
 
-                <div class="section-title"><h3>ابدأ من هنا</h3></div>
-                <div class="qa">
-                    <div class="qa-card" onclick="switchView('board', document.querySelector('[data-view=board]'))"><i data-icon="pen"></i>السبورة التفاعلية</div>
-                    <div class="qa-card" onclick="switchView('books', document.querySelector('[data-view=books]'))"><i data-icon="book"></i>المكتبة</div>
-                    <div class="qa-card" onclick="switchView('exams', document.querySelector('[data-view=exams]'))"><i data-icon="file"></i>الاختبارات</div>
-                    <div class="qa-card" onclick="switchView('ai', document.querySelector('[data-view=ai]'))"><i data-icon="bot"></i>المساعد الذكي</div>
-                </div>
-            </section>
+                </section>
 
             <!-- السبورة -->
             <section id="view-board" class="view">
@@ -1246,13 +1419,15 @@
                         </div>
                         <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
                         <div class="bgrp">
-                            <button class="ibtn pen-3d pen-style-btn" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><rect x="7.5" y="1.5" width="11" height="19" rx="3.5" fill="#1f2937"/><rect x="7.5" y="18" width="11" height="3.5" fill="#475569"/><rect x="9" y="3" width="1.4" height="14" rx=".7" fill="#fff" opacity=".35"/><path class="nib" d="M8.5 21.5 H17.5 L14.8 30 Q13 34 11.2 30 Z"/><circle class="nib" cx="13" cy="35.6" r="2.3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="feather" title="قلم ريشة" onclick="penTap('feather')"><svg viewBox="0 0 26 40"><rect x="11" y="1" width="4" height="22" rx="2" fill="#92400e"/><rect x="11" y="18" width="4" height="4" fill="#451a03"/><path class="nib" d="M11 22 H15 L13.6 33 L9.6 39 Z"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="hl" title="تظليل" onclick="penTap('hl')"><svg viewBox="0 0 26 40"><rect x="6" y="1.5" width="14" height="20" rx="2.5" fill="#374151"/><rect x="6" y="17" width="14" height="3" fill="#1f2937"/><path class="nib" d="M5 21.5 H21 V25 L5 31 Z"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penTap('broad')"><svg viewBox="0 0 26 40"><rect x="6.5" y="1.5" width="13" height="15" rx="3" fill="#111827"/><rect x="6.5" y="13" width="13" height="2.5" fill="#64748b"/><rect class="nib" x="7.5" y="16" width="11" height="12" rx="5.5"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="penTap('striped')"><svg viewBox="0 0 26 40"><defs><linearGradient id="stripeMetal" x1="0" x2="1"><stop offset="0" stop-color="#334155"/><stop offset=".25" stop-color="#e2e8f0"/><stop offset=".5" stop-color="#64748b"/><stop offset=".75" stop-color="#f8fafc"/><stop offset="1" stop-color="#334155"/></linearGradient><pattern id="stripePattern" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="2.5" height="5" fill="#2563eb"/><rect x="2.5" width="2.5" height="5" fill="#f8fafc"/></pattern></defs><rect x="8" y="2" width="10" height="25" rx="3" fill="url(#stripeMetal)"/><rect x="8.5" y="5" width="9" height="18" rx="2" fill="url(#stripePattern)"/><rect x="8" y="24" width="10" height="3" fill="#475569"/><path d="M8 27 H18 L13 38 Z" fill="#cbd5e1"/><path d="M11.5 34.5 H14.5 L13 38 Z" fill="#0f172a"/></svg></button>
-                            <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><defs><linearGradient id="b6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#b6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="feather" title="قلم ريشة" onclick="penTap('feather')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M12 14.5 L12.7 3 H13.3 L14 14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="hl" title="تظليل" onclick="penTap('hl')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penTap('broad')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M8.8 14.5 V9 Q8.8 3.5 13 3.5 Q17.2 3.5 17.2 9 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penTap('pencil')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path d="M8.8 14.5 L13 3 L17.2 14.5Z" fill="#e8c58f"/><path class="nib" d="M11.9 6.2 L13 3 L14.1 6.2Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="penTap('striped')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13 V14.5Z"/><path d="M13 4.5 H13.6 L15 14.5 H13Z" fill="#f8fafc"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="5" height="3"/><rect x="13" y="20.5" width="5" height="3" fill="#f8fafc"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="laser" title="مؤشر ليزر (أثر مضيء بيختفي لوحده)" aria-label="مؤشر ليزر" onclick="penTap('laser')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><rect class="nib" x="10.2" y="9" width="5.6" height="5.5" rx="1.2"/><circle class="nib" cx="13" cy="6.4" r="2.2"/><path class="nib-s" d="M13 1.2V2.4M7.9 3.4l1.1 1M18.1 3.4l-1.1 1M6.4 8.4h1.4M18.2 8.4h1.4"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="smart" title="القلم الذكي (يحوّل رسمك لشكل مظبوط: خط، دائرة، مثلث، مستطيل)" aria-label="القلم الذكي" onclick="penTap('smart')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 6 H13.6 L15 14.5Z"/><path class="nib" d="M19.4 1.4l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/><path d="M13 25.4L16.7 32H9.3Z" fill="none" stroke="#fff" stroke-width="1.1" stroke-linejoin="round" opacity=".9"/></svg></button>
+                            <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><rect x="8" y="17" width="10" height="21" rx="3.2" fill="url(#pn-grad)"/><rect x="8" y="4" width="10" height="13" rx="2.6" fill="#f9a8c9"/><rect x="8" y="12" width="10" height="5" fill="#fff" opacity=".85"/><rect x="10" y="6" width="1.6" height="8" rx=".8" fill="#fff" opacity=".4"/></svg></button>
                             <button class="ibtn" id="select-btn" title="تحديد (مربع خط مقطع) للحذف أو النقل" aria-label="تحديد" onclick="setTool('select')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2" stroke-dasharray="3.5 3"/><path d="M10 10l7 3-3 1.5L12.5 18z" fill="currentColor" stroke="none"/></svg></button>
                         </div>
 
@@ -1623,13 +1798,13 @@
         <div class="reader-notes">
             <button class="reader-btn" id="ann-toggle" onclick="toggleAnnotate()"><i data-icon="feather"></i><span>كتابة</span></button>
             <span class="rn-sep"></span>
-            <button class="rn-tool" id="tool-normal" title="قلم حبر" onclick="readerPenTap('normal')"><svg viewBox="0 0 26 40"><rect x="7.5" y="1.5" width="11" height="19" rx="3.5" fill="#1f2937"/><rect x="7.5" y="18" width="11" height="3.5" fill="#475569"/><rect x="9" y="3" width="1.4" height="14" rx=".7" fill="#fff" opacity=".35"/><path class="nib" d="M8.5 21.5 H17.5 L14.8 30 Q13 34 11.2 30 Z"/><circle class="nib" cx="13" cy="35.6" r="2.3"/></svg></button>
-            <button class="rn-tool" id="tool-feather" title="قلم ريشة" onclick="readerPenTap('feather')"><svg viewBox="0 0 26 40"><rect x="11" y="1" width="4" height="22" rx="2" fill="#92400e"/><rect x="11" y="18" width="4" height="4" fill="#451a03"/><path class="nib" d="M11 22 H15 L13.6 33 L9.6 39 Z"/></svg></button>
-            <button class="rn-tool" id="tool-hl" title="تظليل" onclick="readerPenTap('hl')"><svg viewBox="0 0 26 40"><rect x="6" y="1.5" width="14" height="20" rx="2.5" fill="#374151"/><rect x="6" y="17" width="14" height="3" fill="#1f2937"/><path class="nib" d="M5 21.5 H21 V25 L5 31 Z"/></svg></button>
-            <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="readerPenTap('broad')"><svg viewBox="0 0 26 40"><rect x="6.5" y="1.5" width="13" height="15" rx="3" fill="#111827"/><rect x="6.5" y="13" width="13" height="2.5" fill="#64748b"/><rect class="nib" x="7.5" y="16" width="11" height="12" rx="5.5"/></svg></button>
-            <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="readerPenTap('pencil')"><svg viewBox="0 0 26 40"><rect x="9" y="5.5" width="8" height="20" fill="#fde047"/><rect x="9" y="1.5" width="8" height="4.5" rx="1" class="nib"/><path d="M9 25.5 H17 L13 38.5 Z" fill="#fcd9b6"/><path d="M11.5 33 H14.5 L13 38.5 Z" fill="#1f2937"/></svg></button>
-            <button class="rn-tool" id="tool-striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="readerPenTap('striped')"><svg viewBox="0 0 26 40"><defs><pattern id="rStripePattern" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="2.5" height="5" fill="#2563eb"/><rect x="2.5" width="2.5" height="5" fill="#f8fafc"/></pattern></defs><rect x="8" y="2" width="10" height="25" rx="3" fill="#64748b"/><rect x="8.5" y="5" width="9" height="18" rx="2" fill="url(#rStripePattern)"/><rect x="8" y="24" width="10" height="3" fill="#475569"/><path d="M8 27 H18 L13 38 Z" fill="#cbd5e1"/><path d="M11.5 34.5 H14.5 L13 38 Z" fill="#0f172a"/></svg></button>
-            <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><defs><linearGradient id="r6a" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0b1220"/><stop offset=".18" stop-color="#6b7280"/><stop offset=".36" stop-color="#e5e7eb"/><stop offset=".5" stop-color="#9ca3af"/><stop offset=".74" stop-color="#374151"/><stop offset="1" stop-color="#0b1220"/></linearGradient></defs><rect x="7" y="15.5" width="12" height="23" rx="2.5" fill="url(#r6a)"/><rect x="7" y="3.5" width="12" height="13" rx="3.5" fill="#f472b6"/><rect x="8.5" y="5" width="2" height="9" rx="1" fill="#ffffff" opacity=".45"/></svg></button>
+            <button class="rn-tool" id="tool-normal" title="قلم حبر" onclick="readerPenTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+            <button class="rn-tool" id="tool-feather" title="قلم ريشة" onclick="readerPenTap('feather')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M12 14.5 L12.7 3 H13.3 L14 14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+            <button class="rn-tool" id="tool-hl" title="تظليل" onclick="readerPenTap('hl')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+            <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="readerPenTap('broad')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M8.8 14.5 V9 Q8.8 3.5 13 3.5 Q17.2 3.5 17.2 9 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+            <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="readerPenTap('pencil')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path d="M8.8 14.5 L13 3 L17.2 14.5Z" fill="#e8c58f"/><path class="nib" d="M11.9 6.2 L13 3 L14.1 6.2Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+            <button class="rn-tool" id="tool-striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="readerPenTap('striped')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13 V14.5Z"/><path d="M13 4.5 H13.6 L15 14.5 H13Z" fill="#f8fafc"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="5" height="3"/><rect x="13" y="20.5" width="5" height="3" fill="#f8fafc"/></svg></button>
+            <button class="rn-tool" id="tool-eraser" title="ممحاة" onclick="setNoteTool('eraser')"><svg viewBox="0 0 26 40"><rect x="8" y="17" width="10" height="21" rx="3.2" fill="url(#pn-grad)"/><rect x="8" y="4" width="10" height="13" rx="2.6" fill="#f9a8c9"/><rect x="8" y="12" width="10" height="5" fill="#fff" opacity=".85"/><rect x="10" y="6" width="1.6" height="8" rx=".8" fill="#fff" opacity=".4"/></svg></button>
             <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
             <button class="rn-tool" id="crop-btn" title="قص جزء من الصفحة وإضافته للسبورة" onclick="startCrop()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.6 20 19M8.2 16.4 20 5"/></svg></button>
             <span class="rn-sep"></span>
@@ -1931,6 +2106,7 @@
 
         function applyProfile() {
             const t = appState.teacher;
+            if ($('app-title')) { $('app-title').innerText = 'منصة ' + (t.name || ''); $('app-sub').innerText = t.subtitle || ''; }
             $('t-name').innerText = t.name;
             $('t-sub').innerText = t.subtitle;
             $('t-avatar').innerText = (t.name || 'م').trim().charAt(0);
@@ -2137,6 +2313,7 @@
             if (view === 'books') renderLibrary();
             if (view === 'exams') renderExams();
             if (view === 'home') renderHome();
+            const sc = document.querySelector('#view-' + view); if (sc && view !== 'board') sc.scrollTop = 0;
         }
 
         let currentGrade = 'sec3';
@@ -2153,8 +2330,107 @@
             renderExams();
         }
 
+        // ==========================================
+        // الشريط العلوي: بحث شامل + آخر ما تم استخدامه
+        // ==========================================
+        function goVideos() {
+            switchView('home', document.querySelector('[data-view=home]'));
+            document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === 'videos'));
+            const el = $('home-videos');
+            if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+        }
+
+        function timeAgo(ts) {
+            if (!ts) return '';
+            const m = Math.max(0, Math.round((Date.now() - ts) / 60000));
+            if (m < 1) return 'الآن';
+            if (m < 60) return 'منذ ' + m + ' دقيقة';
+            const h = Math.round(m / 60);
+            if (h < 24) return 'منذ ' + h + ' ساعة';
+            const d = Math.round(h / 24);
+            return d === 1 ? 'منذ يوم' : 'منذ ' + d + ' يوم';
+        }
+
+        function renderRecent() {
+            const box = $('recent-list');
+            if (!box) return;
+            const items = booksCache
+                .map(b => ({ b, p: getProgress(b.id) }))
+                .filter(x => x.p && x.p.at)
+                .sort((a, b) => b.p.at - a.p.at)
+                .slice(0, 4);
+            box.innerHTML = '';
+            if (!items.length) {
+                const p = document.createElement('p');
+                p.className = 'recent-empty';
+                p.innerText = 'لا يوجد نشاط بعد. افتح أي كتاب وسيظهر هنا.';
+                box.appendChild(p);
+                return;
+            }
+            items.forEach(({ b, p }) => {
+                const row = document.createElement('div');
+                row.className = 'recent-item';
+                row.setAttribute('role', 'button');
+                row.tabIndex = 0;
+                row.innerHTML = '<div class="ri-ico">' + icon('book') + '</div><div class="ri-txt"><b></b><small></small></div>';
+                row.querySelector('b').textContent = b.title;
+                const pg = p.total ? ' · صفحة ' + p.page + ' من ' + p.total : '';
+                row.querySelector('small').textContent = timeAgo(p.at) + pg;
+                const open = () => openBook(b);
+                row.addEventListener('click', open);
+                row.addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+                box.appendChild(row);
+            });
+        }
+
+        function closeSearch() { const r = $('gs-results'); if (r) { r.classList.remove('open'); r.innerHTML = ''; } }
+        function runSearch() {
+            const input = $('gs-input'), box = $('gs-results');
+            if (!input || !box) return;
+            const q = input.value.trim().toLowerCase();
+            if (!q) { closeSearch(); return; }
+            const hits = [];
+            booksCache.forEach(b => { if ((b.title || '').toLowerCase().includes(q)) hits.push({ kind: b.kind === 'reviews' ? 'ملزمة' : 'كتاب', title: b.title, sub: gradeName(b.grade), go: () => openBook(b) }); });
+            (appState.courses || []).forEach(c => {
+                if ((c.name || '').toLowerCase().includes(q)) hits.push({ kind: 'كورس', title: c.name, sub: '', go: () => openDetail(c.id) });
+                (courseMedia.get(c.id) || []).forEach(m => {
+                    const title = m.name.replace(/\.[^.]+$/, '');
+                    if (title.toLowerCase().includes(q)) hits.push({ kind: 'فيديو', title, sub: c.name, go: () => playMedia(c.id, m.name, m.url, title) });
+                });
+            });
+            box.innerHTML = '';
+            if (!hits.length) {
+                const p = document.createElement('p');
+                p.className = 'gs-empty';
+                p.innerText = 'لا توجد نتائج';
+                box.appendChild(p);
+            }
+            hits.slice(0, 8).forEach(h => {
+                const row = document.createElement('div');
+                row.className = 'gs-item';
+                row.setAttribute('role', 'option');
+                row.tabIndex = 0;
+                row.innerHTML = '<span class="gs-kind"></span><span class="gs-title"></span><small class="gs-sub"></small>';
+                row.querySelector('.gs-kind').textContent = h.kind;
+                row.querySelector('.gs-title').textContent = h.title;
+                row.querySelector('.gs-sub').textContent = h.sub;
+                const go = () => { closeSearch(); input.value = ''; input.blur(); h.go(); };
+                row.addEventListener('click', go);
+                row.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+                box.appendChild(row);
+            });
+            box.classList.add('open');
+        }
+        document.addEventListener('click', e => { if (!e.target.closest('#gsearch')) closeSearch(); });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeSearch(); }
+            const tag = (e.target.tagName || '').toLowerCase();
+            if (e.key === '/' && tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable && $('gs-input')) { e.preventDefault(); $('gs-input').focus(); }
+        });
+
         function renderHome() {
             renderCourses();
+            renderRecent();
             const inGrade = booksCache.filter(b => b.grade === currentGrade);
             const books = inGrade.filter(b => b.kind === 'books').length;
             const reviews = inGrade.filter(b => b.kind === 'reviews').length;
@@ -2182,13 +2458,15 @@
         const view = { s: 1, tx: 0, ty: 0 };
         const VIEW_MIN = 0.1, VIEW_MAX = 8;
         let tool = 'pen';            // pen | eraser
-        let penColors = { normal: '#0f172a', feather: '#0f172a', hl: '#8b5cf6', broad: '#dc2626', pencil: '#334155', striped: '#2563eb' };
+        let penColors = { normal: '#0f172a', feather: '#0f172a', hl: '#8b5cf6', broad: '#dc2626', pencil: '#334155', striped: '#2563eb', laser: '#ef4444', smart: '#0f172a' };
         let penColor = penColors.normal;
         let penWidth = 3;            // بالبيكسل على الشاشة
         let eraserWidth = 35;        // بالبيكسل على الشاشة
         let penStyle = 'normal';     // normal | feather | broad
         let shapeKind = 'line';      // line | arrow | rect | square | circle | triangle | diamond
         let cur = null;              // الخط اللي بيترسم دلوقتي
+        const LASER_LIFE = 1100;     // مدة اختفاء أثر الليزر بالملّي ثانية
+        const laser = { pts: [], head: null, color: '#ef4444' };   // أثر مؤقت: مش بيتحفظ ومش بيدخل في التراجع
         let renderPending = false;
         let undoStack = [];
         let redoStack = [];
@@ -2951,6 +3229,7 @@
                 ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
                 drawStroke(ctx, cur);
             }
+            drawLaser(ctx, d);
             applyBoardPaperPatternStyles();
             renderStickies();
             updateSelBox();
@@ -3179,6 +3458,7 @@
 
         function cancelActive() {
             if (activeMode === 'select' || activeMode === 'selmove') { marqueeEl.style.display = 'none'; selDrag = null; activeId = null; activeMode = null; return; }
+            if (activeMode === 'laser') laser.head = null;
             if (activeMode === 'draw') undoStack.pop();   // نلغي الخط اللي اتبدأ
             cur = null;
             activeId = null;
@@ -3226,6 +3506,13 @@
             }
 
             if (tool === 'select') { selectDown(e); return; }
+            if (tool === 'pen' && penStyle === 'laser' && !(e.pointerType === 'touch' && FINGER_ERASES)) {
+                // مؤشر الليزر: أثر مؤقت بيختفي، ومش بيتحفظ ومش بيدخل في التراجع
+                activeId = e.pointerId;
+                activeMode = 'laser';
+                laserAdd(e);
+                return;
+            }
             const erase = tool === 'eraser' || (e.pointerType === 'touch' && FINGER_ERASES);
             pushHistory();
             activeId = e.pointerId;
@@ -3254,6 +3541,14 @@
                     applyPinch();
                     return;
                 }
+            }
+            if (tool === 'pen' && penStyle === 'laser') {
+                // الليزر بيتابع الماوس والقلم حتى من غير ضغط، واللمس وهو مضغوط بس
+                if (e.pointerType !== 'touch' || (e.pointerId === activeId && activeMode === 'laser')) {
+                    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+                    (evs.length ? evs : [e]).forEach(laserAdd);
+                }
+                return;
             }
             if (e.pointerId !== activeId || !activeMode) return;
             if (activeMode === 'select' || activeMode === 'selmove') { selectMove(e); return; }
@@ -3286,8 +3581,14 @@
                 selectUp();
                 activeId = null;
                 activeMode = null;
+            } else if (e.pointerId === activeId && activeMode === 'laser') {
+                if (e.pointerType === 'touch') laser.head = null;
+                activeId = null;
+                activeMode = null;
+                requestRender();
             } else if (e.pointerId === activeId) {
                 if (activeMode === 'draw' && cur) {
+                    if (cur.s === 'smart') smartSnap(cur);
                     currentPage().strokes = [...currentPage().strokes, cur];
                 }
                 cur = null;
@@ -3304,6 +3605,7 @@
             } catch (err) { /* تجاهل */ }
         }
         stageEl.addEventListener('pointerleave', hideEraserRing);
+        stageEl.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch' && activeMode !== 'laser' && laser.head) { laser.head = null; requestRender(); } });
         stageEl.addEventListener('pointerup', endPointer);
         stageEl.addEventListener('pointercancel', endPointer);
 
@@ -3374,6 +3676,275 @@
             return [[x1, y1], [x2, y2]];
         }
 
+
+        // [smart-pen:begin]
+        // ==========================================
+        // القلم الذكي: بيحوّل الرسم اليدوي لشكل مظبوط (خط، دايرة، بيضاوي، مثلث، مستطيل)
+        // ==========================================
+        const smartDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+
+        function smartSegDist(p, a, b) {
+            const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+            let t = L2 ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2 : 0;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(a[0] + t * dx - p[0], a[1] + t * dy - p[1]);
+        }
+
+        // نوزّع النقط بالتساوي على طول الخط (يقلل الضوضاء ويسرّع الحساب)
+        function smartResample(P, L, n) {
+            const step = L / (n - 1);
+            const out = [P[0]];
+            let acc = 0, prev = P[0];
+            for (let i = 1; i < P.length; i++) {
+                const nxt = P[i];
+                let seg = smartDist(prev, nxt);
+                while (seg > 0 && acc + seg >= step) {
+                    const t = (step - acc) / seg;
+                    const q = [prev[0] + (nxt[0] - prev[0]) * t, prev[1] + (nxt[1] - prev[1]) * t];
+                    out.push(q);
+                    prev = q;
+                    seg = smartDist(prev, nxt);
+                    acc = 0;
+                }
+                acc += seg;
+                prev = nxt;
+            }
+            const last = P[P.length - 1];
+            if (smartDist(out[out.length - 1], last) > step * 0.4) out.push(last);
+            return out;
+        }
+
+        // تبسيط الخط لأهم الأركان (Ramer–Douglas–Peucker)
+        function smartRDP(pts, eps) {
+            if (pts.length < 3) return pts.slice();
+            const a = pts[0], b = pts[pts.length - 1];
+            const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+            let idx = -1, dmax = 0;
+            for (let i = 1; i < pts.length - 1; i++) {
+                const p = pts[i];
+                const dd = L > 1e-6 ? Math.abs(dy * p[0] - dx * p[1] + b[0] * a[1] - b[1] * a[0]) / L : smartDist(p, a);
+                if (dd > dmax) { dmax = dd; idx = i; }
+            }
+            if (dmax <= eps) return [a, b];
+            const left = smartRDP(pts.slice(0, idx + 1), eps), right = smartRDP(pts.slice(idx), eps);
+            return left.slice(0, -1).concat(right);
+        }
+
+        // نشيل الأركان الضعيفة (شبه مستقيمة) ونضم الأركان القريبة من بعض
+        function smartPrune(V, minTurnDeg, minEdgeFrac) {
+            V = V.slice();
+            const perimeter = () => { let s = 0; for (let i = 0; i < V.length; i++) s += smartDist(V[i], V[(i + 1) % V.length]); return s; };
+            let changed = true;
+            while (changed && V.length > 3) {
+                changed = false;
+                const per = perimeter();
+                for (let i = 0; i < V.length && V.length > 3; i++) {
+                    const j = (i + 1) % V.length;
+                    if (smartDist(V[i], V[j]) < minEdgeFrac * per) {
+                        V[j] = [(V[i][0] + V[j][0]) / 2, (V[i][1] + V[j][1]) / 2];
+                        V.splice(i, 1);
+                        changed = true;
+                        break;
+                    }
+                }
+                if (changed) continue;
+                let best = -1, bestTurn = Infinity;
+                for (let i = 0; i < V.length; i++) {
+                    const p = V[(i - 1 + V.length) % V.length], c = V[i], q = V[(i + 1) % V.length];
+                    let t = Math.abs(Math.atan2(q[1] - c[1], q[0] - c[0]) - Math.atan2(c[1] - p[1], c[0] - p[0]));
+                    if (t > Math.PI) t = 2 * Math.PI - t;
+                    if (t < bestTurn) { bestTurn = t; best = i; }
+                }
+                if (bestTurn < minTurnDeg * Math.PI / 180) { V.splice(best, 1); changed = true; }
+            }
+            return V;
+        }
+
+        function smartPolyResidual(P, V) {
+            let sum = 0;
+            for (const p of P) {
+                let m = Infinity;
+                for (let i = 0; i < V.length; i++) m = Math.min(m, smartSegDist(p, V[i], V[(i + 1) % V.length]));
+                sum += m;
+            }
+            return sum / P.length;
+        }
+
+        // بيرجّع { type, pts } لو الرسم يشبه شكل واضح، وإلا null (يفضل الرسم زي ما هو)
+        function smartRecognize(P0) {
+            if (!P0 || P0.length < 5) return null;
+            let L = 0;
+            for (let i = 1; i < P0.length; i++) L += smartDist(P0[i - 1], P0[i]);
+            if (L < 45) return null;                              // خط صغير جداً: سيبه زي ما هو
+            const P = smartResample(P0, L, 160);
+            const A = P[0], B = P[P.length - 1];
+            const d = smartDist(A, B);
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (const p of P) {
+                if (p[0] < minX) minX = p[0];
+                if (p[0] > maxX) maxX = p[0];
+                if (p[1] < minY) minY = p[1];
+                if (p[1] > maxY) maxY = p[1];
+            }
+            const w = maxX - minX, h = maxY - minY, diag = Math.hypot(w, h);
+
+            // 1) خط مستقيم (ويتظبط أفقي أو رأسي لو قريب منهم)
+            if (d > 0.6 * diag) {
+                let dev = 0;
+                for (const p of P) dev = Math.max(dev, Math.abs((B[1] - A[1]) * p[0] - (B[0] - A[0]) * p[1] + B[0] * A[1] - B[1] * A[0]) / d);
+                if (dev >= Math.max(5, 0.06 * d)) return null;
+                const a = [A[0], A[1]], b = [B[0], B[1]];
+                const m = ((Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI) % 180 + 180) % 180;
+                if (m < 5 || m > 175) { const y = (a[1] + b[1]) / 2; a[1] = b[1] = y; }
+                else if (Math.abs(m - 90) < 5) { const x = (a[0] + b[0]) / 2; a[0] = b[0] = x; }
+                return { type: 'line', pts: [a, b] };
+            }
+
+            // 2) شكل مقفول: لازم البداية والنهاية قريبين، والخط يلف حوالين الشكل وليه مساحة
+            if (d > 0.35 * (w + h)) return null;
+            if (Math.min(w, h) < 14 || Math.min(w, h) < 0.1 * Math.max(w, h)) return null;
+            const mx = P.reduce((s, p) => s + p[0], 0) / P.length, my = P.reduce((s, p) => s + p[1], 0) / P.length;
+            let turn = 0, prevA = Math.atan2(P[0][1] - my, P[0][0] - mx);
+            for (let i = 1; i < P.length; i++) {
+                const a = Math.atan2(P[i][1] - my, P[i][0] - mx);
+                let da = a - prevA;
+                while (da > Math.PI) da -= 2 * Math.PI;
+                while (da < -Math.PI) da += 2 * Math.PI;
+                turn += da;
+                prevA = a;
+            }
+            if (Math.abs(turn) < 5.0) return null;
+            let area = 0;
+            for (let i = 0; i < P.length; i++) { const q = P[(i + 1) % P.length]; area += P[i][0] * q[1] - q[0] * P[i][1]; }
+            if (Math.abs(area) / 2 < 0.25 * w * h) return null;
+
+            const cands = [];
+            {   // بيضاوي أو دايرة
+                const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2, ra = w / 2, rb = h / 2;
+                let sum = 0;
+                for (const p of P) {
+                    const u = (p[0] - cx) / ra, v = (p[1] - cy) / rb;
+                    const rho = Math.hypot(u, v) || 1e-6;
+                    const g = Math.hypot(u / ra, v / rb) / rho;
+                    sum += Math.abs(rho - 1) / (g || 1);
+                }
+                cands.push({ type: 'ellipse', res: sum / P.length, cx, cy, ra, rb });
+            }
+            {   // مثلث أو رباعي: نجرّب أكتر من درجة تبسيط ونختار الأدق
+                let k0 = 0, far = -1;
+                for (let i = 0; i < P.length; i++) { const dd = Math.hypot(P[i][0] - mx, P[i][1] - my); if (dd > far) { far = dd; k0 = i; } }
+                const Q = P.slice(k0).concat(P.slice(0, k0));
+                Q.push(Q[0]);
+                for (const f of [0.035, 0.05, 0.07, 0.1]) {
+                    const V = smartRDP(Q, f * diag);
+                    V.pop();
+                    const pr = smartPrune(V, 28, 0.08);
+                    if (pr.length === 3 || pr.length === 4) cands.push({ type: pr.length === 3 ? 'tri' : 'quad', res: smartPolyResidual(P, pr), V: pr });
+                }
+            }
+            cands.sort((a, b) => a.res - b.res);
+            const c = cands[0];
+            if (c.res > Math.max(5, 0.05 * diag)) return null;
+
+            if (c.type === 'ellipse') {
+                let { cx, cy, ra, rb } = c;
+                if (Math.abs(ra - rb) < 0.1 * Math.max(ra, rb)) ra = rb = (ra + rb) / 2;
+                const pts = [];
+                for (let i = 0; i <= 72; i++) {
+                    const t = i / 72 * Math.PI * 2;
+                    pts.push([cx + ra * Math.cos(t), cy + rb * Math.sin(t)]);
+                }
+                return { type: 'ellipse', pts };
+            }
+            const V = c.V;
+            if (c.type === 'quad') {
+                const axis = V.every((p, i) => {
+                    const q = V[(i + 1) % 4];
+                    const a = Math.abs(Math.atan2(q[1] - p[1], q[0] - p[0]) * 180 / Math.PI) % 90;
+                    return a < 10 || a > 80;
+                });
+                if (axis) {   // أضلاع أفقية ورأسية: مستطيل (أو مربع) مظبوط
+                    let x1 = Math.min(...V.map(p => p[0])), x2 = Math.max(...V.map(p => p[0]));
+                    let y1 = Math.min(...V.map(p => p[1])), y2 = Math.max(...V.map(p => p[1]));
+                    const W = x2 - x1, H = y2 - y1;
+                    if (Math.abs(W - H) < 0.07 * Math.max(W, H)) {
+                        const sd = (W + H) / 2, cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+                        x1 = cx - sd / 2; x2 = cx + sd / 2; y1 = cy - sd / 2; y2 = cy + sd / 2;
+                    }
+                    return { type: 'rect', pts: [[x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]] };
+                }
+            }
+            return { type: c.type, pts: [...V, V[0]] };
+        }
+
+        // بيبدّل الخط اللي اترسم بالشكل المظبوط (لو اتعرّف)
+        function smartSnap(st) {
+            const k = view.s;
+            const r = smartRecognize(st.pts.map(p => [p[0] * k, p[1] * k]));
+            if (!r) return false;
+            st.s = 'shape';
+            st.kind = 'smart';
+            st.pts = r.pts.map(p => [p[0] / k, p[1] / k]);
+            return true;
+        }
+        // [smart-pen:end]
+
+        // ==========================================
+        // مؤشر الليزر: أثر مضيء مؤقت بيختفي لوحده
+        // ==========================================
+        function laserAdd(e) {
+            const [x, y] = worldPoint(e);
+            laser.color = penColor;
+            laser.head = [x, y];
+            const last = laser.pts[laser.pts.length - 1];
+            if (!last || Math.hypot(x - last.x, y - last.y) * view.s > 1.5) laser.pts.push({ x, y, t: performance.now() });
+            requestRender();
+        }
+        function laserClear() {
+            if (laser.pts.length || laser.head) { laser.pts = []; laser.head = null; requestRender(); }
+        }
+        function drawLaser(g, d) {
+            if (!laser.pts.length && !laser.head) return;
+            const now = performance.now();
+            while (laser.pts.length && now - laser.pts[0].t > LASER_LIFE) laser.pts.shift();
+            const R = Math.max(5, Math.min(26, penWidth * 1.6 + 4));
+            const col = laser.color;
+            g.save();
+            g.setTransform(d, 0, 0, d, 0, 0);
+            g.lineCap = 'round';
+            g.lineJoin = 'round';
+            g.shadowColor = col;
+            for (let i = 1; i < laser.pts.length; i++) {
+                const a = laser.pts[i - 1], b = laser.pts[i];
+                const k = Math.max(0, 1 - (now - b.t) / LASER_LIFE);
+                g.globalAlpha = 0.85 * k;
+                g.strokeStyle = col;
+                g.shadowBlur = 16 * d * k;
+                g.lineWidth = Math.max(1.5, R * 0.95 * k);
+                g.beginPath();
+                g.moveTo(a.x * view.s + view.tx, a.y * view.s + view.ty);
+                g.lineTo(b.x * view.s + view.tx, b.y * view.s + view.ty);
+                g.stroke();
+            }
+            if (laser.head) {
+                const hx = laser.head[0] * view.s + view.tx, hy = laser.head[1] * view.s + view.ty;
+                g.globalAlpha = 1;
+                g.shadowBlur = 26 * d;
+                g.fillStyle = col;
+                g.beginPath();
+                g.arc(hx, hy, R * 0.8, 0, Math.PI * 2);
+                g.fill();
+                g.shadowBlur = 0;
+                g.fillStyle = '#ffffff';
+                g.globalAlpha = 0.95;
+                g.beginPath();
+                g.arc(hx, hy, R * 0.38, 0, Math.PI * 2);
+                g.fill();
+            }
+            g.restore();
+            if (laser.pts.length) requestRender();   // نكمّل الحركة لحد ما الأثر يختفي
+        }
+
         // شكل مختار من القايمة
         let shapeTarget = 'board';
         function openShapes(target) {
@@ -3396,6 +3967,7 @@
         function applyToolState() {
             document.body.classList.toggle('board-select', tool === 'select');
             if (tool !== 'eraser') hideEraserRing();
+            if (!(tool === 'pen' && penStyle === 'laser')) laserClear();
         }
 
         function refreshToolButtons() {
