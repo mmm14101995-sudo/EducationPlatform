@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-accent="calm">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" media="print" onload="this.media='all'">
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" onload="window.setupPdfWorker && setupPdfWorker()" onerror="window.loadLibFallback && loadLibFallback('pdf')"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="window.loadLibFallback && loadLibFallback('jspdf')"></script>
+    <script>try{var a=localStorage.getItem("platform-accent-v1");if(a)document.documentElement.setAttribute("data-accent",a)}catch(e){}</script>
     <style>
 
         :root {
@@ -1083,22 +1084,22 @@
         .nav { gap: 12px; padding: 8px 10px; border-radius: var(--r-md); font-size: 15px; color: var(--muted); }
         .nav:hover { background: var(--hover); color: var(--text); }
         .nav .ico { width: 36px; height: 36px; padding: 8px; border-radius: 10px; background: transparent; box-shadow: none; color: inherit; }
-        .nav.active { background: rgba(99,139,255,0.16); color: var(--text); box-shadow: inset -3px 0 0 var(--accent); }
-        .nav.active .ico { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 12px rgba(99,139,255,0.35); }
+        .nav.active { background: rgba(var(--accent-rgb),0.16); color: var(--text); box-shadow: inset -3px 0 0 var(--accent); }
+        .nav.active .ico { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 12px rgba(var(--accent-rgb),0.35); }
         [data-theme="light"] .nav.active { background: rgba(63,107,240,0.10); }
         .teacher { padding: 10px 12px; }
         .side-foot .btn-ghost { background: var(--hover); box-shadow: none; border: 1px solid var(--line); }
 
         /* الأزرار */
-        .btn-primary { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent2))); color: #fff; border-radius: var(--r-md); box-shadow: 0 6px 16px rgba(99,139,255,0.30); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, var(--accent2))); color: #fff; border-radius: var(--r-md); box-shadow: 0 6px 16px rgba(var(--accent-rgb),0.30); }
         .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
         .btn-ghost { border-radius: var(--r-md); background: var(--hover); border: 1px solid var(--line); color: var(--text); }
         .btn-ghost:hover { background: var(--press); }
         .ibtn:hover:not(:disabled) { background: var(--press); }
-        .seg button.active { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 65%, var(--accent2))); box-shadow: 0 4px 12px rgba(99,139,255,0.30); }
+        .seg button.active { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 65%, var(--accent2))); box-shadow: 0 4px 12px rgba(var(--accent-rgb),0.30); }
 
         /* الرئيسية */
-        .hero { border-radius: var(--r-xl); padding: 28px 30px; background: linear-gradient(120deg, rgba(99,139,255,0.20), rgba(53,214,194,0.07) 60%), var(--flat-bg) !important; }
+        .hero { border-radius: var(--r-xl); padding: 28px 30px; background: linear-gradient(120deg, rgba(var(--accent-rgb),0.20), rgba(53,214,194,0.07) 60%), var(--flat-bg) !important; }
         .hero::after { background: radial-gradient(circle, var(--accent2), transparent 70%); opacity: 0.22; }
         .hero h2 { font-size: 28px; letter-spacing: 0; }
         .hero p { font-size: 15px; max-width: 560px; }
@@ -1109,7 +1110,7 @@
         .stat b { font-size: 24px; }
         .section-title { margin: 28px 0 var(--sp-3); }
         .section-title h3 { font-size: 18px; }
-        .qa-card:first-child { background: linear-gradient(135deg, rgba(99,139,255,0.28), rgba(53,214,194,0.12)), var(--flat-bg) !important; border-color: rgba(99,139,255,0.45) !important; }
+        .qa-card:first-child { background: linear-gradient(135deg, rgba(var(--accent-rgb),0.28), rgba(53,214,194,0.12)), var(--flat-bg) !important; border-color: rgba(var(--accent-rgb),0.45) !important; }
         .qa-card .ico { color: var(--accent); }
 
         /* المكتبة: رفوف رقمية حديثة بدل الخشب */
@@ -1133,8 +1134,8 @@
         .reader-btn { border-radius: var(--r-md); background: rgba(255,255,255,0.06); border: 1px solid var(--line-strong); }
         .reader-btn:hover { background: rgba(255,255,255,0.12); }
         .rd-side, .rd-btn { background: rgba(21,27,39,0.78); border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
-        .rn-tool.active { box-shadow: 0 0 0 2px var(--accent); background: rgba(99,139,255,0.18); }
-        .board-bar .pen-3d.active { box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 0 0 2px var(--accent); background: rgba(99,139,255,0.18); }
+        .rn-tool.active { box-shadow: 0 0 0 2px var(--accent); background: rgba(var(--accent-rgb),0.18); }
+        .board-bar .pen-3d.active { box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 0 0 2px var(--accent); background: rgba(var(--accent-rgb),0.18); }
 
         /* السبورة: شريط أدوات أنضف في الوضع العادي (الملء الشاشة والسحب زي ما هم) */
         .board:not(.fs) .board-bar { background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); gap: 8px; padding: 10px 12px; }
@@ -1179,7 +1180,7 @@
             width: 100%; height: 42px; border-radius: 999px; padding: 0 44px; border: 1px solid var(--line-strong);
             background: var(--flat-bg); color: var(--text); font-size: 14px; outline: none; transition: border-color var(--t), box-shadow var(--t);
         }
-        .gsearch input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,140,255,0.25); }
+        .gsearch input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.25); }
         .gs-results {
             display: none; position: absolute; top: 48px; inset-inline: 0; z-index: 60; padding: 6px; border-radius: var(--r-lg);
             background: var(--solid); border: 1px solid var(--line-strong); box-shadow: var(--shadow-md); max-height: 60vh; overflow-y: auto;
@@ -1187,7 +1188,7 @@
         .gs-results.open { display: block; }
         .gs-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); cursor: pointer; }
         .gs-item:hover, .gs-item:focus { background: var(--press); outline: none; }
-        .gs-kind { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: rgba(79,140,255,0.2); color: var(--accent); }
+        .gs-kind { flex: 0 0 auto; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: rgba(var(--accent-rgb),0.2); color: var(--accent); }
         .gs-title { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .gs-sub { color: var(--muted); font-size: 12px; flex: 0 0 auto; }
         .gs-empty { padding: 14px; text-align: center; color: var(--muted); font-size: 14px; }
@@ -1198,8 +1199,8 @@
         .teacher { margin-bottom: 8px; }
         .nav { color: var(--muted); }
         .nav.active {
-            background: linear-gradient(135deg, #2f6bff, #4f8cff) !important; color: #fff;
-            box-shadow: 0 8px 22px rgba(47,107,255,0.40) !important;
+            background: linear-gradient(135deg, var(--accent-strong), var(--accent)) !important; color: #fff;
+            box-shadow: 0 8px 22px rgba(var(--accent-rgb),0.40) !important;
         }
         .nav.active .ico { background: rgba(255,255,255,0.20); box-shadow: none; }
         .nav.settings-nav { margin-top: auto; border-top: 1px solid var(--line); border-radius: var(--r-md); }
@@ -1212,7 +1213,7 @@
         .recent h3 .ico { width: 18px; height: 18px; color: var(--accent); }
         .recent-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: var(--r-md); cursor: pointer; }
         .recent-item:hover, .recent-item:focus { background: var(--press); outline: none; }
-        .ri-ico { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(79,140,255,0.2); color: var(--accent); }
+        .ri-ico { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(var(--accent-rgb),0.2); color: var(--accent); }
         .ri-ico .ico { width: 18px; height: 18px; }
         .ri-txt { min-width: 0; display: flex; flex-direction: column; }
         .ri-txt b { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1240,10 +1241,10 @@
         .sc-ai .sc-ico { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
         .sc-board {
             grid-row: span 2; flex-direction: column; align-items: flex-start; justify-content: flex-end; min-height: 200px;
-            background: radial-gradient(120% 90% at 20% 0%, rgba(79,140,255,0.38), transparent 60%), linear-gradient(160deg, rgba(47,107,255,0.30), rgba(16,27,58,0.9));
-            border-color: rgba(79,140,255,0.55);
+            background: radial-gradient(120% 90% at 20% 0%, rgba(var(--accent-rgb),0.38), transparent 60%), linear-gradient(160deg, rgba(var(--accent-rgb),0.30), rgba(16,27,58,0.9));
+            border-color: rgba(var(--accent-rgb),0.55);
         }
-        .sc-board .sc-art { position: absolute; top: 18px; inset-inline-end: 18px; width: 86px; height: 86px; border-radius: 22px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #2f6bff, #35d6c2); box-shadow: 0 14px 30px rgba(47,107,255,0.45); }
+        .sc-board .sc-art { position: absolute; top: 18px; inset-inline-end: 18px; width: 86px; height: 86px; border-radius: 22px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #2f6bff, #35d6c2); box-shadow: 0 14px 30px rgba(var(--accent-rgb),0.45); }
         .sc-board .sc-art .ico { width: 44px; height: 44px; }
         .sc-board .sc-txt { flex: 0 0 auto; width: 100%; }
         .sc-board h3 { font-size: 20px; }
@@ -1271,7 +1272,7 @@
         .board:not(.fs) .board-bar .range { width: 90px; }
         .board:not(.fs) .board-bar .lbl { min-width: 40px; font-size: 12px; }
         .board:not(.fs) .board-bar .back-btn { background: var(--hover); border: 1px solid var(--line); }
-        .board:not(.fs) .board-bar .ibtn.active, .board:not(.fs) .board-bar .ibtn.pen-3d.active { background: rgba(79,140,255,0.22); box-shadow: 0 0 0 2px var(--accent); }
+        .board:not(.fs) .board-bar .ibtn.active, .board:not(.fs) .board-bar .ibtn.pen-3d.active { background: rgba(var(--accent-rgb),0.22); box-shadow: 0 0 0 2px var(--accent); }
         .board:not(.fs) #pages-bar { margin-inline-start: auto; }
         @media (pointer: coarse) {
             .board:not(.fs) .board-bar .ibtn { width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; flex-basis: 44px; }
@@ -1282,6 +1283,142 @@
         body.board-active .topbar .seg button { padding: 6px 14px; }
         body.board-active .app { gap: 10px; }
         body.board-active .main { gap: 10px; }
+
+        /* =====================================================================
+           ألوان مريحة للعين: ثلاث درجات (هادئ أخضر مزرق / أزرق / كهرماني دافئ) + لوحة الرئيسية
+           ===================================================================== */
+        html[data-accent="calm"] {
+            --bg: #0f1517; --surface: #141d20; --surface-2: #1b272b;
+            --accent: #5fb7a8; --accent-strong: #3f9c8d; --accent-rgb: 95,183,168; --accent2: #d6b673;
+            --text: #e6eaeb; --muted: #9db0b3;
+            --card: rgba(20,30,33,0.86); --solid: #141d20;
+            --flat-bg: rgba(22,33,36,0.80); --flat-bg-hover: rgba(30,45,49,0.92); --flat-line: rgba(150,200,190,0.15);
+            --line: rgba(150,200,190,0.13); --line-strong: rgba(150,200,190,0.26);
+            --overlay: rgba(9,14,16,0.66); --hover: rgba(230,240,238,0.06); --press: rgba(230,240,238,0.11);
+        }
+        html[data-accent="blue"] {
+            --bg: #0a1128; --surface: #101a38; --surface-2: #17233f;
+            --accent: #4f8cff; --accent-strong: #2f6bff; --accent-rgb: 79,140,255; --accent2: #35d6c2;
+            --text: #eef2fb; --muted: #a3adbd;
+            --card: rgba(14,24,52,0.82); --solid: #101a38;
+            --flat-bg: rgba(16,27,58,0.78); --flat-bg-hover: rgba(24,38,78,0.92); --flat-line: rgba(110,150,255,0.20);
+            --line: rgba(120,160,255,0.16); --line-strong: rgba(120,160,255,0.30);
+            --overlay: rgba(7,12,32,0.60); --hover: rgba(241,244,250,0.07); --press: rgba(241,244,250,0.12);
+        }
+        html[data-accent="amber"] {
+            --bg: #161210; --surface: #1e1915; --surface-2: #28211b;
+            --accent: #d9a45b; --accent-strong: #b9853f; --accent-rgb: 217,164,91; --accent2: #93c3a2;
+            --text: #eee7dd; --muted: #b3a798;
+            --card: rgba(30,25,21,0.86); --solid: #1e1915;
+            --flat-bg: rgba(34,28,23,0.80); --flat-bg-hover: rgba(46,38,31,0.92); --flat-line: rgba(220,190,150,0.15);
+            --line: rgba(220,190,150,0.13); --line-strong: rgba(220,190,150,0.26);
+            --overlay: rgba(14,11,9,0.66); --hover: rgba(245,235,220,0.06); --press: rgba(245,235,220,0.11);
+        }
+        html[data-accent="calm"] body[data-theme="light"] { --accent: #2f8f80; --accent-strong: #277a6d; --accent-rgb: 47,143,128; --accent2: #b8892f; --text: #17221f; --muted: #52645f; --bg: #f1f5f3; --overlay: rgba(241,245,243,0.80); }
+        html[data-accent="blue"] body[data-theme="light"] { --accent: #3f6bf0; --accent-strong: #2f57d6; --accent-rgb: 63,107,240; --accent2: #0fa597; --overlay: rgba(243,245,250,0.78); }
+        html[data-accent="amber"] body[data-theme="light"] { --accent: #b9732a; --accent-strong: #9d601f; --accent-rgb: 185,115,42; --accent2: #3f8f6a; --text: #261d12; --muted: #6a5a47; --bg: #f7f3ec; --overlay: rgba(247,243,236,0.80); }
+        #bg-layer::after { background: var(--overlay) !important; }
+        .nav.active { background: linear-gradient(135deg, var(--accent-strong), var(--accent)) !important; box-shadow: 0 8px 22px rgba(var(--accent-rgb), 0.32) !important; color: #fff; }
+        .acc-row { display: flex; gap: 10px; }
+        .acc-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--hover); color: var(--text); font-weight: 700; cursor: pointer; }
+        .acc-btn i { width: 16px; height: 16px; border-radius: 50%; display: block; }
+        .acc-btn[data-accent="calm"] i { background: #5fb7a8; } .acc-btn[data-accent="blue"] i { background: #4f8cff; } .acc-btn[data-accent="amber"] i { background: #d9a45b; }
+        .acc-btn.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.35); }
+        .field-row { display: flex; gap: 8px; }
+        .field-row input { flex: 1; }
+        .field select { width: 100%; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); font-size: 14px; }
+        .hint { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
+
+        /* لوحة الرئيسية */
+        .dash { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+        .dash-main { min-width: 0; }
+        .dash-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; position: sticky; top: 0; }
+        .dash-main > .hero { margin-bottom: 0; }
+        .wcard, .todo-card, .quote-card, .dash-side .recent {
+            border-radius: var(--r-xl); background: var(--flat-bg); border: 1px solid var(--flat-line); box-shadow: var(--shadow-sm); padding: 16px;
+        }
+        .clock-wrap { display: flex; align-items: center; gap: 14px; }
+        #clock-svg { width: 132px; height: 132px; flex: 0 0 auto; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35)); }
+        .clock-info { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        #ck-digital { font-size: 26px; font-weight: 800; letter-spacing: 0; }
+        #date-g { font-size: 13px; color: var(--text); font-weight: 700; }
+        #date-h { font-size: 13px; color: var(--accent2); font-weight: 700; }
+        .wx { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); cursor: pointer; }
+        #wx-body { display: flex; align-items: center; gap: 12px; width: 100%; }
+        .wx-ico { font-size: 38px; line-height: 1; }
+        .wx-main { display: flex; flex-direction: column; line-height: 1.15; }
+        .wx-main b { font-size: 30px; font-weight: 800; }
+        .wx-main span { font-size: 13px; color: var(--muted); }
+        .wx-more { margin-inline-start: auto; display: flex; flex-direction: column; text-align: end; gap: 2px; min-width: 0; }
+        .wx-more span { font-weight: 700; font-size: 14px; }
+        .wx-more small, .wx-msg { font-size: 12px; color: var(--muted); line-height: 1.6; }
+        .wx-note { color: var(--accent2) !important; }
+        .todo-card.flash { animation: tdflash 1.2s ease; }
+        @keyframes tdflash { 0%, 100% { box-shadow: var(--shadow-sm); } 40% { box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.55); } }
+        .todo-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .todo-head h3 { font-size: 16px; font-weight: 800; flex: 1; }
+        .todo-head small { color: var(--muted); font-size: 12px; font-weight: 700; }
+        .todo-tools { display: flex; gap: 6px; }
+        .todo-tools .ibtn { width: 34px; height: 34px; border: 1px solid var(--line); background: var(--hover); }
+        .todo-progress { height: 4px; border-radius: 4px; background: var(--press); overflow: hidden; margin-bottom: 10px; }
+        .todo-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .3s; }
+        .todo-add { display: flex; gap: 6px; margin-bottom: 8px; }
+        .todo-add input { flex: 1; min-width: 0; height: 38px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); padding: 0 12px; font-size: 14px; outline: none; }
+        .todo-add input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22); }
+        .todo-add .btn-primary { padding: 0 14px; height: 38px; display: grid; place-items: center; }
+        #todo-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+        .todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-md); background: var(--hover); border: 1px solid transparent; }
+        .todo-item:hover { border-color: var(--line); }
+        .td-chk { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--line-strong); background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+        .td-chk .ico { width: 15px; height: 15px; }
+        .todo-item.done .td-chk { background: var(--accent); border-color: var(--accent); }
+        .td-txt { flex: 1; min-width: 0; font-size: 14px; line-height: 1.6; cursor: text; word-break: break-word; }
+        .todo-item.done .td-txt { text-decoration: line-through; color: var(--muted); }
+        .td-ink { flex: 1; min-width: 0; max-height: 64px; object-fit: contain; object-position: right; border-radius: 6px; background: #fff; }
+        .todo-item.done .td-ink { opacity: .55; }
+        .td-edit { flex: 1; min-width: 0; height: 30px; border-radius: 8px; border: 1px solid var(--accent); background: var(--surface); color: var(--text); padding: 0 8px; font-size: 14px; }
+        .td-del { flex: 0 0 auto; width: 26px; height: 26px; border: 0; background: transparent; color: var(--muted); border-radius: 8px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+        .td-del:hover { background: var(--press); color: #f87171; }
+        .td-del .ico { width: 15px; height: 15px; }
+        .todo-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 12px 4px; line-height: 1.8; }
+        .todo-foot { margin-top: 8px; text-align: end; }
+        .todo-foot button { background: none; border: 0; color: var(--muted); font-size: 12px; cursor: pointer; text-decoration: underline; }
+        .quote-card { position: relative; overflow: hidden; min-height: 120px; display: flex; flex-direction: column; justify-content: center; gap: 8px;
+            background: radial-gradient(120% 100% at 100% 0%, rgba(var(--accent-rgb), 0.16), transparent 60%), var(--flat-bg); }
+        .quote-card::before { content: '\201D'; position: absolute; top: -8px; inset-inline-start: 12px; font-size: 80px; font-family: Georgia, serif; color: rgba(var(--accent-rgb), 0.35); line-height: 1; }
+        #quote-text { position: relative; font-size: 17px; font-weight: 800; line-height: 1.9; padding-top: 16px; transition: opacity .22s; }
+        #quote-text.fade { opacity: 0; }
+        .quote-card .q-next { align-self: flex-end; background: none; border: 0; color: var(--muted); font-size: 12px; cursor: pointer; }
+        .ink-modal-box { width: min(680px, 94vw); }
+        #ink-canvas { width: 100%; height: 240px; border-radius: var(--r-md); background: #fff; touch-action: none; cursor: crosshair; display: block; }
+        .ink-tools { display: flex; align-items: center; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+        .ink-col { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-strong); cursor: pointer; padding: 0; }
+        .ink-col.active { box-shadow: 0 0 0 2px var(--accent); }
+        #print-sheet { display: none; }
+        @media print {
+            html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+            body > *:not(#print-sheet) { display: none !important; }
+            #print-sheet { display: block !important; }
+            #print-sheet img { display: block; width: 100%; page-break-after: always; break-after: page; }
+            @page { size: A4; margin: 0; }
+        }
+        @media (max-width: 1100px) {
+            .dash { grid-template-columns: 1fr; }
+            .dash-main { display: contents; }
+            .dash-main > * { order: 5; }
+            .dash-main > .hero { order: 1; } .dash-main > .shortcuts { order: 2; }
+            .dash-side { order: 3; position: static; display: grid; grid-template-columns: 1fr 1fr; }
+            .dash-side .todo-card { grid-column: span 2; }
+        }
+        @media (max-width: 640px) { .dash-side { grid-template-columns: 1fr; } .dash-side .todo-card { grid-column: auto; } .clock-wrap { flex-direction: row; } }
+
+        /* ألوان أقسام أهدى للعين */
+        .sc-books .sc-ico { background: linear-gradient(135deg, #5f8fb8, #4c72a6); }
+        .sc-videos .sc-ico { background: linear-gradient(135deg, #43a39a, #2f8a84); }
+        .sc-exams .sc-ico { background: linear-gradient(135deg, #d29a57, #bf7f3f); }
+        .sc-ai .sc-ico { background: linear-gradient(135deg, #9484c2, #7664a8); }
+        .sc-board .sc-art { background: linear-gradient(135deg, var(--accent-strong), var(--accent2)); box-shadow: 0 14px 30px rgba(var(--accent-rgb), 0.35); }
+        .sc-ico { box-shadow: 0 6px 14px rgba(0,0,0,0.22); }
 </style>
 </head>
 <body data-theme="dark">
@@ -1320,6 +1457,7 @@
             <div class="nav" data-view="board" onclick="switchView('board', this)"><i data-icon="pen"></i><span>السبورة التفاعلية</span></div>
             <div class="nav" data-view="books" onclick="switchView('books', this)"><i data-icon="book"></i><span>الكتب والملازم</span></div>
             <div class="nav" data-view="videos" onclick="goVideos()"><i data-icon="play"></i><span>الفيديوهات</span></div>
+            <div class="nav" data-view="todos" onclick="goTodos()"><i data-icon="check"></i><span>المهام</span></div>
             <div class="nav" data-view="exams" onclick="switchView('exams', this)"><i data-icon="file"></i><span>الاختبارات</span></div>
             <div class="nav" data-view="ai" onclick="switchView('ai', this)"><i data-icon="bot"></i><span>المساعد الذكي</span></div>
             <div class="nav settings-nav" role="button" tabindex="0" onclick="openSettings()"><i data-icon="settings"></i><span>الإعدادات</span></div>
@@ -1339,8 +1477,9 @@
 
             <!-- الرئيسية -->
             <section id="view-home" class="view active">
-                <div class="home-top">
-                    <div class="hero">
+                <div class="dash">
+                    <div class="dash-main">
+                        <div class="hero">
                         <div class="kicker" id="hero-grade">الصف الثالث الثانوي</div>
                         <h2 id="hero-name">أهلاً بك</h2>
                         <p>مساحتك التعليمية: كتبك وملازمك وسبورتك واختباراتك في مكان واحد، ومحفوظة على جهازك.</p>
@@ -1349,13 +1488,7 @@
                             <button class="btn-ghost" onclick="switchView('books', document.querySelector('[data-view=books]'))"><i data-icon="book"></i><span>المكتبة</span></button>
                         </div>
                     </div>
-                    <aside class="recent" aria-label="آخر ما تم استخدامه">
-                        <h3><i data-icon="eye"></i><span>آخر ما تم استخدامه</span></h3>
-                        <div id="recent-list"></div>
-                    </aside>
-                </div>
-
-                <div class="shortcuts">
+                        <div class="shortcuts">
                     <div class="sc sc-board" onclick="switchView('board', document.querySelector('[data-view=board]'))">
                         <div class="sc-art"><i data-icon="pen"></i></div>
                         <div class="sc-txt"><h3>السبورة التفاعلية</h3><p>اكتب .. اشرح .. تفاعل</p></div>
@@ -1407,7 +1540,48 @@
                     <div class="shelf-wood" id="home-continue"></div>
                 </div>
 
-                </section>
+                
+                    </div>
+                    <aside class="dash-side">
+                        <div class="wcard">
+                            <div class="clock-wrap">
+                                <svg id="clock-svg" viewBox="0 0 200 200" role="img" aria-label="ساعة"></svg>
+                                <div class="clock-info">
+                                    <div id="ck-digital"></div>
+                                    <div id="date-g"></div>
+                                    <div id="date-h"></div>
+                                </div>
+                            </div>
+                            <div class="wx" onclick="refreshWeather(true)" title="اضغط لتحديث الطقس"><div id="wx-body"></div></div>
+                        </div>
+                        <div class="todo-card" id="todo-card">
+                            <div class="todo-head">
+                                <h3>قائمة المهام</h3><small id="todo-count"></small>
+                                <div class="todo-tools">
+                                    <button class="ibtn" title="اكتب مهمة بالقلم" onclick="openInk()"><i data-icon="feather"></i></button>
+                                    <button class="ibtn" title="طباعة القائمة" onclick="todoPrint()"><i data-icon="file"></i></button>
+                                    <button class="ibtn" title="حفظ القائمة PDF" onclick="todoPdf()"><i data-icon="upload"></i></button>
+                                </div>
+                            </div>
+                            <div class="todo-progress"><i id="todo-bar"></i></div>
+                            <div class="todo-add">
+                                <input id="todo-input" type="text" maxlength="200" placeholder="أضف مهمة جديدة..." aria-label="مهمة جديدة" onkeydown="if(event.key==='Enter')addTodoFromInput()">
+                                <button class="btn-primary" onclick="addTodoFromInput()" aria-label="إضافة"><i data-icon="plus"></i></button>
+                            </div>
+                            <div id="todo-list"></div>
+                            <div class="todo-foot"><button onclick="clearDoneTodos()">مسح المنتهية</button></div>
+                        </div>
+                        <aside class="recent" aria-label="آخر ما تم استخدامه">
+                        <h3><i data-icon="eye"></i><span>آخر ما تم استخدامه</span></h3>
+                        <div id="recent-list"></div>
+                    </aside>
+                        <div class="quote-card">
+                            <div id="quote-text"></div>
+                            <button class="q-next" onclick="showQuote(quoteIdx + 1, true)">جملة أخرى ›</button>
+                        </div>
+                    </aside>
+                </div>
+            </section>
 
             <!-- السبورة -->
             <section id="view-board" class="view">
@@ -1556,6 +1730,23 @@
     </div>
 
     <!-- الإعدادات -->
+    <div id="ink-modal" class="modal" onclick="if (event.target === this) closeModal('ink-modal')">
+        <div class="modal-box ink-modal-box">
+            <div class="modal-head"><h2>اكتب المهمة بالقلم</h2><button class="ibtn" onclick="closeModal('ink-modal')" aria-label="إغلاق"><i data-icon="x"></i></button></div>
+            <canvas id="ink-canvas"></canvas>
+            <div class="ink-tools">
+                <button class="ink-col active" data-c="#111827" style="background:#111827" aria-label="أسود"></button>
+                <button class="ink-col" data-c="#1d4ed8" style="background:#1d4ed8" aria-label="أزرق"></button>
+                <button class="ink-col" data-c="#dc2626" style="background:#dc2626" aria-label="أحمر"></button>
+                <input type="range" min="1" max="8" value="3" oninput="inkSize(this.value)" aria-label="السمك" style="width:110px">
+                <button class="btn-ghost" onclick="inkUndo()"><i data-icon="undo"></i><span>تراجع</span></button>
+                <button class="btn-ghost" onclick="inkClear()"><i data-icon="trash"></i><span>مسح</span></button>
+            </div>
+            <div class="modal-actions"><button class="btn-primary" onclick="inkSave()">إضافة للقائمة</button></div>
+        </div>
+    </div>
+    <div id="print-sheet" aria-hidden="true"></div>
+
     <div id="settings" class="modal" onclick="if (event.target === this) closeSettings()">
         <div class="modal-box">
             <div class="modal-head">
@@ -1589,6 +1780,23 @@
             </div>
             <div class="modal-actions" style="margin-bottom:14px;">
                 <button class="btn-ghost" onclick="showHiddenBooks()"><i data-icon="undo"></i><span>إظهار الملفات المحذوفة</span></button>
+            </div>
+            <div class="field">
+                <label>لون الواجهة (اختر الأريح لعينيك)</label>
+                <div class="acc-row">
+                    <button class="acc-btn" data-accent="calm" onclick="setAccent('calm')"><i></i>هادئ</button>
+                    <button class="acc-btn" data-accent="amber" onclick="setAccent('amber')"><i></i>دافئ</button>
+                    <button class="acc-btn" data-accent="blue" onclick="setAccent('blue')"><i></i>أزرق</button>
+                </div>
+            </div>
+            <div class="field">
+                <label for="inp-city">مدينة الطقس (اتركها فاضية للتحديد التلقائي)</label>
+                <div class="field-row"><input type="text" id="inp-city" maxlength="40" placeholder="مثال: القاهرة"><button class="btn-ghost" onclick="setWeatherCity()">ضبط</button></div>
+                <div class="hint">التحديد التلقائي بيستخدم موقع جهازك، ولو مش متاح بيستخدم موقع الإنترنت التقريبي.</div>
+            </div>
+            <div class="field">
+                <label for="inp-hijri">ضبط التاريخ الهجري</label>
+                <select id="inp-hijri" onchange="setHijriAdjust(this.value)"><option value="-1">يوم أقل</option><option value="0">كما هو (أم القرى)</option><option value="1">يوم أكثر</option></select>
             </div>
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
@@ -2078,6 +2286,7 @@
             appState.progress ||= {};
             appState.courses ||= [];
             appState.hiddenBooks ||= [];
+            appState.todos = Array.isArray(appState.todos) ? appState.todos : [];
             appState.gradeNames ||= { ...DEFAULT_GRADE_NAMES };
         }
 
@@ -2328,6 +2537,402 @@
             renderHome();
             renderLibrary();
             renderExams();
+        }
+
+        // ==========================================
+        // لوحة الرئيسية: ساعة + تاريخ + طقس + مهام + جمل تحفيزية + لون الواجهة
+        // ==========================================
+        const ACCENTS = ['calm', 'blue', 'amber'];
+        function applyAccent(name) {
+            if (!ACCENTS.includes(name)) name = 'calm';
+            document.documentElement.setAttribute('data-accent', name);
+            try { localStorage.setItem('platform-accent-v1', name); } catch (e) { /* تجاهل */ }
+            document.querySelectorAll('.acc-btn').forEach(b => b.classList.toggle('active', b.dataset.accent === name));
+        }
+        function setAccent(name) { appState.accent = name; applyAccent(name); scheduleSave(); }
+
+        // ---- الساعة ----
+        function buildClock() {
+            const svg = $('clock-svg');
+            if (!svg || svg.dataset.built) return;
+            svg.dataset.built = '1';
+            const P = (r, deg) => { const a = (deg - 90) * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
+            let t = '<defs>' +
+                '<linearGradient id="ck-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1dba0"/><stop offset=".45" stop-color="#c3a05a"/><stop offset="1" stop-color="#7a5d27"/></linearGradient>' +
+                '<radialGradient id="ck-dial" cx=".5" cy=".38" r=".75"><stop offset="0" stop-color="#2a3034"/><stop offset="1" stop-color="#0c1012"/></radialGradient>' +
+                '<linearGradient id="ck-hand" x1="0" x2="1"><stop offset="0" stop-color="#ead294"/><stop offset=".5" stop-color="#b58f3f"/><stop offset="1" stop-color="#f0dca4"/></linearGradient></defs>';
+            t += '<circle cx="100" cy="100" r="98" fill="url(#ck-gold)"/><circle cx="100" cy="100" r="92" fill="#0a0d0f"/><circle cx="100" cy="100" r="90" fill="url(#ck-dial)" stroke="#8a6b2c" stroke-width=".7"/><circle cx="100" cy="100" r="76" fill="none" stroke="#c3a05a" stroke-opacity=".18" stroke-width=".6"/>';
+            for (let i = 0; i < 60; i++) {
+                const big = i % 5 === 0;
+                const a = P(big ? 76 : 83, i * 6), b = P(87, i * 6);
+                t += '<line x1="' + a[0].toFixed(2) + '" y1="' + a[1].toFixed(2) + '" x2="' + b[0].toFixed(2) + '" y2="' + b[1].toFixed(2) + '" stroke="' + (big ? '#e0bf72' : '#8c7440') + '" stroke-width="' + (big ? 2.2 : 0.8) + '" stroke-linecap="round"/>';
+            }
+            [[12, 0], [3, 90], [6, 180], [9, 270]].forEach(([n, d]) => {
+                const p = P(62, d);
+                t += '<text x="' + p[0].toFixed(2) + '" y="' + p[1].toFixed(2) + '" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="17" font-weight="700" fill="#e6c77d">' + n + '</text>';
+            });
+            t += '<text x="100" y="132" text-anchor="middle" font-family="Georgia, serif" font-size="6.5" letter-spacing="2" fill="#c3a05a" fill-opacity=".7">EDUCATION</text>';
+            t += '<g id="ck-h"><path d="M100 54 L104.6 90 L100 96 L95.4 90Z" fill="url(#ck-hand)" stroke="#6b5120" stroke-width=".5"/><path d="M100 62 V88" stroke="#6b5120" stroke-width=".7" opacity=".55"/></g>';
+            t += '<g id="ck-m"><path d="M100 28 L103.2 90 L100 96 L96.8 90Z" fill="url(#ck-hand)" stroke="#6b5120" stroke-width=".5"/><path d="M100 36 V88" stroke="#6b5120" stroke-width=".6" opacity=".55"/></g>';
+            t += '<g id="ck-s"><line x1="100" y1="114" x2="100" y2="22" stroke="#d9674f" stroke-width="1.1" stroke-linecap="round"/><circle cx="100" cy="114" r="2.4" fill="#d9674f"/></g>';
+            t += '<circle cx="100" cy="100" r="5.2" fill="url(#ck-gold)" stroke="#6b5120" stroke-width=".5"/><circle cx="100" cy="100" r="1.8" fill="#0c1012"/>';
+            svg.innerHTML = t;
+        }
+
+        const dateFmtG = (() => { try { return new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return null; } })();
+        const dateFmtH = (() => { try { return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return null; } })();
+        const timeFmt = (() => { try { return new Intl.DateTimeFormat('ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true }); } catch (e) { return null; } })();
+        let clockTimer = null, lastDateKey = '';
+
+        function tickClock() {
+            const now = new Date();
+            const h = now.getHours() % 12, m = now.getMinutes(), s = now.getSeconds(), ms = now.getMilliseconds();
+            const rot = (id, deg) => { const el = $(id); if (el) el.setAttribute('transform', 'rotate(' + deg.toFixed(2) + ' 100 100)'); };
+            rot('ck-h', (h + m / 60) * 30);
+            rot('ck-m', (m + s / 60) * 6);
+            rot('ck-s', (s + ms / 1000) * 6);
+            const key = now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate() + '-' + m + '-' + (appState.hijriAdjust || 0);
+            if (key !== lastDateKey) {
+                lastDateKey = key;
+                if ($('ck-digital') && timeFmt) $('ck-digital').textContent = timeFmt.format(now);
+                if ($('date-g') && dateFmtG) $('date-g').textContent = dateFmtG.format(now);
+                if ($('date-h') && dateFmtH) $('date-h').textContent = dateFmtH.format(new Date(now.getTime() + (appState.hijriAdjust || 0) * 86400000));
+            }
+        }
+        function startClock() {
+            buildClock();
+            tickClock();
+            clearInterval(clockTimer);
+            clockTimer = setInterval(() => {
+                if (document.hidden || !$('view-home').classList.contains('active')) return;
+                tickClock();
+            }, 100);
+        }
+
+        // ---- الطقس (Open-Meteo: بدون مفتاح) ----
+        const WX_KEY = 'platform-wx-v1', WXPOS_KEY = 'platform-wxpos-v1';
+        const WX_CODES = {
+            0: ['صافٍ', '☀️', '🌙'], 1: ['غالباً صافٍ', '🌤️', '🌙'], 2: ['غائم جزئياً', '⛅', '☁️'], 3: ['غائم', '☁️', '☁️'],
+            45: ['ضباب', '🌫️', '🌫️'], 48: ['ضباب', '🌫️', '🌫️'], 51: ['رذاذ', '🌦️', '🌧️'], 53: ['رذاذ', '🌦️', '🌧️'], 55: ['رذاذ', '🌦️', '🌧️'],
+            61: ['مطر خفيف', '🌧️', '🌧️'], 63: ['مطر', '🌧️', '🌧️'], 65: ['مطر غزير', '🌧️', '🌧️'], 71: ['ثلج', '❄️', '❄️'], 73: ['ثلج', '❄️', '❄️'], 75: ['ثلج كثيف', '❄️', '❄️'],
+            80: ['زخات مطر', '🌦️', '🌧️'], 81: ['زخات مطر', '🌦️', '🌧️'], 82: ['زخات غزيرة', '🌧️', '🌧️'], 95: ['عاصفة رعدية', '⛈️', '⛈️'], 96: ['عاصفة رعدية', '⛈️', '⛈️'], 99: ['عاصفة رعدية', '⛈️', '⛈️']
+        };
+        const wxLoad = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+        const wxSave = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* تجاهل */ } };
+        const toAr = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+        let wxBusy = false, wxTimer = null;
+
+        function wxRender(w, note) {
+            const box = $('wx-body');
+            if (!box) return;
+            if (!w) { box.innerHTML = '<div class="wx-msg">' + esc(note || '') + '</div>'; return; }
+            const c = WX_CODES[w.code] || ['—', '🌡️', '🌡️'];
+            const icon = w.day === 0 ? c[2] : c[1];
+            box.innerHTML = '<div class="wx-ico">' + icon + '</div><div class="wx-main"><b>' + toAr(Math.round(w.temp)) + '°</b><span>' + esc(c[0]) + '</span></div>' +
+                '<div class="wx-more"><span>' + esc(w.place || '') + '</span><small>' + (w.feels != null ? 'المحسوسة ' + toAr(Math.round(w.feels)) + '° · ' : '') + (w.hum != null ? 'رطوبة ' + toAr(Math.round(w.hum)) + '٪' : '') + '</small>' +
+                (note ? '<small class="wx-note">' + esc(note) + '</small>' : '') + '</div>';
+        }
+
+        function geoOnce() {
+            return new Promise((res, rej) => {
+                if (!navigator.geolocation) return rej(new Error('nogeo'));
+                navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lon: p.coords.longitude }), rej, { timeout: 8000, maximumAge: 3600000 });
+            });
+        }
+        async function ipLocate() {
+            const tries = [
+                async () => { const j = await (await fetch('https://ipwho.is/')).json(); if (j && j.success !== false && j.latitude != null) return { lat: j.latitude, lon: j.longitude, place: j.city || j.region || '' }; throw new Error('x'); },
+                async () => { const j = await (await fetch('https://get.geojs.io/v1/ip/geo.json')).json(); if (j && j.latitude) return { lat: Number(j.latitude), lon: Number(j.longitude), place: j.city || '' }; throw new Error('x'); }
+            ];
+            for (const t of tries) { try { return await t(); } catch (e) { /* التالي */ } }
+            throw new Error('noip');
+        }
+        async function placeName(lat, lon) {
+            try {
+                const j = await (await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=ar')).json();
+                return j.city || j.locality || j.principalSubdivision || '';
+            } catch (e) { return ''; }
+        }
+        async function getWxPosition(force) {
+            const manual = appState.weatherPlace;
+            if (manual && manual.lat != null) return manual;
+            const saved = wxLoad(WXPOS_KEY);
+            if (!force && saved && Date.now() - saved.at < 86400000) return saved;
+            let pos = null;
+            try { pos = await geoOnce(); pos.place = await placeName(pos.lat, pos.lon); }
+            catch (e) { pos = await ipLocate(); }
+            pos.at = Date.now();
+            wxSave(WXPOS_KEY, pos);
+            return pos;
+        }
+        async function refreshWeather(force) {
+            if (wxBusy || !$('wx-body')) return;
+            wxBusy = true;
+            const cached = wxLoad(WX_KEY);
+            if (cached && !$('wx-body').dataset.has) { wxRender(cached, 'آخر تحديث ' + timeAgo(cached.at)); $('wx-body').dataset.has = '1'; }
+            else if (!cached) wxRender(null, 'جارٍ تحديد الموقع…');
+            try {
+                const pos = await getWxPosition(force);
+                const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + pos.lat + '&longitude=' + pos.lon + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day&timezone=auto';
+                const j = await (await fetch(u)).json();
+                const c = j.current;
+                if (!c) throw new Error('nodata');
+                const w = { temp: c.temperature_2m, feels: c.apparent_temperature, hum: c.relative_humidity_2m, code: c.weather_code, day: c.is_day, place: pos.place || '', at: Date.now() };
+                wxSave(WX_KEY, w);
+                wxRender(w);
+                $('wx-body').dataset.has = '1';
+            } catch (e) {
+                const c2 = wxLoad(WX_KEY);
+                if (c2) wxRender(c2, 'غير متصل · آخر تحديث ' + timeAgo(c2.at));
+                else wxRender(null, 'تعذر جلب الطقس. تأكد من الإنترنت، أو حدد مدينتك من الإعدادات.');
+            }
+            wxBusy = false;
+        }
+        function startWeather() {
+            refreshWeather(false);
+            clearInterval(wxTimer);
+            wxTimer = setInterval(() => refreshWeather(false), 20 * 60 * 1000);
+            window.addEventListener('online', () => refreshWeather(false));
+        }
+        async function setWeatherCity() {
+            const name = $('inp-city').value.trim();
+            if (!name) { appState.weatherPlace = null; scheduleSave(); try { localStorage.removeItem(WXPOS_KEY); } catch (e) { /* */ } toast('هيتم تحديد الموقع تلقائياً'); $('wx-body').dataset.has = ''; refreshWeather(true); return; }
+            try {
+                const j = await (await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(name) + '&count=1&language=ar')).json();
+                const r = j.results && j.results[0];
+                if (!r) return toast('ما لقيتش المدينة دي');
+                appState.weatherPlace = { lat: r.latitude, lon: r.longitude, place: r.name };
+                scheduleSave();
+                toast('تم ضبط المدينة: ' + r.name);
+                $('wx-body').dataset.has = '';
+                refreshWeather(true);
+            } catch (e) { toast('تعذر البحث. تأكد من الإنترنت'); }
+        }
+        function setHijriAdjust(v) { appState.hijriAdjust = Number(v) || 0; lastDateKey = ''; tickClock(); scheduleSave(); }
+
+        // ---- الجمل التحفيزية ----
+        const QUOTES = [
+            'كل خطوة صغيرة تقرّبك من هدفك الكبير.', 'العلم نور، والجهل ظلام.', 'اليوم الذي تتعلم فيه شيئاً جديداً ليس يوماً ضائعاً.',
+            'الإصرار يصنع المستحيل، فاستمر ولا تتوقف.', 'من جدّ وجد، ومن زرع حصد.', 'لا تقارن بدايتك بنهاية غيرك.',
+            'التعلّم رحلة، والفضول وقودها.', 'أخطاؤك معلّمك الأول، فلا تخشَ المحاولة.', 'ابدأ الآن، فالكمال يأتي بعد المحاولة.',
+            'ساعة تركيز اليوم تُغنيك عن أيام من القلق غداً.', 'الطالب المجتهد يصنع حظه بيده.', 'اجعل كل يوم درجة في سُلّم النجاح.',
+            'بالعلم نصنع المستقبل.', 'من سار على الدرب وصل.', 'العقل كالمظلة، لا ينفع إلا إذا فُتح.',
+            'الصبر مفتاح الفرج، والاجتهاد باب النجاح.', 'ما تتعلمه اليوم يصنع من تكون غداً.', 'لا شيء يعدل قيمة وقتٍ استُثمر في العلم.',
+            'كن أنت التغيير الذي تريد أن تراه في مجتمعك.', 'نظّم وقتك تنظّم نجاحك.', 'الهدف الواضح نصف الطريق.',
+            'تعلّم كأنك ستعيش أبداً، وأتقن كأنك ستُحاسَب غداً.', 'السؤال الجيد بداية الفهم العميق.', 'الراحة جزء من الدراسة الذكية.'
+        ];
+        let quoteIdx = 0, quoteTimer = null;
+        function showQuote(i, anim) {
+            const el = $('quote-text');
+            if (!el) return;
+            quoteIdx = ((i % QUOTES.length) + QUOTES.length) % QUOTES.length;
+            const set = () => { el.textContent = QUOTES[quoteIdx]; el.classList.remove('fade'); };
+            if (anim) { el.classList.add('fade'); setTimeout(set, 220); } else set();
+        }
+        function startQuotes() {
+            const d = new Date();
+            showQuote(Math.floor(d.getTime() / 86400000) % QUOTES.length, false);
+            clearInterval(quoteTimer);
+            quoteTimer = setInterval(() => { if (!document.hidden && $('view-home').classList.contains('active')) showQuote(quoteIdx + 1, true); }, 45000);
+        }
+
+        // ---- قائمة المهام ----
+        const todoId = () => 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        function todoSave() { scheduleSave(); renderTodos(); }
+        function addTodo(text, ink) {
+            text = (text || '').trim();
+            if (!text && !ink) return;
+            appState.todos.unshift({ id: todoId(), text, ink: ink || null, done: false, at: Date.now() });
+            todoSave();
+        }
+        function addTodoFromInput() { const i = $('todo-input'); addTodo(i.value); i.value = ''; i.focus(); }
+        function toggleTodo(id) { const t = appState.todos.find(x => x.id === id); if (t) { t.done = !t.done; todoSave(); } }
+        function deleteTodo(id) { appState.todos = appState.todos.filter(x => x.id !== id); todoSave(); }
+        function clearDoneTodos() { appState.todos = appState.todos.filter(x => !x.done); todoSave(); }
+        function editTodo(id) {
+            const t = appState.todos.find(x => x.id === id);
+            const li = document.querySelector('[data-todo="' + id + '"] .td-txt');
+            if (!t || !li || t.ink) return;
+            const inp = document.createElement('input');
+            inp.className = 'td-edit'; inp.value = t.text; inp.maxLength = 200;
+            li.replaceWith(inp); inp.focus(); inp.select();
+            const done = ok => { if (ok) t.text = inp.value.trim() || t.text; todoSave(); };
+            inp.addEventListener('keydown', e => { if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); });
+            inp.addEventListener('blur', () => done(true));
+        }
+        function renderTodos() {
+            const box = $('todo-list');
+            if (!box) return;
+            const list = appState.todos || [];
+            const left = list.filter(t => !t.done).length;
+            $('todo-count').textContent = list.length ? toAr(list.length - left) + ' / ' + toAr(list.length) : '';
+            $('todo-bar').style.width = list.length ? Math.round((list.length - left) / list.length * 100) + '%' : '0%';
+            box.innerHTML = '';
+            if (!list.length) { const p = document.createElement('p'); p.className = 'todo-empty'; p.textContent = 'لا توجد مهام. اكتب مهمة أو استخدم القلم.'; box.appendChild(p); return; }
+            list.forEach(t => {
+                const li = document.createElement('div');
+                li.className = 'todo-item' + (t.done ? ' done' : '');
+                li.dataset.todo = t.id;
+                const chk = document.createElement('button');
+                chk.className = 'td-chk'; chk.setAttribute('aria-label', 'تم'); chk.innerHTML = t.done ? icon('check') : '';
+                chk.onclick = () => toggleTodo(t.id);
+                li.appendChild(chk);
+                if (t.ink) { const im = document.createElement('img'); im.className = 'td-ink'; im.src = t.ink; im.alt = 'مهمة مكتوبة بالقلم'; li.appendChild(im); }
+                else { const sp = document.createElement('span'); sp.className = 'td-txt'; sp.textContent = t.text; sp.onclick = () => editTodo(t.id); li.appendChild(sp); }
+                const del = document.createElement('button');
+                del.className = 'td-del'; del.setAttribute('aria-label', 'حذف'); del.innerHTML = icon('x');
+                del.onclick = () => deleteTodo(t.id);
+                li.appendChild(del);
+                box.appendChild(li);
+            });
+        }
+        function goTodos() {
+            switchView('home', document.querySelector('[data-view=home]'));
+            document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === 'todos'));
+            const c = $('todo-card');
+            if (c) { setTimeout(() => { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.classList.add('flash'); setTimeout(() => c.classList.remove('flash'), 1400); $('todo-input').focus(); }, 60); }
+        }
+
+        // كتابة المهمة بالقلم
+        const ink = { strokes: [], cur: null, color: '#111827', size: 3 };
+        function openInk() {
+            ink.strokes = []; ink.cur = null;
+            openModal('ink-modal');
+            setTimeout(() => { inkResize(); inkRedraw(); }, 30);
+        }
+        function inkResize() {
+            const c = $('ink-canvas'); if (!c) return;
+            const r = c.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+            c.width = Math.round(r.width * d); c.height = Math.round(r.height * d);
+        }
+        function inkRedraw() {
+            const c = $('ink-canvas'), g = c.getContext('2d');
+            const d = c.width / c.getBoundingClientRect().width || 1;
+            g.setTransform(1, 0, 0, 1, 0, 0);
+            g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height);
+            g.setTransform(d, 0, 0, d, 0, 0);
+            g.lineCap = 'round'; g.lineJoin = 'round';
+            g.strokeStyle = '#e5e7eb'; g.lineWidth = 1;
+            const h = c.getBoundingClientRect().height;
+            for (let y = 44; y < h; y += 44) { g.beginPath(); g.moveTo(10, y); g.lineTo(c.getBoundingClientRect().width - 10, y); g.stroke(); }
+            [...ink.strokes, ...(ink.cur ? [ink.cur] : [])].forEach(s => {
+                g.strokeStyle = s.c; g.lineWidth = s.w; g.beginPath();
+                s.p.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]));
+                if (s.p.length === 1) g.lineTo(s.p[0][0] + 0.01, s.p[0][1]);
+                g.stroke();
+            });
+        }
+        function inkPt(e) { const r = $('ink-canvas').getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+        function inkBind() {
+            const c = $('ink-canvas');
+            if (!c || c.dataset.bound) return;
+            c.dataset.bound = '1';
+            c.addEventListener('pointerdown', e => { c.setPointerCapture(e.pointerId); ink.cur = { c: ink.color, w: ink.size, p: [inkPt(e)] }; inkRedraw(); });
+            c.addEventListener('pointermove', e => { if (!ink.cur) return; (e.getCoalescedEvents ? e.getCoalescedEvents() : [e]).forEach(ev => ink.cur.p.push(inkPt(ev))); inkRedraw(); });
+            const end = () => { if (ink.cur) { ink.strokes.push(ink.cur); ink.cur = null; inkRedraw(); } };
+            c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+            document.querySelectorAll('.ink-col').forEach(b => b.addEventListener('click', () => { ink.color = b.dataset.c; document.querySelectorAll('.ink-col').forEach(x => x.classList.toggle('active', x === b)); }));
+        }
+        function inkUndo() { ink.strokes.pop(); inkRedraw(); }
+        function inkClear() { ink.strokes = []; inkRedraw(); }
+        function inkSize(v) { ink.size = Number(v); }
+        function inkSave() {
+            if (!ink.strokes.length) return toast('اكتب المهمة الأول');
+            const c = $('ink-canvas'), r = c.getBoundingClientRect();
+            let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+            ink.strokes.forEach(s => s.p.forEach(p => { x1 = Math.min(x1, p[0] - s.w); y1 = Math.min(y1, p[1] - s.w); x2 = Math.max(x2, p[0] + s.w); y2 = Math.max(y2, p[1] + s.w); }));
+            x1 = Math.max(0, x1 - 10); y1 = Math.max(0, y1 - 8); x2 = Math.min(r.width, x2 + 10); y2 = Math.min(r.height, y2 + 8);
+            const out = document.createElement('canvas'), k = Math.min(1, 560 / (x2 - x1));
+            out.width = Math.max(1, Math.round((x2 - x1) * k)); out.height = Math.max(1, Math.round((y2 - y1) * k));
+            const g = out.getContext('2d');
+            g.fillStyle = '#ffffff'; g.fillRect(0, 0, out.width, out.height);
+            g.scale(k, k); g.translate(-x1, -y1); g.lineCap = 'round'; g.lineJoin = 'round';
+            ink.strokes.forEach(s => { g.strokeStyle = s.c; g.lineWidth = s.w; g.beginPath(); s.p.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); if (s.p.length === 1) g.lineTo(s.p[0][0] + 0.01, s.p[0][1]); g.stroke(); });
+            addTodo('', out.toDataURL('image/png'));
+            closeModal('ink-modal');
+        }
+
+        // طباعة وحفظ PDF: نرسم الورقة على كانفاس (عشان الحروف العربية تتشكّل صح) ونحوّلها صور
+        function todoSheets() {
+            const W = 1240, H = 1754, M = 90, list = [...(appState.todos || [])].reverse();
+            const pages = [];
+            let cv, g, y;
+            const now = new Date();
+            const dG = dateFmtG ? dateFmtG.format(now) : '', dH = dateFmtH ? dateFmtH.format(new Date(now.getTime() + (appState.hijriAdjust || 0) * 86400000)) : '';
+            const newPage = first => {
+                cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+                g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+                g.direction = 'rtl'; g.textAlign = 'right'; g.textBaseline = 'alphabetic';
+                y = M + 20;
+                if (first) {
+                    g.fillStyle = '#111827'; g.font = '700 58px Tahoma, "Segoe UI", sans-serif';
+                    g.fillText('قائمة المهام', W - M, y + 40);
+                    g.font = '400 28px Tahoma, "Segoe UI", sans-serif'; g.fillStyle = '#4b5563';
+                    g.fillText(((appState.teacher && appState.teacher.name) || '') + ' · ' + dG, W - M, y + 92);
+                    g.fillText(dH, W - M, y + 132);
+                    g.strokeStyle = '#111827'; g.lineWidth = 3; g.beginPath(); g.moveTo(M, y + 160); g.lineTo(W - M, y + 160); g.stroke();
+                    y += 210;
+                }
+                pages.push(cv);
+            };
+            newPage(true);
+            const maxTextW = W - 2 * M - 80;
+            const wrap = txt => {
+                g.font = '400 36px Tahoma, "Segoe UI", sans-serif';
+                const words = txt.split(/\s+/), lines = []; let cur = '';
+                words.forEach(w => { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxTextW && cur) { lines.push(cur); cur = w; } else cur = t; });
+                if (cur) lines.push(cur);
+                return lines;
+            };
+            const imgs = {};
+            const drawItem = t => {
+                let lines = [], ih = 0, iw = 0, im = null;
+                if (t.ink) { im = imgs[t.id]; const k = Math.min(1, maxTextW / im.width); iw = im.width * k; ih = im.height * k; }
+                else lines = wrap(t.text);
+                const h = t.ink ? ih + 26 : lines.length * 50 + 26;
+                if (y + h > H - M) newPage(false);
+                g.strokeStyle = '#111827'; g.lineWidth = 3; g.strokeRect(W - M - 38, y + 4, 38, 38);
+                if (t.done) { g.beginPath(); g.moveTo(W - M - 31, y + 24); g.lineTo(W - M - 21, y + 35); g.lineTo(W - M - 7, y + 12); g.stroke(); }
+                g.fillStyle = t.done ? '#9ca3af' : '#111827'; g.font = '400 36px Tahoma, "Segoe UI", sans-serif';
+                if (t.ink) g.drawImage(im, W - M - 64 - iw, y, iw, ih);
+                else lines.forEach((l, i) => { g.fillText(l, W - M - 64, y + 36 + i * 50); if (t.done) { const w = g.measureText(l).width; g.fillRect(W - M - 64 - w, y + 24 + i * 50, w, 2); } });
+                y += h;
+                g.strokeStyle = '#e5e7eb'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(M, y - 8); g.lineTo(W - M, y - 8); g.stroke();
+            };
+            return Promise.all(list.filter(t => t.ink).map(t => new Promise(res => { const im = new Image(); im.onload = () => { imgs[t.id] = im; res(); }; im.onerror = res; im.src = t.ink; }))).then(() => {
+                list.filter(t => !t.ink || imgs[t.id]).forEach(drawItem);
+                return pages.map(p => p.toDataURL('image/png'));
+            });
+        }
+        async function todoPdf() {
+            if (!(appState.todos || []).length) return toast('لا توجد مهام');
+            if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
+            const pages = await todoSheets();
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [1240, 1754] });
+            pages.forEach((d, i) => { if (i) pdf.addPage([1240, 1754], 'portrait'); pdf.addImage(d, 'PNG', 0, 0, 1240, 1754); });
+            const base64 = pdf.output('datauristring').split(',').pop();
+            try { const path = await api.savePdf('قائمة_المهام_' + Date.now() + '.pdf', base64); toast('تم الحفظ في: ' + path); }
+            catch (e) { toast('تعذر الحفظ'); }
+        }
+        async function todoPrint() {
+            if (!(appState.todos || []).length) return toast('لا توجد مهام');
+            const pages = await todoSheets();
+            const box = $('print-sheet');
+            box.innerHTML = '';
+            pages.forEach(d => { const im = document.createElement('img'); im.src = d; box.appendChild(im); });
+            const cleanup = () => { box.innerHTML = ''; window.removeEventListener('afterprint', cleanup); };
+            window.addEventListener('afterprint', cleanup);
+            try { setTimeout(() => window.print(), 120); }
+            catch (e) { cleanup(); toast('الطباعة غير متاحة هنا. استخدم حفظ PDF ثم اطبعه'); }
+        }
+
+        function initDash() {
+            appState.todos = Array.isArray(appState.todos) ? appState.todos : [];
+            applyAccent(appState.accent || 'calm');
+            if ($('inp-city') && appState.weatherPlace) $('inp-city').value = appState.weatherPlace.place || '';
+            if ($('inp-hijri')) $('inp-hijri').value = String(appState.hijriAdjust || 0);
+            startClock(); startWeather(); startQuotes(); renderTodos(); inkBind();
         }
 
         // ==========================================
@@ -4961,7 +5566,7 @@
         const courseMedia = new Map();   // cid -> [{name,url}]
         let detailId = null;
         let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal'];
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal'];
 
         function findCourse(id) {
             return (appState.courses || []).find(c => c.id === id) || null;
@@ -6302,6 +6907,7 @@
             applyTheme(appState.theme);
             applyProfile();
             applyGradeNames();
+            initDash();
             buildPalette();
             if (appState.penColors) Object.assign(penColors, appState.penColors);
             if (appState.readerPenColors) Object.assign(readerPenColors, appState.readerPenColors);
