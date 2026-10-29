@@ -1675,6 +1675,33 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         body.native.board-active .app { padding: 0; gap: 0; }
         body.native.board-active .sidebar { display: none !important; }
+
+        /* ===== وضع راحة العين: أسود بالكامل، من غير خلفيات ولا زجاج ===== */
+        body.eyecare {
+            --card: #000000 !important;
+            --solid: #000000 !important;
+            --line: rgba(255, 255, 255, 0.2) !important;
+            --text: #e4e4e4 !important;
+            --muted: #8a8a8a !important;
+            background: #000 !important;
+        }
+        html:has(body.eyecare), body.eyecare { background-image: none !important; }
+        body.eyecare #bg-layer { display: none !important; }
+        body.eyecare *:not(canvas):not(img):not(video):not(svg):not(path) {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+        body.eyecare .hero, body.eyecare .stat, body.eyecare .sidebar, body.eyecare .topbar,
+        body.eyecare .app-header, body.eyecare .modal-box, body.eyecare .card, body.eyecare .panel,
+        body.eyecare .qa-card, body.eyecare .course-card, body.eyecare .exam-card, body.eyecare .ai-card,
+        body.eyecare .shortcut, body.eyecare .sc-card, body.eyecare .continue-card, body.eyecare .book-card {
+            background: #000 !important;
+            background-image: none !important;
+        }
+        body.eyecare .hero::after, body.eyecare .qa-card::after, body.eyecare .course-card::after,
+        body.eyecare .stat::after, body.eyecare .sidebar::after { display: none !important; }
 </style>
 </head>
 <body data-theme="dark">
@@ -2126,6 +2153,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
                 <input type="checkbox" id="inp-lite" style="width:22px;height:22px;" onchange="setLite(this.checked)">
+            </div>
+            <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <label for="inp-eye" style="margin:0;">وضع راحة العين (خلفية سوداء بالكامل بدون زجاج)</label>
+                <input type="checkbox" id="inp-eye" style="width:22px;height:22px;" onchange="setEyeCare(this.checked)">
             </div>
             <div class="modal-actions" style="margin-bottom:18px;">
                 <button class="btn-primary" onclick="saveProfile()">حفظ البيانات</button>
@@ -2733,6 +2764,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('inp-grade-y4').value = gradeName('y4');
             $('inp-gkey').value = appState.geminiKey || ''; $('inp-gmodel').value = appState.geminiModel || '';
             $('inp-lite').checked = document.body.classList.contains('lite');
+            $('inp-eye').checked = document.body.classList.contains('eyecare');
             renderPresets();
             $('settings').classList.add('open');
         }
@@ -2754,6 +2786,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('grade-btn-y3').innerText = gradeName('y3');
             $('grade-btn-y4').innerText = gradeName('y4');
             $('hero-grade').innerText = gradeName(currentGrade);
+        }
+
+        // وضع راحة العين: شاشة سوداء بالكامل من غير خلفيات أو زجاج، ومحفوظ مع بيانات المنصة
+        function setEyeCare(on) {
+            document.body.classList.toggle('eyecare', on);
+            appState.eyeCare = on;
+            scheduleSave();
         }
 
         function setLite(on) {
@@ -7811,6 +7850,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             markCurrentColor(penColor);
             // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
             document.body.classList.toggle('lite', appState.lite === undefined ? (navigator.hardwareConcurrency || 8) <= 4 : !!appState.lite);
+            document.body.classList.toggle('eyecare', !!appState.eyeCare);
             applyBg();
             refreshToolButtons();
             syncSlider();
