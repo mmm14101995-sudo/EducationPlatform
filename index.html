@@ -1924,7 +1924,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
                         <div class="bgrp">
                             <button class="ibtn" id="fs-btn" title="ملء الشاشة" onclick="toggleBoardFs()"><i data-icon="maximize"></i></button>
-                            <button class="ibtn" title="حفظ PDF" onclick="saveBoardAsPDF()"><i data-icon="upload"></i></button>
+                            <button class="ibtn" title="حفظ الصفحة الحالية PDF" onclick="saveBoardAsPDF(true)"><i data-icon="file"></i></button>
+                            <button class="ibtn" title="حفظ كل الصفحات PDF" onclick="saveBoardAsPDF(false)"><i data-icon="upload"></i></button>
                         </div>
 
                         <div class="bgrp" id="pages-bar"></div>
@@ -2153,6 +2154,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
                 <input type="checkbox" id="inp-lite" style="width:22px;height:22px;" onchange="setLite(this.checked)">
+            </div>
+            <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <label for="inp-lang" style="margin:0;">Language / اللغة</label>
+                <select id="inp-lang" onchange="setLang(this.value)" style="min-width:140px;">
+                    <option value="ar">العربية (من اليمين)</option>
+                    <option value="en">English (left to right)</option>
+                </select>
             </div>
             <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                 <label for="inp-eye" style="margin:0;">وضع راحة العين (خلفية سوداء بالكامل بدون زجاج)</label>
@@ -2765,6 +2773,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('inp-gkey').value = appState.geminiKey || ''; $('inp-gmodel').value = appState.geminiModel || '';
             $('inp-lite').checked = document.body.classList.contains('lite');
             $('inp-eye').checked = document.body.classList.contains('eyecare');
+            $('inp-lang').value = appLang;
             renderPresets();
             $('settings').classList.add('open');
         }
@@ -2781,11 +2790,585 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         function applyGradeNames() {
-            $('grade-btn-sec3').innerText = gradeName('sec3');
-            $('grade-btn-sec2').innerText = gradeName('sec2');
-            $('grade-btn-y3').innerText = gradeName('y3');
-            $('grade-btn-y4').innerText = gradeName('y4');
-            $('hero-grade').innerText = gradeName(currentGrade);
+            $('grade-btn-sec3').innerText = gradeLabel('sec3');
+            $('grade-btn-sec2').innerText = gradeLabel('sec2');
+            $('grade-btn-y3').innerText = gradeLabel('y3');
+            $('grade-btn-y4').innerText = gradeLabel('y4');
+            $('hero-grade').innerText = gradeLabel(currentGrade);
+        }
+
+        // ---- اللغة: العربية (من اليمين) أو الإنجليزية (من الشمال، والقائمة على الشمال) ----
+        const EN = {
+            nav: { home: 'Home', board: 'Interactive Board', books: 'Books & Notes', videos: 'Videos', todos: 'Tasks', exams: 'Exams', ai: 'AI Assistant' },
+            settings: 'Settings',
+            title: 'Mostafa Mohamed Platform',
+            sub: 'Class of 2027',
+            search: 'Search the platform: books, courses, videos...',
+            grades: { sec3: '3rd Secondary', sec2: '2nd Secondary (Bac)', y3: 'Third Year', y4: 'Fourth Year' }
+        };
+        let appLang = 'ar';
+        const isEn = () => appLang === 'en';
+        function gradeLabel(g) { return isEn() ? EN.grades[g] : gradeName(g); }
+        function viewTitle(view) { return isEn() ? (EN.nav[view] || '') : (VIEW_TITLES[view] || ''); }
+        function setTextKeepAr(el, ar, en) {
+            if (!el) return;
+            el.dataset.ar ||= (el.dataset.ar === undefined ? (el.getAttribute('placeholder') !== null ? el.placeholder : el.textContent) : '');
+            if (el.tagName === 'INPUT') el.placeholder = isEn() ? en : (el.dataset.ar || ar);
+            else el.textContent = isEn() ? en : (el.dataset.ar || ar);
+        }
+        function applyLang(lang) {
+            appLang = lang === 'en' ? 'en' : 'ar';
+            document.documentElement.lang = appLang;
+            document.documentElement.dir = isEn() ? 'ltr' : 'rtl';
+            document.body.classList.toggle('lang-en', isEn());
+            document.querySelectorAll('.nav[data-view] span').forEach(sp => {
+                const view = sp.parentElement.dataset.view;
+                setTextKeepAr(sp, sp.textContent, EN.nav[view] || sp.textContent);
+            });
+            const set = $('settings-nav-label') || document.querySelector('.settings-nav span');
+            if (set) setTextKeepAr(set, set.textContent, EN.settings);
+            setTextKeepAr($('app-title'), $('app-title').textContent, EN.title);
+            setTextKeepAr($('app-sub'), $('app-sub').textContent, EN.sub);
+            setTextKeepAr($('gs-input'), 'ابحث في المنصة', EN.search);
+            const activeView = (document.querySelector('.view.active') || {}).id || 'view-home';
+            $('view-title').innerText = viewTitle(activeView.replace('view-', ''));
+            applyGradeNames();
+            buildDateFormatters(appLang);
+            if (typeof lastDateKey !== 'undefined') lastDateKey = '';
+            if (typeof tickClock === 'function' && $('ck-digital')) tickClock();
+            i18nApply(isEn());
+        }
+        function setLang(lang) {
+            applyLang(lang);
+            appState.lang = appLang;
+            scheduleSave();
+        }
+
+        // ---- ترجمة نصوص الواجهة للإنجليزي (وترجع عربي بالظبط لما تختار العربي) ----
+        const I18N_EN = {
+            "أهلاً بك يا أستاذ مصطفى محمد": "Welcome, Mr. Mostafa Mohamed", "نظّم وقتك تنظّم نجاحك.": "Organize your time, and you organize your success.",
+"أ": "A",
+"ا": "A",
+"ب": "B",
+"ج": "C",
+"د": "D",
+"م": "M",
+"ه": "E",
+"و": "F",
+"تم": "Done",
+"من": "of",
+"حذف": "Delete",
+"حفظ": "Save",
+"خطأ": "Error",
+"ضبط": "Set",
+"فتح": "Open",
+"فيه": "Has",
+"مسح": "Clear",
+"منذ": "ago",
+"يوم": "day",
+"أبيض": "White",
+"أحمر": "Red",
+"أزرق": "Blue",
+"أسود": "Black",
+"ابدأ": "Start",
+"الآن": "now",
+"دافئ": "Warm",
+"درجة": "Degree",
+"رجوع": "Back",
+"رذاذ": "Drizzle",
+"سؤال": "Question",
+"ساعة": "Hour",
+"صافٍ": "Clear",
+"صغير": "Small",
+"ضباب": "Fog",
+"غائم": "Cloudy",
+"كبير": "Large",
+"كتاب": "Book",
+"كحلي": "Navy",
+"كورس": "Course",
+"مثلث": "Triangle",
+"مربع": "Square",
+"معين": "Diamond",
+"منصة": "Platform",
+"نجمة": "Star",
+"هادئ": "Calm",
+"ورقة": "Paper",
+"إضافة": "Add",
+"إعادة": "Redo",
+"إغلاق": "Close",
+"إلغاء": "Cancel",
+"إنهاء": "Finish",
+"الاسم": "Name",
+"الكتب": "Books",
+"تحديث": "Update",
+"تحديد": "Select",
+"تراجع": "Undo",
+"تشغيل": "Play",
+"تصغير": "Zoom out",
+"تظليل": "Highlight",
+"تعديل": "Edit",
+"تكبير": "Zoom in",
+"ثماني": "Octagon",
+"خماسي": "Pentagon",
+"دائرة": "Circle",
+"دايرة": "Circle",
+"دقيقة": "Minute",
+"رطوبة": "Humidity",
+"سداسي": "Hexagon",
+"طباعة": "Print",
+"فقاعة": "Bubble",
+"فيديو": "Video",
+"كتابة": "Text",
+"كريمي": "Cream",
+"متوسط": "Medium",
+"مسطرة": "Ruler",
+"مقالي": "Essay",
+"ملزمة": "Notes",
+"ممحاة": "Eraser",
+"نهاري": "Day",
+"🗑 حذف": "🗑 Delete",
+"+ صفحة": "+ Page",
+"· صفحة": "· Page",
+"اختبار": "Exam",
+"التالي": "Next",
+"الدرجة": "Score",
+"السابق": "Previous",
+"السرعة": "Speed",
+"الصفحة": "Page",
+"المهام": "Tasks",
+"صفحتان": "Two pages",
+"محاولة": "Attempt",
+"مربعات": "Grid",
+"مستطيل": "Rectangle",
+"نتائج:": "Results:",
+"· الزمن": "· Time",
+"· الوقت": "· Time",
+"، الحجم": ", Size",
+"إجابتك:": "Your answer:",
+"اختياري": "Optional",
+"الأشكال": "Shapes",
+"الألوان": "Colors",
+"الخلفية": "Background",
+"العنوان": "Title",
+"المكتبة": "Library",
+"النتائج": "Results",
+"حفظ PDF": "Save PDF",
+"قلم حبر": "Ink pen",
+"مستويين": "Two levels",
+"منذ يوم": "a day ago",
+"يوم أقل": "Less than a day",
+"٣ ثانوي": "3rd Secondary",
+"✓ مكتمل": "✓ Completed",
+"✕ إغلاق": "✕ Close",
+"✕ إلغاء": "✕ Cancel",
+"+ اختيار": "+ Choice",
+"أهلاً بك": "Welcome",
+"الاختيار": "Choice",
+"الرئيسية": "Home",
+"الصحيحة:": "Correct:",
+"المحسوسة": "Feels like",
+"بدون اسم": "Untitled",
+"بني غامق": "Dark brown",
+"ثلج كثيف": "Heavy snow",
+"زخات مطر": "Rain showers",
+"قلم رصاص": "Pencil",
+"قلم ريشة": "Feather pen",
+"كتابة نص": "Text",
+"لون مخصص": "Custom color",
+"مطر خفيف": "Light rain",
+"مطر غزير": "Heavy rain",
+"يوم أكثر": "More than a day",
+"آخر تحديث": "Last update",
+"آخر قراءة": "Last read",
+"الإعدادات": "Settings",
+"تم إخفاء:": "Hidden:",
+"خط مستقيم": "Straight line",
+"دفعة 2027": "Class of 2027",
+"صغير جدًا": "Very small",
+"كبير جدًا": "Very large",
+"كورس جديد": "New course",
+"مؤشر ليزر": "Laser pointer",
+"نص السؤال": "Question text",
+"أخضر سبورة": "Chalkboard green",
+"إضافة كتاب": "Add book",
+"اختيارات ·": "Choices ·",
+"اسم الطالب": "Student name",
+"اسم الكورس": "Course name",
+"اسم المعلم": "Teacher name",
+"الاختبارات": "Exams",
+"الدرجة (من": "Score (out of",
+"الفيديوهات": "Videos",
+"النموذجية:": "Model:",
+"بدء اختبار": "Start exam",
+"تعذر الحفظ": "Could not save",
+"حذف الصفحة": "Delete page",
+"حذف الكورس": "Delete course",
+"رابط خارجي": "External link",
+"رابط فيديو": "Video link",
+"رسم بالقلم": "Draw",
+"رقم الصفحة": "Page number",
+"رمادي فاتح": "Light gray",
+"سؤال مقالي": "Essay question",
+"صفحة واحدة": "One page",
+"ماركر عريض": "Wide marker",
+"مستوى واحد": "One level",
+"مسح الصفحة": "Clear page",
+"ملء الشاشة": "Fullscreen",
+"مهمة جديدة": "New task",
+"إضافة ملزمة": "Add notes",
+"اختار الشكل": "Choose shape",
+"اختار اللون": "Choose color",
+"اختبار جديد": "New exam",
+"اكتب هنا...": "Write here...",
+"القلم الذكي": "Smart pen",
+"بنفسجي غامق": "Dark purple",
+"تأكيد الحذف": "Confirm delete",
+"تشغيل/إيقاف": "Play/Pause",
+"تعديل الاسم": "Edit name",
+"تغيير الاسم": "Rename",
+"جملة أخرى ›": "Another quote ›",
+"خرائط ذهنية": "Mind maps",
+"رابط يوتيوب": "YouTube link",
+"شعار المنصة": "Platform logo",
+"شكل الصفحة:": "Page style:",
+"عاصفة رعدية": "Thunderstorm",
+"عرض / تصحيح": "Show / Grade",
+"غائم جزئياً": "Partly cloudy",
+"غالباً صافٍ": "Mostly clear",
+"قيد القراءة": "Reading",
+"لون السبورة": "Board color",
+"نسبة التقدم": "Progress",
+"+ سؤال مقالي": "+ Essay question",
+"إضافة اختبار": "Add exam",
+"اختبر مستواك": "Test your level",
+"افتح السبورة": "Open board",
+"بدء الاختبار": "Start exam",
+"تم الحفظ في:": "Saved to:",
+"حفظ الاختبار": "Save exam",
+"حفظ البيانات": "Save data",
+"قائمة المهام": "Task list",
+"لا توجد مهام": "No tasks",
+"لم يُفتح بعد": "Not opened yet",
+"لم يُقرأ بعد": "Not read yet",
+"متوازي أضلاع": "Parallelogram",
+"مسح المنتهية": "Clear completed",
+"ملاحظة لاصقة": "Sticky note",
+"+ اختبار جديد": "+ New exam",
+"· نسخة المعلم": "· Teacher copy",
+"إخفاء الإجابة": "Hide answer",
+"إضافة للسبورة": "Add to board",
+"إضافة للقائمة": "Add to list",
+"اختبار مستورد": "Imported exam",
+"الاختبار فاضي": "Exam is empty",
+"السنة الثالثة": "Third Year",
+"السنة الرابعة": "Fourth Year",
+"المساعد الذكي": "AI Assistant",
+"بحث في المنصة": "Search the platform",
+"تعذر التحويل:": "Conversion failed:",
+"تم حذف الصفحة": "Page deleted",
+"خلفية التطبيق": "App background",
+"خلفية السبورة": "Board background",
+"طباعة القائمة": "Print list",
+"لا توجد نتائج": "No results",
+"مثال: القاهرة": "e.g. Cairo",
+"ملزمة ومراجعة": "Notes & review",
+"30 ثانية للخلف": "Back 30 s",
+"إنشاء الملاحظة": "Create note",
+"ابحث في المنصة": "Search the platform",
+"استيراد اختبار": "Import exam",
+"الترتيب اليدوي": "Manual order",
+"الصفحة التالية": "Next page",
+"الصفحة السابقة": "Previous page",
+"الكتب والملازم": "Books & Notes",
+"تسليم الاختبار": "Submit exam",
+"تم تحميل النص.": "Text loaded.",
+"خلفية السبورة:": "Board background:",
+"شرح مبسط ومركز": "Simple, focused explanation",
+"صورة من الجهاز": "Image from device",
+"عنوان الاختبار": "Exam title",
+"لم تتم الإجابة": "Not answered",
+"متابعة القراءة": "Continue reading",
+"محرّر الاختبار": "Exam editor",
+"30 ثانية للأمام": "Forward 30 s",
+"ابحث عن كتاب...": "Search for a book...",
+"اختيار من متعدد": "Multiple choice",
+"اكتب اسم الكورس": "Enter course name",
+"الإجابة الصحيحة": "Correct answer",
+"المكتبة الرقمية": "Digital library",
+"تم حفظ الاختبار": "Exam saved",
+"تم حفظ البيانات": "Data saved",
+"تم ضبط المدينة:": "City set to:",
+"جارٍ التحميل...": "Loading...",
+"حفظ القائمة PDF": "Save list as PDF",
+"شجرة من مستويين": "Two-level tree",
+"عرض أثناء الشرح": "Show while explaining",
+"فيديو من الجهاز": "Video from device",
+"قلم مخطط بلونين": "Two-color striped pen",
+"pdf.js غير محمّل": "pdf.js not loaded",
+"أستاذ مصطفى محمد": "Mostafa Mohamed",
+"إنهاء ملء الشاشة": "Exit fullscreen",
+"اسم السنة الأولى": "First year name",
+"اسم صفحة السبورة": "Board page name",
+"اكتب إجابتك هنا…": "Write your answer here…",
+"اكتب مهمة بالقلم": "Write a task with the pen",
+"تسلسل من 3 خطوات": "3-step sequence",
+"تعديل اسم الكورس": "Edit course name",
+"تعذر تحميل الحفظ": "Could not load saved data",
+"تم استخراج النص.": "Text extracted.",
+"تم تغيير الخلفية": "Background changed",
+"خط زمني (5 نقاط)": "Timeline (5 points)",
+"سهم في الاتجاهين": "Two-way arrow",
+"شريط أفقي / راسي": "Horizontal / vertical bar",
+"شكل صفحة السبورة": "Board page style",
+"لون مخصص للسبورة": "Custom board color",
+"مقارنة بين شيئين": "Compare two things",
+"مكتبتك التعليمية": "Your learning library",
+"➡ الصفحة السابقة": "➡ Previous page",
+"⬅ الصفحة التالية": "⬅ Next page",
+"+ اختيار من متعدد": "+ Multiple choice",
+"أضف مهمة جديدة...": "Add a new task...",
+"اختبار بدون عنوان": "Untitled exam",
+"اختيار شكل الصفحة": "Choose page style",
+"اسم السنة الثالثة": "Third year name",
+"اسم السنة الثانية": "Second year name",
+"اسم السنة الرابعة": "Fourth year name",
+"اضغط لتحديث الطقس": "Tap to refresh weather",
+"اكتب المهمة الأول": "Write the task first",
+"السبورة التفاعلية": "Interactive Board",
+"الناتج غير مفهوم:": "Output not understood:",
+"تعذر تحميل الصورة": "Could not load image",
+"تعذر قراءة الملف:": "Could not read file:",
+"جارٍ فتح الملف...": "Opening file...",
+"خرائط ذهنية جاهزة": "Ready-made mind maps",
+"شريط أفقي أو راسي": "Horizontal or vertical bar",
+"كما هو (أم القرى)": "As is (Umm Al-Qura)",
+"مسح كتابات الصفحة": "Clear page writing",
+"ملف Word غير صالح": "Invalid Word file",
+"✓ تم الاطلاع عليه": "✓ Viewed",
+"آخر ما تم استخدامه": "Recently used",
+"أربع خانات متجاورة": "Four adjacent boxes",
+"اكتب المهمة بالقلم": "Write the task with the pen",
+"الإجابة النموذجية:": "Model answer:",
+"الخلفية الافتراضية": "Default background",
+"العنوان أسفل الاسم": "Title below name",
+"الملازم والمراجعات": "Notes & reviews",
+"تعذر إضافة الفيديو": "Could not add video",
+"جارٍ تحديد الموقع…": "Locating…",
+"حفظ كل الصفحات PDF": "Save all pages as PDF",
+"ضبط التاريخ الهجري": "Set Hijri date",
+"مهمة مكتوبة بالقلم": "Task written with pen",
+"٢ ثانوي (بكالوريا)": "2nd Secondary (Bac)",
+"إظهار/إخفاء الأدوات": "Show/hide tools",
+"استكملنا الفيديو من": "Resumed video from",
+"اسحب الشريط لأي طرف": "Drag the bar to either side",
+"الصف الثالث الثانوي": "3rd Secondary",
+"العربية (من اليمين)": "Arabic (right to left)",
+"تحويل بواسطة Gemini": "Convert with Gemini",
+"تعذر فتح هذا الملف.": "Could not open this file.",
+"لا يوجد نص في الملف": "No text in file",
+"ما لقيتش المدينة دي": "City not found",
+"نسخ الطلب لـ Gemini": "Copy request for Gemini",
+"اختر الإجابة الصحيحة": "Choose the correct answer",
+"الكورسات والفيديوهات": "Courses & videos",
+"تعذر حفظ PDF للسبورة": "Could not save board PDF",
+"جارٍ قراءة ملف Word…": "Reading Word file…",
+"غير متصل · آخر تحديث": "Offline · last update",
+"لا توجد صفحات لحفظها": "No pages to save",
+"لا توجد محاولات بعد.": "No attempts yet.",
+"لم يرجع Gemini نتيجة": "Gemini returned no result",
+"إظهار الإجابة الصحيحة": "Show correct answer",
+"اتضافت الصورة للسبورة": "Image added to board",
+"اسأل واحصل على مساعدة": "Ask and get help",
+"استيراد من Word / PDF": "Import from Word / PDF",
+"اضغط مرة أخرى للتأكيد": "Press again to confirm",
+"اكتب .. اشرح .. تفاعل": "Write .. explain .. interact",
+"تم حفظ إعدادات Gemini": "Gemini settings saved",
+"شبكة مربعات (6 خانات)": "Grid (6 boxes)",
+"فكرة مركزية وستة فروع": "Central idea with six branches",
+"لغة عربية - دفعة 2027": "Arabic language - Class of 2027",
+"مقالي بانتظار التصحيح": "Essay awaiting grading",
+"منصة أستاذ مصطفى محمد": "Mostafa Mohamed Platform",
+"إخفاء أو إظهار الأدوات": "Show or hide tools",
+"إظهار الملفات المحذوفة": "Show deleted files",
+"الاختبارات الإلكترونية": "Online exams",
+"تعذر استيراد ملفات PDF": "Could not import PDF files",
+"تعذر تحميل قائمة الكتب": "Could not load book list",
+"حجم السطور أو المربعات": "Line or grid size",
+"حفظ الصفحة الحالية PDF": "Save current page as PDF",
+"دورة متسلسلة (4 مراحل)": "Cycle (4 stages)",
+"دورة متسلسلة (6 مراحل)": "Cycle (6 stages)",
+"إخفاء الإجابة النموذجية": "Hide model answer",
+"إظهار الإجابة النموذجية": "Show model answer",
+"اختار ملف PDF من الجهاز": "Pick a PDF from device",
+"اضغط مرتين لتغيير الاسم": "Double-tap to rename",
+"الوقت (دقيقة، 0 = بدون)": "Time (minutes, 0 = none)",
+"تعذر تحميل غلاف الكتاب:": "Could not load book cover:",
+"خريطة مفاهيم بأربع فروع": "Concept map with four branches",
+"دائرة حوالين الفكرة (8)": "Circle around the idea (8)",
+"رجعت الخلفية الافتراضية": "Default background restored",
+"فكرة مركزية وأربعة فروع": "Central idea with four branches",
+"فكرة مركزية وفروع فرعية": "Central idea with sub-branches",
+"اختيار لون خلفية السبورة": "Choose board background color",
+"المساحة دي مش على الصفحة": "This area is off the page",
+"تحويل محلي (بدون إنترنت)": "Local conversion (offline)",
+"تم إظهار الملفات المخفية": "Hidden files shown",
+"لا توجد كتابات في الصفحة": "No writing on this page",
+"استيراد من الناتج الملصوق": "Import from pasted output",
+"اضغط مسح مرة أخرى للتأكيد": "Press clear again to confirm",
+"الرابط (يبدأ بـ https://)": "Link (starts with https://)",
+"تم مسح الكتابات في الصفحة": "Writing cleared from page",
+"جارٍ استخراج النص من PDF…": "Extracting text from PDF…",
+"نسخة المعلم (مع الإجابات)": "Teacher copy (with answers)",
+"اكتب رابط يبدأ بـ https://": "Write a link starting with https://",
+"تعذر الحفظ، حاول مرة تانية": "Could not save, try again",
+"تمام، اضغط \"إضافة للسبورة\"": "Done, press \"Add to board\"",
+"هيتم تحديد الموقع تلقائياً": "Location will be detected automatically",
+"أضف سؤالاً واحداً على الأقل": "Add at least one question",
+"تبديل الوضع الليلي والنهاري": "Toggle dark and light mode",
+"شكل الصفحة: مسطرة أو مربعات": "Page style: ruled or grid",
+"تصنيف: فكرة وتصنيفات وتفاصيل": "Category: idea, categories and details",
+"تعذر البحث. تأكد من الإنترنت": "Search failed. Check your connection",
+"حدّد الإجابة الصحيحة للسؤال:": "Choose the correct answer:",
+"اتضافت الخريطة للصفحة الحالية": "Mind map added to current page",
+"ابدأ الآن، فالكمال يأتي بعد المحاولة.": "Start now; perfection comes after trying.",
+"تعلّم كأنك ستعيش أبداً، وأتقن كأنك ستُحاسَب غداً.": "Learn as if you will live forever.",
+"اليوم الذي تتعلم فيه شيئاً جديداً ليس يوماً ضائعاً.": "Any day you learn something new is not a wasted day.",
+"ملف الاختبار (Word أو PDF أو نص)": "Exam file (Word, PDF or text)",
+"لون الواجهة (اختر الأريح لعينيك)": "Interface color (pick what is easiest on your eyes)",
+"مؤشر ليزر (أثر مضيء بيختفي لوحده)": "Laser pointer (glowing trail that fades)",
+"تحديد (مربع خط مقطع) للحذف أو النقل": "Select (box, line or lasso) to delete or move",
+"اكتب رقم الصفحة واضغط Enter للانتقال": "Type a page number and press Enter to go",
+"المكتبة ما زالت تحمل، حاول بعد لحظات": "Library is still loading, try in a moment",
+"لم يتم العثور على ملفات PDF لإضافتها": "No PDF files found to add",
+"الطباعة غير متاحة هنا. استخدم حفظ PDF": "Printing is not available here. Use Save PDF",
+"وضع الأداء (أسرع على الأجهزة الضعيفة)": "Performance mode (faster on weak devices)",
+"فتحنا مجلد الاختبارات، ضع فيه ملفات PDF": "Opened the exams folder, put PDF files in it",
+"ابحث في المنصة: كتب، كورسات، فيديوهات...": "Search the platform: books, courses, videos...",
+"لا توجد مهام. اكتب مهمة أو استخدم القلم.": "No tasks. Write a task or use the pen.",
+"لا يوجد نشاط بعد. افتح أي كتاب وسيظهر هنا.": "No activity yet. Open any book and it will appear here.",
+"لا توجد فيديوهات بعد. أضف فيديو من داخل أي كورس.": "No videos yet. Add a video inside any course.",
+"لا توجد كورسات بعد. اضغط \"كورس جديد\" وابدأ بإنشاء أول مجلد.": "No courses yet. Press \"New course\" to create your first folder.",
+"لا توجد هنا بعد. اضغط زر \"إضافة\" لاختيار ملف PDF من الجهاز.": "Nothing here yet. Press \"Add\" to pick a PDF from your device.",
+"لا توجد اختبارات بعد. اضغط \"تحميل اختبار\" واختار ملف PDF من الجهاز.": "No exams yet. Press \"Upload exam\" and pick a PDF.",
+"تعذر إضافة ملفات PDF. تأكد أن التطبيق يعمل بشكل صحيح ثم حاول مرة أخرى.": "Could not add PDF files. Make sure the app works correctly and try again.",
+"تعذر جلب الطقس. تأكد من الإنترنت، أو حدد مدينتك من الإعدادات.": "Could not get the weather. Check your internet, or set your city in settings.",
+"المواقع دي بتفتح داخل التطبيق. لو طلبت تسجيل دخول بحساب جوجل، ممكن يتطلب ذلك مرة واحدة من المتصفح الخارجي.": "These sites open inside the app. If they ask you to sign in with Google, you may need to do it once in the external browser.",
+"مفتاح مجاني من aistudio.google.com/apikey ويُحفظ على جهازك فقط. بدونه تقدر تستخدم النسخ واللصق.": "Free key from aistudio.google.com/apikey, saved on your device only. Without it you can use copy and paste.",
+"التحويل بـ Gemini يحتاج مفتاح API مجاني تضيفه من الإعدادات، ومحتوى الملف يُرسل إلى Google. دائماً راجع الأسئلة والإجابات قبل الحفظ.": "Converting with Gemini needs a free API key added in settings, and the file content is sent to Google. Always review questions and answers before saving.",
+"مساعد عام للشرح والأسئلة والتلخيص.": "General assistant for explanations, questions and summaries.",
+"مساعد من جوجل للشرح والبحث وحل الأسئلة.": "Google assistant for explanations, research and solving questions.",
+"شرح": "Explain",
+"تم الحفظ في: ": "Saved to: ",
+"مساحتك التعليمية: كتبك وملازمك وسبورتك واختباراتك في مكان واحد، ومحفوظة على جهازك.": "Your learning space: books, notes, board and exams in one place, saved on your device.",
+"الخريطة بتتضاف فاضية للصفحة الحالية، ارسم عليها بالقلم أو امسح بالممحاة زي الاستيكي نوتس.": "The map is added empty to the current page; draw on it with the pen or erase like sticky notes.",
+"الفيديو لسه ما اتحملش.\nتأكد إن الملف مش تالف، والأفضل يكون MP4.": "The video has not loaded.\nMake sure the file is not corrupted; MP4 is best.",
+"تعذر تشغيل الفيديو (كود 4).\nالصيغة دي مش مدعومة.": "Could not play the video (code 4).\nThis format is not supported.",
+"الملف كبير (أكثر من 14MB)؛ هيتم استخراج النص محلياً فقط.": "File is large (over 14MB); text will be extracted locally only.",
+"اضغط لفتح مجلد الاختبارات وضع فيه ملف PDF": "Press to open the exams folder and put a PDF in it",
+"نوع الملف غير مدعوم. استخدم Word أو PDF أو نص.": "Unsupported file type. Use Word, PDF or text.",
+"تمت قراءة Word. راجع النص ثم اختر طريقة التحويل.": "Word read. Review the text, then choose how to convert.",
+"الكورس فاضي. اضغط \"فيديو من الجهاز\" أو أضف رابط يوتيوب.": "Course is empty. Press \"Video from device\" or add a YouTube link.",
+"اسحب الكتاب لتغيير مكانه (على الموبايل: اضغط مطولاً ثم اسحب)": "Drag the book to move it (on mobile: long-press then drag)",
+"القلم الذكي (يحوّل رسمك لشكل مظبوط: خط، دائرة، مثلث، مستطيل)": "Smart pen (turns your drawing into a clean shape: line, circle, triangle, rectangle)",
+"للنسخ محتاج نص. ارفع الملف في Gemini مباشرة وألصق الطلب فقط.": "To copy you need text. Upload the file to Gemini directly and paste the request only.",
+"تعذر جلب الطقس": "Could not get weather",
+"تم نسخ الطلب. افتح Gemini والصقه، ثم الصق الناتج في المربع بالأسفل.": "Request copied. Open Gemini and paste it, then paste the output in the box below.",
+"اسحب على الجزء اللي عايزه من الصفحة": "Drag over the part of the page you want",
+"تعذر إضافة ملفات PDF": "Could not add PDF files",
+"التحديد التلقائي بيستخدم موقع جهازك، ولو مش متاح بيستخدم موقع الإنترنت التقريبي.": "Auto-detect uses your device location; if not available it uses approximate internet location.",
+"الاسم: ______________________      التاريخ: ____________": "Name: ______________________      Date: ____________",
+"كل سؤال اختياري يحتاج اختيارين على الأقل": "Each multiple-choice question needs at least two choices",
+"حدّد الإجابة الصحيحة بالدائرة قبل الحفظ.": "Circle the correct answer before saving.",
+"راجع الأسئلة وحدّد الإجابات الصحيحة قبل الحفظ": "Review the questions and mark the correct answers before saving",
+"سؤال بدون إجابة. تسليم الاختبار؟": "Question without an answer. Submit exam?",
+"اختر ملفاً أو الصق النص أولاً.": "Choose a file or paste the text first.",
+"اختر ملفاً أو الصق نص الاختبار.": "Choose a file or paste the exam text.",
+"قص جزء من الصفحة وإضافته للسبورة": "Crop part of the page and add it to the board",
+"تعذر تشغيل الفيديو": "Could not play video",
+"مفتاح Gemini API (للتحويل التلقائي للاختبارات)": "Gemini API key (for automatic exam conversion)",
+"وضع راحة العين (خلفية سوداء بالكامل بدون زجاج)": "Eye-comfort mode (fully black background, no glass)",
+"Language / اللغة": "Language / اللغة",
+"الوضع الليلي": "Dark mode"
+};
+        const I18N_ORIG_TEXT = new WeakMap();   // النص العربي الأصلي لكل text node اتترجم
+        const I18N_ORIG_ATTR = new WeakMap();   // النص العربي الأصلي لكل عنصر (لكل خاصية)
+        const I18N_ATTRS = ['placeholder', 'title', 'aria-label'];
+        let i18nObserver = null;
+        let i18nBusy = false;
+
+        function i18nKey(text) { return text.trim(); }
+
+        function i18nTranslateText(node, toEn) {
+            if (toEn) {
+                const k = i18nKey(node.nodeValue);
+                if (!k || !(k in I18N_EN)) return;
+                const next = node.nodeValue.replace(k, I18N_EN[k]);
+                if (next === node.nodeValue) return;          // مفيش تغيير: ما نكتبش عشان ما نعملش حلقة
+                if (!I18N_ORIG_TEXT.has(node)) I18N_ORIG_TEXT.set(node, node.nodeValue);
+                node.nodeValue = next;
+            } else if (I18N_ORIG_TEXT.has(node)) {
+                const cur = node.nodeValue;
+                const orig = I18N_ORIG_TEXT.get(node);
+                I18N_ORIG_TEXT.delete(node);
+                if (cur !== orig) node.nodeValue = orig;
+            }
+        }
+
+        function i18nTranslateAttrs(el, toEn) {
+            for (const attr of I18N_ATTRS) {
+                if (!el.hasAttribute(attr)) continue;
+                const val = el.getAttribute(attr);
+                const k = i18nKey(val);
+                if (toEn) {
+                    if (!k || !(k in I18N_EN)) continue;
+                    const next = val.replace(k, I18N_EN[k]);
+                    if (next === val) continue;                // نفس النص: ما نغيّرش عشان ما نعملش حلقة
+                    if (!I18N_ORIG_ATTR.has(el)) I18N_ORIG_ATTR.set(el, {});
+                    const rec = I18N_ORIG_ATTR.get(el);
+                    if (!(attr in rec)) rec[attr] = val;
+                    el.setAttribute(attr, next);
+                } else {
+                    const rec = I18N_ORIG_ATTR.get(el);
+                    if (rec && attr in rec) { el.setAttribute(attr, rec[attr]); delete rec[attr]; }
+                }
+            }
+        }
+
+        function i18nWalk(root, toEn) {
+            if (!root) return;
+            if (root.nodeType === 3) { i18nTranslateText(root, toEn); return; }
+            if (root.nodeType !== 1) return;
+            if (root.tagName === 'SCRIPT' || root.tagName === 'STYLE') return;
+            i18nTranslateAttrs(root, toEn);
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+            let n = walker.nextNode();
+            while (n) {
+                if (n.nodeType === 3) i18nTranslateText(n, toEn);
+                else if (n.tagName !== 'SCRIPT' && n.tagName !== 'STYLE') i18nTranslateAttrs(n, toEn);
+                n = walker.nextNode();
+            }
+        }
+
+        function i18nStartObserver() {
+            if (i18nObserver) return;
+            i18nObserver = new MutationObserver(records => {
+                if (!isEn() || i18nBusy) return;
+                i18nBusy = true;
+                try {
+                    for (const r of records) {
+                        if (r.type === 'childList') r.addedNodes.forEach(n => i18nWalk(n, true));
+                        else if (r.type === 'characterData') i18nWalk(r.target, true);
+                        else if (r.type === 'attributes' && r.target.nodeType === 1) i18nTranslateAttrs(r.target, true);
+                    }
+                } finally { i18nBusy = false; }
+            });
+            i18nObserver.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS });
+        }
+
+        function i18nApply(toEn) {
+            i18nBusy = true;
+            try { i18nWalk(document.body, toEn); } finally { i18nBusy = false; }
+            i18nStartObserver();
         }
 
         // وضع راحة العين: شاشة سوداء بالكامل من غير خلفيات أو زجاج، ومحفوظ مع بيانات المنصة
@@ -2904,7 +3487,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === view));
             document.querySelectorAll('.view').forEach(s => s.classList.remove('active'));
             $('view-' + view).classList.add('active');
-            $('view-title').innerText = VIEW_TITLES[view] || '';
+            $('view-title').innerText = viewTitle(view);
             document.body.classList.toggle('board-active', view === 'board');
             if (view === 'board') setTimeout(resizeCanvas, 50);
             if (view === 'books') renderLibrary();
@@ -2967,9 +3550,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             svg.innerHTML = t;
         }
 
-        const dateFmtG = (() => { try { return new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return null; } })();
-        const dateFmtH = (() => { try { return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return null; } })();
-        const timeFmt = (() => { try { return new Intl.DateTimeFormat('ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true }); } catch (e) { return null; } })();
+        let dateFmtG = null, dateFmtH = null, timeFmt = null;
+        // التاريخ والوقت بيتعرضوا بلغة المنصة (عربي أو إنجليزي)
+        function buildDateFormatters(lang) {
+            const en = lang === 'en';
+            try { dateFmtG = new Intl.DateTimeFormat(en ? 'en-US' : 'ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { dateFmtG = null; }
+            try { dateFmtH = new Intl.DateTimeFormat(en ? 'en-u-ca-islamic-umalqura' : 'ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { dateFmtH = null; }
+            try { timeFmt = new Intl.DateTimeFormat(en ? 'en-US' : 'ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true }); } catch (e) { timeFmt = null; }
+        }
+        buildDateFormatters('ar');
         let clockTimer = null, lastDateKey = '';
 
         function tickClock() {
@@ -5222,10 +5811,74 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
         }
 
-        async function saveBoardAsPDF() {
-            if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
-            const { jsPDF } = window.jspdf;
-            const pages = wbGrade().pages.map(normalizePage);
+        // بناء PDF بسيط من صور الصفحات (بدون مكتبة خارجية). الصور بتتضغط بـ deflate بدون فقدان جودة
+        async function canvasesToPdfBase64(items) {
+            const enc = new TextEncoder();
+            const chunks = [];
+            let len = 0;
+            const push = u8 => { chunks.push(u8); len += u8.length; };
+            const pushStr = str => push(enc.encode(str));
+            const offsets = [];
+            const n = items.length;
+            const total = 2 + 3 * n;
+            const objStart = id => { offsets[id] = len; pushStr(id + ' 0 obj\n'); };
+            const endObj = () => pushStr('endobj\n');
+            const deflate = async u8 => {
+                if (typeof CompressionStream === 'undefined') return { data: u8, filter: '' };
+                const stream = new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate'));
+                return { data: new Uint8Array(await new Response(stream).arrayBuffer()), filter: ' /Filter /FlateDecode' };
+            };
+
+            pushStr('%PDF-1.4\n');
+            objStart(1); pushStr('<< /Type /Catalog /Pages 2 0 R >>\n'); endObj();
+            objStart(2);
+            pushStr('<< /Type /Pages /Count ' + n + ' /Kids [' + items.map((_, i) => (3 + 3 * i) + ' 0 R').join(' ') + '] >>\n');
+            endObj();
+
+            for (let i = 0; i < n; i++) {
+                const it = items[i];
+                const pid = 3 + 3 * i, cid = 4 + 3 * i, iid = 5 + 3 * i;
+                const W = it.W, H = it.H, cv = it.canvas;
+                objStart(pid);
+                pushStr('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + W + ' ' + H + '] /Resources << /XObject << /Im' + i + ' ' + iid + ' 0 R >> >> /Contents ' + cid + ' 0 R >>\n');
+                endObj();
+                const content = 'q ' + W + ' 0 0 ' + H + ' 0 0 cm /Im' + i + ' Do Q';
+                objStart(cid);
+                pushStr('<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream\n');
+                endObj();
+
+                const px = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
+                const rgb = new Uint8Array(cv.width * cv.height * 3);
+                for (let p = 0, q = 0; p < px.length; p += 4, q += 3) { rgb[q] = px[p]; rgb[q + 1] = px[p + 1]; rgb[q + 2] = px[p + 2]; }
+                const z = await deflate(rgb);
+                objStart(iid);
+                pushStr('<< /Type /XObject /Subtype /Image /Width ' + cv.width + ' /Height ' + cv.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8' + z.filter + ' /Length ' + z.data.length + ' >>\nstream\n');
+                push(z.data);
+                pushStr('\nendstream\n');
+                endObj();
+            }
+
+            const xrefPos = len;
+            let xref = 'xref\n0 ' + (total + 1) + '\n0000000000 65535 f \n';
+            for (let id = 1; id <= total; id++) xref += String(offsets[id]).padStart(10, '0') + ' 00000 n \n';
+            pushStr(xref);
+            pushStr('trailer\n<< /Size ' + (total + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefPos + '\n%%EOF\n');
+
+            const out = new Uint8Array(len);
+            let o = 0;
+            for (const c of chunks) { out.set(c, o); o += c.length; }
+            let bin = '';
+            for (let i = 0; i < out.length; i += 0x8000) bin += String.fromCharCode.apply(null, out.subarray(i, i + 0x8000));
+            return btoa(bin);
+        }
+
+        // onlyCurrent = true: الصفحة الحالية بس، غير كده كل الصفحات
+        async function saveBoardAsPDF(onlyCurrent) {
+            // على الأندرويد بنستخدم jsPDF، وعلى الويندوز بنبني الـPDF في البرنامج نفسه (من غير مكتبة من النت)
+            if (NATIVE && !window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
+            const grade = wbGrade();
+            const allPages = grade.pages.map(normalizePage);
+            const pages = onlyCurrent ? [allPages[grade.currentIndex || 0] || normalizePage(null)] : allPages;
             const images = [];
             for (const pg of pages) {
                 const box = contentBox(pg);
@@ -5244,17 +5897,31 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     g.drawImage(img, 0, 0);
                 }
                 for (const st of pg.strokes) drawStroke(g, st);
-                images.push({ data: tmp.toDataURL('image/png'), W, H });
+                images.push({ data: NATIVE ? tmp.toDataURL('image/png') : null, W, H, canvas: tmp });
             }
             if (!images.length) return toast('لا توجد صفحات لحفظها');
 
+            const name = `شرح_السبورة_${({ sec3: 'ثالثة_ثانوي', sec2: 'ثانية_ثانوي', y3: 'السنة_الثالثة', y4: 'السنة_الرابعة' })[currentGrade] || 'سبورة'}${onlyCurrent ? '_صفحة_' + ((grade.currentIndex || 0) + 1) : ''}_${Date.now()}.pdf`;
+
+            // الويندوز: بنبني الـPDF في المتصفح نفسه (من غير مكتبة ولا تعديل في البرنامج)
+            if (!NATIVE) {
+                try {
+                    const base64 = await canvasesToPdfBase64(images);
+                    const path = await api.savePdf(name, base64);
+                    toast(`تم الحفظ في: ${path}`);
+                } catch (e) {
+                    console.error('تعذر حفظ PDF للسبورة', e);
+                    toast('تعذر الحفظ، حاول مرة تانية');
+                }
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [images[0].W, images[0].H] });
             images.forEach((im, i) => {
                 if (i > 0) pdf.addPage([im.W, im.H], 'landscape');
                 pdf.addImage(im.data, 'PNG', 0, 0, im.W, im.H);
             });
-
-            const name = `شرح_السبورة_${({ sec3: 'ثالثة_ثانوي', sec2: 'ثانية_ثانوي', y3: 'السنة_الثالثة', y4: 'السنة_الرابعة' })[currentGrade] || 'سبورة'}_${Date.now()}.pdf`;
             const base64 = pdf.output('datauristring').split(',').pop();
             try {
                 const path = await api.savePdf(name, base64);
@@ -7851,6 +8518,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
             document.body.classList.toggle('lite', appState.lite === undefined ? (navigator.hardwareConcurrency || 8) <= 4 : !!appState.lite);
             document.body.classList.toggle('eyecare', !!appState.eyeCare);
+            applyLang(appState.lang || 'ar');
             applyBg();
             refreshToolButtons();
             syncSlider();
