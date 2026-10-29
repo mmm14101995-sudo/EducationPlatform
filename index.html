@@ -6806,17 +6806,22 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // على الأندرويد الفيديو بيتفتح في المشغّل الأصلي (بيشغّل أغلب الصيغ)، وغير كده المشغّل اللي في المتصفح
         // الفيديو بيتشغّل جوه المنصة. على الأندرويد بالمشغّل الأصلي.
         let vpCurrent = null;
+        // الفيديو بيتفتح دايماً في المشغّل اللي جوه التطبيق عشان الاستكمال يشتغل على الأندرويد والويندوز.
+        // المشغّل الأصلي للأندرويد بيفضل احتياطي بس لو الصيغة ما اتفكتش.
         async function playMedia(cid, name, url, title) {
-            if (NATIVE && NATIVE.playVideo) {
-                if (NATIVE.playVideo(cid, name)) return;
-            }
-            vpCurrent = NATIVE ? null : { cid, name };
+            vpCurrent = { cid, name };
             openPlayer(url, title);
         }
 
         // لو الصفحة ما قدرتش تفك الصيغة (زي MKV) على الكمبيوتر، نفتح المشغّل الأصلي (libmpv)
         async function playNativeFallback() {
             if (!vpCurrent) return false;
+            if (NATIVE && NATIVE.playVideo) {
+                try {
+                    if (NATIVE.playVideo(vpCurrent.cid, vpCurrent.name)) { closeModal('player-modal'); return true; }
+                } catch (e) { /* نعرض الرسالة */ }
+                return false;
+            }
             try {
                 const res = await fetch('/api/media/native-play', {
                     method: 'POST',
