@@ -1655,6 +1655,23 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             body.native .sidebar .nav.active .ico { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
             body.native .side-foot .btn-ghost span { display: none; }
             body.native .side-foot .btn-ghost { padding: 12px 0; }
+            /* تنسيق الشاشات الصغيرة: مقاسات أصغر وأوزن عشان تتناسب مع عرض التليفون */
+            body.native .sidebar { flex-basis: 54px; width: 54px; min-width: 54px; max-width: 54px; padding: 6px 4px; gap: 4px; border-radius: 16px; }
+            body.native .sidebar .nav { padding: 8px 0; }
+            body.native .sidebar .nav .ico { width: 34px !important; height: 34px !important; min-width: 34px; padding: 7px; border-radius: 10px; }
+            body.native .main { gap: 8px; }
+            body.native .topbar { padding: 8px; gap: 8px; border-radius: 16px; }
+            body.native .topbar h1 { font-size: 15px; line-height: 1.4; }
+            body.native .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; }
+            body.native .seg button { flex: none; padding: 7px 4px; font-size: 12px; line-height: 1.3; }
+            body.native .hero { padding: 16px; border-radius: 20px; }
+            body.native .hero h2 { font-size: 21px; margin-bottom: 6px; }
+            body.native .hero p { font-size: 13px; line-height: 1.6; }
+            body.native .hero .kicker { font-size: 12px; }
+            body.native .view { padding: 2px 0 16px; }
+            body.native .stats { gap: 8px; margin: 10px 0; }
+            body.native .stat { padding: 12px; border-radius: 16px; gap: 10px; }
+            body.native .card, body.native .panel, body.native .qa-card, body.native .course-card { border-radius: 16px; }
         }
         body.native.board-active .app { padding: 0; gap: 0; }
         body.native.board-active .sidebar { display: none !important; }
@@ -6806,22 +6823,17 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // على الأندرويد الفيديو بيتفتح في المشغّل الأصلي (بيشغّل أغلب الصيغ)، وغير كده المشغّل اللي في المتصفح
         // الفيديو بيتشغّل جوه المنصة. على الأندرويد بالمشغّل الأصلي.
         let vpCurrent = null;
-        // الفيديو بيتفتح دايماً في المشغّل اللي جوه التطبيق عشان الاستكمال يشتغل على الأندرويد والويندوز.
-        // المشغّل الأصلي للأندرويد بيفضل احتياطي بس لو الصيغة ما اتفكتش.
         async function playMedia(cid, name, url, title) {
-            vpCurrent = { cid, name };
+            if (NATIVE && NATIVE.playVideo) {
+                if (NATIVE.playVideo(cid, name)) return;
+            }
+            vpCurrent = NATIVE ? null : { cid, name };
             openPlayer(url, title);
         }
 
         // لو الصفحة ما قدرتش تفك الصيغة (زي MKV) على الكمبيوتر، نفتح المشغّل الأصلي (libmpv)
         async function playNativeFallback() {
             if (!vpCurrent) return false;
-            if (NATIVE && NATIVE.playVideo) {
-                try {
-                    if (NATIVE.playVideo(vpCurrent.cid, vpCurrent.name)) { closeModal('player-modal'); return true; }
-                } catch (e) { /* نعرض الرسالة */ }
-                return false;
-            }
             try {
                 const res = await fetch('/api/media/native-play', {
                     method: 'POST',
