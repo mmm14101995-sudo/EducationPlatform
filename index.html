@@ -847,7 +847,7 @@
         .sp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 6px 0 16px; }
         .sp-tile { background: rgba(255,255,255,0.55); border: 2px solid transparent; border-radius: 12px; padding: 8px 4px; cursor: pointer; color: #422006; font-weight: 700; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .sp-tile.on { border-color: #422006; background: #ffffff; }
-        .sp-prev { display: block; position: relative; width: 44px; height: 44px; z-index: 0; isolation: isolate; }
+        .sp-prev { display: block; position: relative; width: 170px; height: 170px; zoom: 0.26; z-index: 0; isolation: isolate; }
         .sp-modes { display: flex; gap: 10px; margin-bottom: 14px; }
         .sp-mode { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #422006; background: transparent; color: #422006; font-weight: 800; cursor: pointer; }
         .sp-mode.on { background: #422006; color: #fde047; }
@@ -860,6 +860,11 @@
         .crop-cancel { background: transparent; color: #fff; border: 1px solid #fff; border-radius: 10px; padding: 8px 12px; cursor: pointer; }
         /* صورة مقصوصة جوه ملاحظة السبورة (بتتحرك وتتمسح زي الملاحظات) */
         .sticky.sh-image::before { display: none; }
+        .sticky-tools { display: flex; align-items: center; gap: 2px; }
+        .sticky-col { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(15,23,42,.35); padding: 0; cursor: pointer; background: #fde047; margin-inline-end: 2px; }
+        .note-pop { position: fixed; z-index: 3000; display: flex; flex-wrap: wrap; gap: 8px; width: 150px; padding: 10px; background: var(--card, #111827); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+        .note-pop button { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(15,23,42,.25); cursor: pointer; padding: 0; }
+        .note-pop .np-def { background: var(--flat-bg, #1f2937); color: var(--text, #e5e7eb); font-size: 15px; }
         .sticky-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; background: #ffffff; border-radius: 0 0 4px 4px; user-select: none; -webkit-user-drag: none; }
         .sticky-btn svg { width: 26px; height: 26px; }
         .rn-tool.sticky-btn svg { width: 28px; height: 28px; }
@@ -1019,7 +1024,7 @@
             .seg button { flex: none; white-space: nowrap; padding: 8px 12px; }
         }
         #eraser-ring {
-            position: absolute; left: 0; top: 0; display: none; pointer-events: none; z-index: 3; border-radius: 50%;
+            position: absolute; left: 0; top: 0; display: none; pointer-events: none; z-index: 3; border-radius: 3px;
             border: 2px solid rgba(15,23,42,0.55); background: rgba(148,163,184,0.18);
             box-shadow: 0 0 0 1px rgba(255,255,255,0.7); transform: translate(-50%, -50%);
         }
@@ -1713,12 +1718,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.simple #view-home .dash { grid-template-columns: minmax(0, 1fr) !important; }
         body.simple #view-home .hero { margin-bottom: 18px; }
         /* ألوان الخريطة الذهنية متناسقة مع ألوان المنصة */
-        .sticky.mindmap-node::before { background: var(--accent); }
-        .sticky.mindmap-master::before { background: var(--accent2); }
-        .sticky.mindmap-node.sh-bubble::after { border-top-color: var(--accent); }
-        .sticky.mindmap-master.sh-bubble::after { border-top-color: var(--accent2); }
-        .sticky.mindmap-node textarea { color: #0b1220; }
+        .sticky.mindmap-node::before { background: var(--note-c, var(--accent)); }
+        .sticky.mindmap-master::before { background: var(--note-c, var(--accent2)); }
+        .sticky.mindmap-node.sh-bubble::after { border-top-color: var(--note-c, var(--accent)); }
+        .sticky.mindmap-master.sh-bubble::after { border-top-color: var(--note-c, var(--accent2)); }
+        .sticky.mindmap-node textarea { color: var(--note-ink, #0b1220); }
         .sticky.mindmap-node textarea::placeholder { color: rgba(11,18,32,0.5); }
+        /* خرائط ذهنية تعليمية: نص في المنتصف، حواف ناعمة، وظل خفيف */
+        .sticky.mindmap-node::before, .sticky.mindmap-master::before { box-shadow: 0 4px 12px rgba(15,23,42,0.16); }
+        .sticky.mindmap-node:not(.sh-round)::before { border-radius: 16px; }
+        .sticky.mindmap-node.sh-round::before { border-radius: 50%; }
+        .sticky.mindmap-node textarea { text-align: center; font-weight: 700; font-size: 15px; padding: 10px; }
+        .sticky.mindmap-master textarea { font-size: 17px; font-weight: 800; }
         /* الساعة الرقمية */
         #ck-digi { display: none; }
         .clock-wrap.is-digital #clock-svg, .clock-wrap.is-digital #ck-digital { display: none; }
@@ -1759,6 +1770,39 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             .set-sec .field-row { flex-wrap: wrap; }
             .set-sec .field-row input { min-width: 0; }
         }
+
+        /* ===== السبورة: أيقونات الأقلام أكبر ===== */
+        .board-bar .ibtn.pen-3d, .board:not(.fs) .board-bar .ibtn.pen-3d { width: 50px !important; height: 60px !important; min-width: 50px !important; }
+        .board-bar .ibtn.pen-3d svg, .board-bar #eraser-btn svg, .board:not(.fs) .board-bar .ibtn.pen-3d svg, .board:not(.fs) .board-bar #eraser-btn svg { width: 34px !important; height: 52px !important; }
+        @media (max-width: 820px) {
+            .board-bar .ibtn.pen-3d, .board:not(.fs) .board-bar .ibtn.pen-3d { width: 44px !important; height: 56px !important; min-width: 44px !important; }
+            .board-bar .ibtn.pen-3d svg, .board-bar #eraser-btn svg, .board:not(.fs) .board-bar .ibtn.pen-3d svg, .board:not(.fs) .board-bar #eraser-btn svg { width: 30px !important; height: 46px !important; }
+        }
+        /* وضع اليد */
+        body.board-hand #custom-canvas, body.board-hand .board-stage { cursor: grab !important; }
+        body.board-hand #hand-btn.active { background: rgba(var(--accent-rgb),0.22); box-shadow: 0 0 0 2px var(--accent); }
+
+        /* ===== Sticky Notes: شريط النقل والإغلاق مخفي لحد ما تقف عليه ===== */
+        .sticky-head { opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+        .sticky:hover > .sticky-head, .sticky:focus-within > .sticky-head, .sticky.head-on > .sticky-head, .sticky.moving > .sticky-head { opacity: 1; pointer-events: auto; }
+
+        /* ===== Sticky Notes بشكل المنصة (مش صفرا) ===== */
+        .sticky::before, .sp-prev::before { background: #fff7e6; background: var(--note-c, color-mix(in srgb, var(--accent) 18%, #fffdf8)); box-shadow: 0 6px 16px rgba(15,23,42,0.22); border-radius: 12px; }
+        .sticky textarea { color: var(--note-ink, #1e293b); }
+        .sticky textarea::placeholder { color: rgba(30,41,59,0.45); }
+        .sticky-head { color: #1e293b; }
+        .sticky-del { color: #1e293b; }
+        .sticky-picker { background: var(--card, #111827); color: var(--text, #e5e7eb); }
+        .sticky-picker .modal-head h2 { color: var(--text, #e5e7eb); }
+        .sp-tile { background: var(--flat-bg, rgba(255,255,255,0.06)); border: 1px solid var(--line); color: var(--text); }
+        .sp-tile.on { border-color: var(--accent); background: rgba(var(--accent-rgb),0.16); }
+        .sp-mode { border: 1px solid var(--line); background: transparent; color: var(--text); border-radius: 12px; }
+        .sp-mode.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .sp-create { background: var(--accent); color: #fff; }
+        .sp-colors { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 0 0 16px; }
+        .sp-col { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(15,23,42,.25); padding: 0; cursor: pointer; }
+        .sp-col.on { box-shadow: 0 0 0 2px var(--card, #111827), 0 0 0 4px var(--accent); }
+        .sh-bubble::after { border-top-color: var(--note-c, color-mix(in srgb, var(--accent) 18%, #fffdf8)); }
 </style>
 </head>
 <body data-theme="dark">
@@ -1948,7 +1992,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
                         <div class="bgrp">
                             <button class="ibtn" id="shape-open" title="الأشكال" onclick="openShapes('board')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
-                            <button class="ibtn sticky-btn" title="Sticky Notes" aria-label="Sticky Notes" onclick="openStickyPicker()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fde047" stroke="#a16207" stroke-width="1.2"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
+                            <button class="ibtn sticky-btn" title="Sticky Notes" aria-label="Sticky Notes" onclick="openStickyPicker()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" style="fill:var(--accent)" stroke="#a16207" stroke-width="1.2"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
                             <button class="ibtn" id="mindmap-btn" title="خرائط ذهنية" aria-label="خرائط ذهنية" onclick="openMindMapPicker()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="5" r="2"/><circle cx="4.5" cy="19" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="M9.5 10.5 6 6.5M14.5 10.5 18 6.5M9.5 13.5 6 17.5M14.5 13.5 18 17.5"/></svg></button>
                         </div>
                         <div class="bar-break"></div>
@@ -1975,6 +2019,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         </div>
 
                         <div class="bgrp">
+                            <button class="ibtn" id="hand-btn" title="وضع اليد: حرّك الشاشة بالقلم أو بأي إصبع" aria-label="وضع اليد" onclick="toggleHand()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 11.5V8.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.5a6 6 0 0 1-4.6-2.2L4 15.2a1.6 1.6 0 0 1 2.3-2.2L8 15"/></svg></button>
                             <button class="ibtn" title="تصغير" onclick="zoomBy(-0.25)"><i data-icon="zoomOut"></i></button>
                             <span class="lbl" id="zoom-label">100%</span>
                             <button class="ibtn" title="تكبير" onclick="zoomBy(0.25)"><i data-icon="zoomIn"></i></button>
@@ -2401,6 +2446,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="modal-head"><h2>Sticky Notes</h2><button class="ibtn" onclick="closeModal('sticky-picker-modal')"><i data-icon="x"></i></button></div>
             <p style="font-size:13px;line-height:1.7;margin-bottom:10px;">اختار الشكل، وبعدين اختار هتكتب نص ولا ترسم بالقلم.</p>
             <div class="sp-grid"><button type="button" class="sp-tile on" data-shape="rect" onclick="pickStickyShape('rect')"><span class="sp-prev sh-rect"></span><span>مستطيل</span></button><button type="button" class="sp-tile" data-shape="round" onclick="pickStickyShape('round')"><span class="sp-prev sh-round"></span><span>دائرة</span></button><button type="button" class="sp-tile" data-shape="bubble" onclick="pickStickyShape('bubble')"><span class="sp-prev sh-bubble"></span><span>فقاعة</span></button><button type="button" class="sp-tile" data-shape="dogear" onclick="pickStickyShape('dogear')"><span class="sp-prev sh-dogear"></span><span>ورقة</span></button><button type="button" class="sp-tile" data-shape="diamond" onclick="pickStickyShape('diamond')"><span class="sp-prev sh-diamond"></span><span>معين</span></button><button type="button" class="sp-tile" data-shape="triangle" onclick="pickStickyShape('triangle')"><span class="sp-prev sh-triangle"></span><span>مثلث</span></button><button type="button" class="sp-tile" data-shape="hexagon" onclick="pickStickyShape('hexagon')"><span class="sp-prev sh-hexagon"></span><span>سداسي</span></button><button type="button" class="sp-tile" data-shape="star" onclick="pickStickyShape('star')"><span class="sp-prev sh-star"></span><span>نجمة</span></button><button type="button" class="sp-tile" data-shape="octagon" onclick="pickStickyShape('octagon')"><span class="sp-prev sh-octagon"></span><span>ثماني</span></button><button type="button" class="sp-tile" data-shape="tag" onclick="pickStickyShape('tag')"><span class="sp-prev sh-tag"></span><span>شارة</span></button></div>
+            <div class="sp-colors" id="sp-colors"></div>
             <div class="sp-modes">
                 <button type="button" class="sp-mode on" data-mode="text" onclick="pickStickyMode('text')">كتابة نص</button>
                 <button type="button" class="sp-mode" data-mode="draw" onclick="pickStickyMode('draw')">رسم بالقلم</button>
@@ -2482,7 +2528,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
             <button class="rn-tool" id="crop-btn" title="قص جزء من الصفحة وإضافته للسبورة" onclick="startCrop()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.6 20 19M8.2 16.4 20 5"/></svg></button>
             <span class="rn-sep"></span>
-            <button class="rn-tool sticky-btn" title="ملاحظة لاصقة" onclick="addReaderSticky()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#fde047" stroke="#a16207"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
+            <button class="rn-tool sticky-btn" title="ملاحظة لاصقة" onclick="addReaderSticky()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" style="fill:var(--accent)" stroke="#a16207"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
             <button class="ncolor" id="rd-cpick" title="الألوان" onclick="openPalette('reader')" style="background:#dc2626"></button>
             <span class="rn-sep"></span>
             <button class="nsize" data-size="3" title="صغير" onclick="setNoteSize(3)"><span class="dot" style="width:4px;height:4px"></span></button>
@@ -3311,6 +3357,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 "الوقت (دقيقة، 0 = بدون)": "Time (minutes, 0 = none)",
 "تعذر تحميل غلاف الكتاب:": "Could not load book cover:",
 "خريطة مفاهيم بأربع فروع": "Concept map with four branches",
+            "فكرة مركزية وفروع": "Central idea and branches",
+            "تسلسل ودورات": "Sequences and cycles",
+            "مقارنة": "Comparison",
+            "فكرة مركزية وستة فروع": "Central idea with six branches",
+            "تفريع من اليمين (3 فروع وتفاصيل)": "Left-to-right tree (3 branches and details)",
+            "تصنيف من أعلى لتحت (3 فروع)": "Top-down classification (3 branches)",
+            "تسلسل خطوات (4 مراحل)": "Step sequence (4 stages)",
+            "دورة من 4 مراحل": "Cycle of 4 stages",
+            "خط زمني بمراحل": "Timeline of stages",
+            "مقارنة بين شيئين (3 صفوف)": "Comparing two things (3 rows)",
 "دائرة حوالين الفكرة (8)": "Circle around the idea (8)",
 "رجعت الخلفية الافتراضية": "Default background restored",
 "فكرة مركزية وأربعة فروع": "Central idea with four branches",
@@ -4557,7 +4613,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         $('board-bg-custom').addEventListener('change', e => { closeModal('board-bg-modal'); applyBoardBg(e.target.value); });
 
-        function boardDpr() { return document.body.classList.contains('lite') ? Math.min(1.5, window.devicePixelRatio || 1) : Math.min(2, window.devicePixelRatio || 1); }
+        function boardDpr() { const d = window.devicePixelRatio || 1; return document.body.classList.contains('lite') ? Math.min(1.5, d) : Math.min(3, d * 1.25); }
         function wbGrade() { return appState.whiteboard[currentGrade]; }
 
         // صفحة السبورة: {strokes: [...], bg?: dataURL}. الصفحات القديمة (صور) بتتحول تلقائياً
@@ -4580,11 +4636,56 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         stageEl.appendChild(stickyLayer);
         const stickyEls = new Map();
 
+        // ألوان الملاحظات: كل ملاحظة لونها الخاص (زر اللون في شريطها)
+        const NOTE_COLORS = [
+            { bg: '#fde047', ink: '#422006' }, { bg: '#bbf7d0', ink: '#14532d' }, { bg: '#bae6fd', ink: '#0c4a6e' },
+            { bg: '#fbcfe8', ink: '#831843' }, { bg: '#ddd6fe', ink: '#4c1d95' }, { bg: '#fed7aa', ink: '#7c2d12' },
+            { bg: '#ffffff', ink: '#1e293b' }, { bg: '#334155', ink: '#f8fafc' }
+        ];
+        function applyNoteColor(el, c) {
+            if (!el) return;
+            if (c) { el.style.setProperty('--note-c', c.bg); el.style.setProperty('--note-ink', c.ink); }
+            else { el.style.removeProperty('--note-c'); el.style.removeProperty('--note-ink'); }
+            const cb = el.querySelector('.sticky-col');
+            if (cb) cb.style.background = c ? c.bg : 'linear-gradient(135deg, #fffdf8 50%, #94a3b8 50%)';
+        }
+        let notePop = null;
+        function closeNoteColor() { if (notePop) { notePop.remove(); notePop = null; } }
+        function wireNoteColor(el, n, targetsFn) {
+            applyNoteColor(el, n.color);
+            const cb = el.querySelector('.sticky-col');
+            if (!cb) return;
+            cb.addEventListener('pointerdown', e => e.stopPropagation());
+            cb.addEventListener('click', e => {
+                e.preventDefault(); e.stopPropagation();
+                closeNoteColor();
+                const pop = document.createElement('div');
+                pop.className = 'note-pop';
+                const pick = (c) => {
+                    (targetsFn ? targetsFn() : [n]).forEach(x => {
+                        if (c) x.color = { bg: c.bg, ink: c.ink }; else delete x.color;
+                        applyNoteColor(stickyEls.get(x.id) || (x === n ? el : null), x.color);
+                    });
+                    scheduleSave(); closeNoteColor();
+                };
+                NOTE_COLORS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.title = 'لون'; b.style.background = c.bg; b.onclick = ev => { ev.stopPropagation(); pick(c); }; pop.appendChild(b); });
+                const d = document.createElement('button'); d.type = 'button'; d.title = 'افتراضي'; d.className = 'np-def'; d.textContent = '↺'; d.onclick = ev => { ev.stopPropagation(); pick(null); }; pop.appendChild(d);
+                document.body.appendChild(pop);
+                notePop = pop;
+                const r = cb.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+                pop.style.left = Math.max(8, Math.min(innerWidth - pw - 8, r.left + r.width / 2 - pw / 2)) + 'px';
+                pop.style.top = (r.bottom + 8 + ph > innerHeight ? Math.max(8, r.top - ph - 8) : r.bottom + 8) + 'px';
+                setTimeout(() => document.addEventListener('pointerdown', ev => { if (notePop && !notePop.contains(ev.target)) closeNoteColor(); }, { once: true }), 0);
+            });
+        }
+
         function makeStickyBase() {
             const el = document.createElement('div');
             el.className = 'sticky';
-            el.innerHTML = '<div class="sticky-head"><span>⋮⋮</span><button class="sticky-del" title="حذف">×</button></div><textarea placeholder="اكتب هنا..."></textarea>';
+            el.innerHTML = '<div class="sticky-head"><span>⋮⋮</span><span class="sticky-tools"><button class="sticky-col" type="button" title="لون الملاحظة" aria-label="لون الملاحظة"></button><button class="sticky-del" title="حذف">×</button></span></div><textarea placeholder="اكتب هنا..."></textarea>';
             ['pointerdown', 'click', 'touchstart'].forEach(ev => el.addEventListener(ev, e => e.stopPropagation()));
+            // شريط النقل والإغلاق بيظهر لما تقف عليه، أو تلمس الملاحظة (على الموبايل) لفترة قصيرة
+            el.addEventListener('pointerdown', () => { el.classList.add('head-on'); clearTimeout(el._headT); el._headT = setTimeout(() => el.classList.remove('head-on'), 2500); });
             return el;
         }
 
@@ -4677,7 +4778,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const out = [];
             for (const st of (n.ink || [])) {
                 const P = (st.pts || []).map(q => [q[0] * W, q[1] * H]);
-                const res = cutOutsideCircle(P, px, py, R);
+                const res = cutOutsideCircle(P, px, py, R, true);
                 if (!res.changed) { out.push(st); continue; }
                 changed = true;
                 res.pieces.forEach(pts => out.push({ ...st, pts: pts.map(q => [q[0] / W, q[1] / H]) }));
@@ -4766,6 +4867,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 }
             }
             if (n.shape && n.shape !== 'rect') el.classList.add('sh-' + n.shape);
+            wireNoteColor(el, n, () => {
+                const pg = currentPage();
+                return n.groupId ? (pg.notes || []).filter(x => x.groupId === n.groupId) : [n];
+            });
             if (n.mode === 'image') {
                 el.classList.add('sh-image');
                 el.querySelector('textarea').remove();
@@ -4835,11 +4940,29 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         const STICKY_SHAPES = ['rect', 'round', 'bubble', 'dogear', 'diamond', 'triangle', 'hexagon', 'star', 'octagon', 'tag'];
         const STICKY_SIZE = { bubble: { w: 210, h: 150 }, tag: { w: 220, h: 120 }, star: { w: 190, h: 190 } };
-        let stickyPick = { shape: 'rect', mode: 'text' };
+        let stickyPick = { shape: 'rect', mode: 'text', color: null };
+
+        function buildStickyPickColors() {
+            const box = $('sp-colors');
+            if (!box) return;
+            box.innerHTML = '';
+            const mk = (c, title) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'sp-col' + ((stickyPick.color ? (c && c.bg === stickyPick.color.bg) : (!c)) ? ' on' : '');
+                b.title = title;
+                b.style.background = c ? c.bg : 'linear-gradient(135deg, #fffdf8 50%, #94a3b8 50%)';
+                b.onclick = () => { stickyPick.color = c ? { bg: c.bg, ink: c.ink } : null; buildStickyPickColors(); };
+                box.appendChild(b);
+            };
+            NOTE_COLORS.forEach(c => mk(c, 'لون'));
+            mk(null, 'افتراضي');
+        }
 
         function openStickyPicker() {
             pickStickyShape(stickyPick.shape);
             pickStickyMode(stickyPick.mode);
+            buildStickyPickColors();
             openModal('sticky-picker-modal');
         }
         function pickStickyShape(shape) {
@@ -4853,15 +4976,17 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         function createStickyFromPicker() {
             closeModal('sticky-picker-modal');
-            createBoardSticky(stickyPick.shape, stickyPick.mode);
+            createBoardSticky(stickyPick.shape, stickyPick.mode, stickyPick.color);
         }
-        function createBoardSticky(shape, mode) {
+        function createBoardSticky(shape, mode, color) {
             const pg = currentPage();
             pg.notes = pg.notes || [];
             const cx = (stageEl.clientWidth / 2 - view.tx) / view.s;
             const cy = (stageEl.clientHeight / 2 - view.ty) / view.s;
             const sz = STICKY_SIZE[shape] || { w: 170, h: 170 };
-            pg.notes.push({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), x: cx - sz.w / 2, y: cy - sz.h / 2, w: sz.w, h: sz.h, text: '', shape, mode, ink: [] });
+            const note = { id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), x: cx - sz.w / 2, y: cy - sz.h / 2, w: sz.w, h: sz.h, text: '', shape, mode, ink: [] };
+            if (color) note.color = { bg: color.bg, ink: color.ink };
+            pg.notes.push(note);
             scheduleSave();
             renderStickies();
         }
@@ -4882,6 +5007,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             el.style.width = (n.w * 100) + '%';
             el.style.height = (n.h * 100) + '%';
             el.style.fontSize = '15px';
+            wireNoteColor(el, n, null);
             const ta = el.querySelector('textarea');
             ta.value = n.text || '';
             ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
@@ -5140,10 +5266,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ---- الممحاة: تمسح الجزء اللي بتلمسه بس ----
         // ممحاة بتمسح جزء صغير بجزء صغير: بتقص الخط عند حافة الدايرة وتسيب الباقي
         // بترجع القطع اللي برا الدايرة (pts بنفس الإحداثيات اللي بيتبعتلها)
-        function cutOutsideCircle(pts, px, py, R) {
+        // square=true: الممحاة مربعة (نص عرضها R من كل ناحية) بنفس منطق القص
+        function cutOutsideCircle(pts, px, py, R, square) {
             if (!pts || !pts.length) return { changed: false, pieces: [] };
             if (pts.length === 1) {
-                const inside = Math.hypot(pts[0][0] - px, pts[0][1] - py) < R;
+                const inside = square ? (Math.abs(pts[0][0] - px) < R && Math.abs(pts[0][1] - py) < R) : Math.hypot(pts[0][0] - px, pts[0][1] - py) < R;
                 return { changed: inside, pieces: inside ? [] : [pts] };
             }
             const pieces = [];
@@ -5154,7 +5281,21 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const dx = bx - ax, dy = by - ay, fx = ax - px, fy = ay - py;
                 const A = dx * dx + dy * dy, B = 2 * (fx * dx + fy * dy), C = fx * fx + fy * fy - R * R;
                 let outs;
-                if (A < 1e-9) outs = C >= 0 ? [[0, 1]] : [];
+                if (square) {
+                    // Liang-Barsky: الجزء من القطعة اللي جوه المربع
+                    let t0 = 0, t1 = 1, ok = true;
+                    const clip = (q, r) => {
+                        if (!ok) return;
+                        if (q === 0) { if (r < 0) ok = false; return; }
+                        const t = r / q;
+                        if (q < 0) { if (t > t1) ok = false; else if (t > t0) t0 = t; }
+                        else { if (t < t0) ok = false; else if (t < t1) t1 = t; }
+                    };
+                    clip(-dx, ax - (px - R)); clip(dx, (px + R) - ax);
+                    clip(-dy, ay - (py - R)); clip(dy, (py + R) - ay);
+                    if (!ok || t0 >= t1) outs = [[0, 1]];
+                    else { outs = []; if (t0 > 0) outs.push([0, t0]); if (t1 < 1) outs.push([t1, 1]); }
+                } else if (A < 1e-9) outs = C >= 0 ? [[0, 1]] : [];
                 else {
                     const disc = B * B - 4 * A * C;
                     if (disc <= 0) outs = [[0, 1]];
@@ -5249,7 +5390,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const out = [];
             let changed = false;
             for (const st of page.strokes) {
-                const r = cutOutsideCircle(st.pts, px, py, R);
+                const r = cutOutsideCircle(st.pts, px, py, R, true);
                 if (!r.changed) { out.push(st); continue; }
                 changed = true;
                 r.pieces.forEach(pts => out.push({ ...st, pts }));
@@ -5319,6 +5460,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 }
             }
 
+            if (handMode) { activeId = e.pointerId; activeMode = 'pan'; panLast = screenPoint(e); return; }
             if (tool === 'select') { selectDown(e); return; }
             if (tool === 'pen' && penStyle === 'laser' && !(e.pointerType === 'touch' && FINGER_ERASES)) {
                 // مؤشر الليزر: أثر مؤقت بيختفي، ومش بيتحفظ ومش بيدخل في التراجع
@@ -5355,6 +5497,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     applyPinch();
                     return;
                 }
+            }
+            if (activeMode === 'pan' && e.pointerId === activeId) {
+                const p = screenPoint(e);
+                view.tx += p.x - panLast.x; view.ty += p.y - panLast.y; panLast = p;
+                boardDirty = true; requestRender();
+                return;
             }
             if (tool === 'pen' && penStyle === 'laser') {
                 // الليزر بيتابع الماوس والقلم حتى من غير ضغط، واللمس وهو مضغوط بس
@@ -5395,6 +5543,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 selectUp();
                 activeId = null;
                 activeMode = null;
+            } else if (e.pointerId === activeId && activeMode === 'pan') {
+                activeId = null; activeMode = null; panLast = null;
+                requestRender();
             } else if (e.pointerId === activeId && activeMode === 'laser') {
                 if (e.pointerType === 'touch') laser.head = null;
                 activeId = null;
@@ -5809,7 +5960,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('penSizeVal').innerText = v + 'px';
         }
 
+        // وضع اليد: أي لمس (قلم أو إصبع أو ماوس) بيحرك الشاشة بدل ما يرسم
+        let handMode = false, panLast = null;
+        function setHand(on) {
+            handMode = !!on;
+            document.body.classList.toggle('board-hand', handMode);
+            const b = $('hand-btn'); if (b) b.classList.toggle('active', handMode);
+            if (handMode) { hideEraserRing(); cancelActive(); }
+        }
+        function toggleHand() { setHand(!handMode); }
+
         function setTool(newTool) {
+            if (handMode) setHand(false);
             tool = newTool;
             if (newTool !== 'select') clearSelection();
             syncSlider();
@@ -6265,127 +6427,138 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             scheduleSave();
         }
 
-        // ---- خرائط ذهنية جاهزة: فاضية، تتضاف للصفحة الحالية، والكتابة والمسح زي أي شكل ----
+        // ---- خرائط ذهنية تعليمية: فكرة رئيسية + فروع ملوّنة + توصيلات منحنية ----
         const mmUid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         // المكان بيتحسب بالمركز (cx, cy)، والـ x/y هي الركن العلوي
-        const mkNode = (cx, cy, w, h, shape) => ({ id: mmUid(), x: cx - w / 2, y: cy - h / 2, cx, cy, w, h, text: '', shape, mode: 'draw', ink: [] });
-        const mkLink = (a, b) => ({ t: 'pen', c: '#4f8cff', w: 3, s: 'shape', kind: 'line', pts: [[a.cx, a.cy], [b.cx, b.cy]] });
-        const mkLinks = (pairs) => pairs.map(([a, b]) => mkLink(a, b));
-        const mkRing = (n, rx, ry, a0, w, h, shape) => Array.from({ length: n }, (_, i) => {
-            const a = a0 + i * 2 * Math.PI / n;
-            return mkNode(Math.cos(a) * rx, Math.sin(a) * ry, w, h, shape);
-        });
-        const mkChain = (arr, closed) => {
-            const pairs = arr.slice(1).map((n, i) => [arr[i], n]);
-            if (closed && arr.length > 2) pairs.push([arr[arr.length - 1], arr[0]]);
-            return mkLinks(pairs);
+        const mkNode = (cx, cy, w, h, shape, col, text) => ({ id: mmUid(), x: cx - w / 2, y: cy - h / 2, cx, cy, w, h, text: text || '', shape, color: { bg: col.bg, ink: col.ink }, mode: 'draw', ink: [] });
+        // لوحة ألوان هادية وواضحة للطلاب (الدرجة الغامقة للخطوط، والفاتحة للتفاصيل)
+        const MM_PAL = {
+            root:   { bg: '#312e81', ink: '#ffffff', line: '#4338ca', soft: '#e0e7ff' },
+            sky:    { bg: '#bae6fd', ink: '#0c4a6e', line: '#0284c7', soft: '#e0f2fe' },
+            green:  { bg: '#bbf7d0', ink: '#14532d', line: '#16a34a', soft: '#dcfce7' },
+            pink:   { bg: '#fbcfe8', ink: '#831843', line: '#db2777', soft: '#fce7f3' },
+            amber:  { bg: '#fde68a', ink: '#78350f', line: '#d97706', soft: '#fef3c7' },
+            violet: { bg: '#ddd6fe', ink: '#4c1d95', line: '#7c3aed', soft: '#ede9fe' },
+            teal:   { bg: '#99f6e4', ink: '#134e4a', line: '#0d9488', soft: '#ccfbf1' },
+            muted:  { bg: '#e2e8f0', ink: '#334155', line: '#94a3b8', soft: '#f1f5f9' }
         };
-        const UP = -Math.PI / 2;
+        const LEAF = p => ({ bg: p.soft, ink: p.ink });
+        // توصيلة منحنية (بيزييه) بتتحفظ كخط قلم عادي، فتتعامل معاه الأدوات زي أي رسمة
+        const mkCurve = (a, b, col, w, mode) => {
+            const ax = a.cx, ay = a.cy, bx = b.cx, by = b.cy, dx = bx - ax, dy = by - ay;
+            let c1, c2;
+            if (mode === 'h') { const mx = ax + dx / 2; c1 = [mx, ay]; c2 = [mx, by]; }
+            else if (mode === 'v') { const my = ay + dy / 2; c1 = [ax, my]; c2 = [bx, my]; }
+            else {
+                const L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, bend = L * 0.16;
+                c1 = [ax + dx / 3 + nx * bend, ay + dy / 3 + ny * bend];
+                c2 = [ax + 2 * dx / 3 + nx * bend, ay + 2 * dy / 3 + ny * bend];
+            }
+            const pts = [];
+            for (let i = 0; i <= 28; i++) {
+                const t = i / 28, u = 1 - t;
+                pts.push([
+                    u * u * u * ax + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * bx,
+                    u * u * u * ay + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * by
+                ]);
+            }
+            return { t: 'pen', s: 'shape', c: col, w, pts };
+        };
+        const mkStraight = (x1, y1, x2, y2, col, w) => ({ t: 'pen', s: 'shape', c: col, w, pts: [[x1, y1], [x2, y2]] });
+        const UPA = -Math.PI / 2;
+        const ringPos = (n, rx, ry, a0) => Array.from({ length: n }, (_, i) => {
+            const a = a0 + i * 2 * Math.PI / n;
+            return { x: Math.cos(a) * rx, y: Math.sin(a) * ry };
+        });
+
+        const MM_GROUPS = [['branch', 'فكرة مركزية وفروع'], ['flow', 'تسلسل ودورات'], ['compare', 'مقارنة']];
 
         const MM_TEMPLATES = [
-            // ---- مستوى واحد ----
-            { id: 'radial6', levels: 1, title: 'فكرة مركزية وستة فروع', build() {
-                const c = mkNode(0, 0, 190, 190, 'round');
-                const arr = mkRing(6, 340, 260, UP, 170, 110, 'bubble');
-                return { nodes: [c, ...arr], links: arr.map(n => mkLink(c, n)) };
+            { id: 'radial', group: 'branch', title: 'فكرة مركزية وستة فروع', build() {
+                const root = mkNode(0, 0, 250, 130, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const keys = ['sky', 'green', 'pink', 'amber', 'violet', 'teal'];
+                const pos = ringPos(6, 440, 300, UPA);
+                const br = pos.map((p, i) => ({ n: mkNode(p.x, p.y, 200, 84, 'rect', MM_PAL[keys[i]], 'فرع ' + (i + 1)), pal: MM_PAL[keys[i]] }));
+                return { nodes: [root, ...br.map(b => b.n)], links: br.map(b => mkCurve(root, b.n, b.pal.line, 4, 'arc')) };
             } },
-            { id: 'radial4', levels: 1, title: 'فكرة مركزية وأربعة فروع', build() {
-                const c = mkNode(0, 0, 190, 190, 'hexagon');
-                const arr = [mkNode(-380, 0, 180, 100, 'rect'), mkNode(380, 0, 180, 100, 'rect'), mkNode(0, -250, 180, 100, 'rect'), mkNode(0, 250, 180, 100, 'rect')];
-                return { nodes: [c, ...arr], links: arr.map(n => mkLink(c, n)) };
+            { id: 'tree', group: 'branch', title: 'تفريع من اليمين (3 فروع وتفاصيل)', build() {
+                const root = mkNode(-360, 0, 240, 130, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const nodes = [root], links = [];
+                ['sky', 'green', 'amber'].forEach((k, i) => {
+                    const pal = MM_PAL[k], y = (i - 1) * 230;
+                    const b = mkNode(-10, y, 210, 84, 'rect', pal, 'فرع ' + (i + 1));
+                    nodes.push(b); links.push(mkCurve(root, b, pal.line, 4, 'h'));
+                    [-70, 70].forEach((dy, j) => {
+                        const l = mkNode(350, y + dy, 230, 64, 'rect', LEAF(pal), 'تفصيلة ' + (i * 2 + j + 1));
+                        nodes.push(l); links.push(mkCurve(b, l, pal.line, 2.5, 'h'));
+                    });
+                });
+                return { nodes, links };
             } },
-            { id: 'ring8', levels: 1, title: 'دائرة حوالين الفكرة (8)', build() {
-                const c = mkNode(0, 0, 170, 170, 'star');
-                const arr = mkRing(8, 400, 320, 0, 130, 80, 'dogear');
-                return { nodes: [c, ...arr], links: arr.map(n => mkLink(c, n)) };
+            { id: 'vtree', group: 'branch', title: 'تصنيف من أعلى لتحت (3 فروع)', build() {
+                const root = mkNode(0, -250, 260, 110, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const nodes = [root], links = [];
+                ['sky', 'pink', 'green'].forEach((k, i) => {
+                    const pal = MM_PAL[k], x = (i - 1) * 340;
+                    const b = mkNode(x, -30, 220, 84, 'rect', pal, 'فرع ' + (i + 1));
+                    nodes.push(b); links.push(mkCurve(root, b, pal.line, 4, 'v'));
+                    [-85, 85].forEach((dx, j) => {
+                        const l = mkNode(x + dx, 170, 160, 66, 'rect', LEAF(pal), 'تفصيلة ' + (i * 2 + j + 1));
+                        nodes.push(l); links.push(mkCurve(b, l, pal.line, 2.5, 'v'));
+                    });
+                });
+                return { nodes, links };
             } },
-            { id: 'cycle4', levels: 1, title: 'دورة متسلسلة (4 مراحل)', build() {
-                const arr = [mkNode(0, -230, 180, 100, 'bubble'), mkNode(280, 0, 180, 100, 'bubble'), mkNode(0, 230, 180, 100, 'bubble'), mkNode(-280, 0, 180, 100, 'bubble')];
-                return { nodes: arr, links: mkChain(arr, true) };
+            { id: 'flow', group: 'flow', title: 'تسلسل خطوات (4 مراحل)', build() {
+                const keys = ['sky', 'green', 'amber', 'pink'];
+                const arr = keys.map((k, i) => mkNode(-480 + i * 320, 0, 200, 110, 'rect', MM_PAL[k], 'الخطوة ' + (i + 1)));
+                return { nodes: arr, links: arr.slice(1).map((n, i) => mkCurve(arr[i], n, MM_PAL[keys[i]].line, 4, 'h')) };
             } },
-            { id: 'cycle6', levels: 1, title: 'دورة متسلسلة (6 مراحل)', build() {
-                const arr = mkRing(6, 330, 260, UP, 170, 90, 'tag');
-                return { nodes: arr, links: mkChain(arr, true) };
+            { id: 'cycle', group: 'flow', title: 'دورة من 4 مراحل', build() {
+                const keys = ['violet', 'teal', 'green', 'amber'];
+                const pos = ringPos(4, 360, 250, UPA);
+                const arr = pos.map((p, i) => mkNode(p.x, p.y, 230, 96, 'rect', MM_PAL[keys[i]], 'المرحلة ' + (i + 1)));
+                return { nodes: arr, links: arr.map((n, i) => mkCurve(n, arr[(i + 1) % arr.length], MM_PAL[keys[i]].line, 4, 'arc')) };
             } },
-            { id: 'timeline5', levels: 1, title: 'خط زمني (5 نقاط)', build() {
-                const arr = [-480, -240, 0, 240, 480].map(x => mkNode(x, 0, 200, 90, 'rect'));
-                return { nodes: arr, links: mkChain(arr, false) };
+            { id: 'timeline', group: 'flow', title: 'خط زمني بمراحل', build() {
+                const keys = ['sky', 'pink', 'green', 'amber', 'violet'];
+                const xs = [-480, -240, 0, 240, 480];
+                const nodes = [], links = [mkStraight(-560, 0, 560, 0, MM_PAL.muted.line, 5)];
+                xs.forEach((x, i) => {
+                    const pal = MM_PAL[keys[i]], ly = i % 2 === 0 ? -170 : 170;
+                    const dot = mkNode(x, 0, 36, 36, 'round', pal, '');
+                    const lab = mkNode(x, ly, 200, 84, 'rect', pal, 'حدث ' + (i + 1));
+                    nodes.push(dot, lab);
+                    links.push(mkCurve(dot, lab, pal.line, 2.5, 'v'));
+                });
+                return { nodes, links };
             } },
-            { id: 'flow3', levels: 1, title: 'تسلسل من 3 خطوات', build() {
-                const arr = [mkNode(-340, 0, 220, 100, 'rect'), mkNode(0, 0, 220, 100, 'rect'), mkNode(340, 0, 220, 100, 'rect')];
-                return { nodes: arr, links: mkChain(arr, false) };
-            } },
-            { id: 'compare', levels: 1, title: 'مقارنة بين شيئين', build() {
-                const h1 = mkNode(-200, -230, 240, 90, 'hexagon'), h2 = mkNode(200, -230, 240, 90, 'hexagon');
-                const rows = [-70, 40, 150].flatMap(y => [mkNode(-200, y, 240, 80, 'dogear'), mkNode(200, y, 240, 80, 'dogear')]);
-                const divider = { cx: 0, cy: -270 }, divider2 = { cx: 0, cy: 230 };
-                return { nodes: [h1, h2, ...rows], links: [mkLink(divider, divider2)] };
-            } },
-            { id: 'grid6', levels: 1, title: 'شبكة مربعات (6 خانات)', build() {
-                const arr = [];
-                [-210, 0, 210].forEach(y => [-170, 170].forEach(x => arr.push(mkNode(x, y, 260, 120, 'rect'))));
-                return { nodes: arr, links: [] };
-            } },
-            { id: 'columns4', levels: 1, title: 'أربع خانات متجاورة', build() {
-                const arr = [-420, -140, 140, 420].map((x, i) => mkNode(x, 0, 240, 200, ['dogear', 'octagon', 'tag', 'diamond'][i]));
-                return { nodes: arr, links: [] };
-            } },
-            // ---- مستويين ----
-            { id: 'tree2', levels: 2, title: 'شجرة من مستويين', build() {
-                const root = mkNode(0, -260, 220, 100, 'bubble');
-                const m1 = mkNode(-300, -60, 200, 90, 'bubble'), m2 = mkNode(300, -60, 200, 90, 'bubble');
-                const leaves = [-400, -200, 200, 400].map(x => mkNode(x, 140, 170, 80, 'rect'));
-                return { nodes: [root, m1, m2, ...leaves], links: mkLinks([[root, m1], [root, m2], [m1, leaves[0]], [m1, leaves[1]], [m2, leaves[2]], [m2, leaves[3]]]) };
-            } },
-            { id: 'hub2', levels: 2, title: 'فكرة مركزية وفروع فرعية', build() {
-                const c = mkNode(0, 0, 190, 190, 'round');
-                const br = mkRing(5, 300, 240, UP, 170, 90, 'bubble');
-                const subs = br.map((b, i) => { const a = UP + i * 2 * Math.PI / 5; return mkNode(Math.cos(a) * 540, Math.sin(a) * 420, 150, 70, 'dogear'); });
-                return { nodes: [c, ...br, ...subs], links: [...br.map(b => mkLink(c, b)), ...br.map((b, i) => mkLink(b, subs[i]))] };
-            } },
-            { id: 'cat2', levels: 2, title: 'تصنيف: فكرة وتصنيفات وتفاصيل', build() {
-                const root = mkNode(0, -260, 260, 100, 'hexagon');
-                const cats = [-360, 0, 360].map(x => mkNode(x, -40, 210, 90, 'bubble'));
-                const items = [];
-                cats.forEach(c => { items.push(mkNode(c.cx - 90, 220, 160, 70, 'dogear'), mkNode(c.cx + 90, 220, 160, 70, 'dogear')); });
-                const links = [...cats.map(c => mkLink(root, c))];
-                cats.forEach((c, i) => { links.push(mkLink(c, items[i * 2]), mkLink(c, items[i * 2 + 1])); });
-                return { nodes: [root, ...cats, ...items], links };
-            } },
-            { id: 'map2', levels: 2, title: 'خريطة مفاهيم بأربع فروع', build() {
-                const c = mkNode(0, 0, 200, 200, 'star');
-                const br = mkRing(4, 330, 260, -Math.PI / 4, 190, 100, 'diamond');
-                const leaves = br.map((b, i) => { const a = -Math.PI / 4 + i * Math.PI / 2; return mkNode(Math.cos(a) * 560, Math.sin(a) * 440, 150, 70, 'tag'); });
-                return { nodes: [c, ...br, ...leaves], links: [...br.map(b => mkLink(c, b)), ...br.map((b, i) => mkLink(b, leaves[i]))] };
-            } },
-            // ---- إضافات: تسلسل أفقي، دورة، وهرم ----
-            { id: 'timeline5', levels: 1, title: 'تسلسل أفقي من خمس خطوات', build() {
-                const arr = [-400, -200, 0, 200, 400].map((x, i) => mkNode(x, 0, 170, 110, ['rect', 'round', 'bubble', 'dogear', 'tag'][i]));
-                return { nodes: arr, links: mkChain(arr, false) };
-            } },
-            { id: 'cycle4', levels: 1, title: 'دورة من أربع مراحل', build() {
-                const arr = mkRing(4, 340, 260, UP, 170, 100, 'octagon');
-                return { nodes: arr, links: mkChain(arr, true) };
-            } },
-            { id: 'pyramid2', levels: 2, title: 'نجمة مركزية وثلاث سداسيات', build() {
-                const root = mkNode(0, -240, 230, 120, 'star');
-                const kids = [-340, 0, 340].map(x => mkNode(x, 60, 200, 100, 'hexagon'));
-                const leaves = kids.map(k => mkNode(k.cx, 280, 160, 70, 'diamond'));
-                return { nodes: [root, ...kids, ...leaves], links: [...kids.map(k => mkLink(root, k)), ...kids.map((k, i) => mkLink(k, leaves[i]))] };
+            { id: 'compare', group: 'compare', title: 'مقارنة بين شيئين (3 صفوف)', build() {
+                const L = MM_PAL.sky, R = MM_PAL.pink;
+                const nodes = [
+                    mkNode(-260, -220, 300, 90, 'rect', L, 'الشيء الأول'),
+                    mkNode(260, -220, 300, 90, 'rect', R, 'الشيء الثاني'),
+                    mkNode(0, -220, 110, 110, 'round', MM_PAL.root, 'مقابل')
+                ];
+                [-70, 50, 170].forEach((y, i) => {
+                    nodes.push(mkNode(-260, y, 300, 86, 'rect', LEAF(L), 'صفة ' + (i + 1)));
+                    nodes.push(mkNode(260, y, 300, 86, 'rect', LEAF(R), 'صفة ' + (i + 1)));
+                });
+                return { nodes, links: [mkStraight(0, -300, 0, 240, MM_PAL.muted.line, 3)] };
             } },
         ];
 
         function openMindMapPicker() {
             const list = $('mm-list');
             list.innerHTML = '';
-            const section = (title, lv) => {
+            MM_GROUPS.forEach(([g, title]) => {
                 const h = document.createElement('div');
                 h.className = 'mm-section';
                 h.innerText = title;
                 list.appendChild(h);
                 const grid = document.createElement('div');
                 grid.className = 'mm-grid';
-                MM_TEMPLATES.filter(t => t.levels === lv).forEach(t => {
+                MM_TEMPLATES.filter(t => t.group === g).forEach(t => {
                     const b = document.createElement('button');
                     b.type = 'button';
                     b.className = 'mm-tile';
@@ -6395,30 +6568,33 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     grid.appendChild(b);
                 });
                 list.appendChild(grid);
-            };
-            section('مستوى واحد', 1);
-            section('مستويين', 2);
+            });
             openModal('mindmap-modal');
+        }
+
+        // معاينة الشكل في القائمة بنفس الألوان والتوصيلات
+        function mmShapeSvg(n, x, y, w, h) {
+            const fill = n.color ? n.color.bg : '#e2e8f0';
+            if (n.shape === 'round') return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}" fill="${fill}"/>`;
+            return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w, h) * 0.22}" fill="${fill}"/>`;
         }
 
         function mmPreviewSvg(tpl) {
             const { nodes, links } = tpl.build();
             const xs = [], ys = [];
             nodes.forEach(n => { xs.push(n.x, n.x + n.w); ys.push(n.y, n.y + n.h); });
+            links.forEach(l => l.pts.forEach(([px, py]) => { xs.push(px); ys.push(py); }));
             const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-            const W = 64, H = 44, pad = 3;
+            const W = 120, H = 76, pad = 4;
             const k = Math.min((W - 2 * pad) / (maxX - minX), (H - 2 * pad) / (maxY - minY));
             const ox = pad + ((W - 2 * pad) - (maxX - minX) * k) / 2, oy = pad + ((H - 2 * pad) - (maxY - minY) * k) / 2;
             const tx = x => ox + (x - minX) * k, ty = y => oy + (y - minY) * k;
             let g = '';
             links.forEach(l => {
-                const [a, b] = l.pts;
-                g += `<line x1="${tx(a[0])}" y1="${ty(a[1])}" x2="${tx(b[0])}" y2="${ty(b[1])}" stroke="currentColor" stroke-width="0.9"/>`;
+                const p = l.pts.map(([x, y]) => tx(x).toFixed(2) + ',' + ty(y).toFixed(2)).join(' ');
+                g += `<polyline points="${p}" fill="none" stroke="${l.c}" stroke-width="${Math.max(1, l.w * k * 0.9).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>`;
             });
-            nodes.forEach(n => {
-                const rx = n.shape === 'round' || n.shape === 'bubble' ? 4 : 1.5;
-                g += `<rect x="${tx(n.x)}" y="${ty(n.y)}" width="${n.w * k}" height="${n.h * k}" rx="${rx}" style="fill:var(--accent)" stroke="currentColor" stroke-width="0.7"/>`;
-            });
+            nodes.forEach(n => { g += mmShapeSvg(n, tx(n.x), ty(n.y), n.w * k, n.h * k); });
             return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
         }
 
