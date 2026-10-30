@@ -1704,6 +1704,61 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         body.eyecare .hero::after, body.eyecare .qa-card::after, body.eyecare .course-card::after,
         body.eyecare .stat::after, body.eyecare .sidebar::after { display: none !important; }
+        /* صورة المعلم جنب الاسم */
+        .avatar.has-photo { background-size: cover; background-position: center; font-size: 0; color: transparent; }
+        /* الوضع البسيط: الرئيسية تفضل الأزرار الكبيرة بس */
+        body.simple .stats, body.simple .dash-side, body.simple #view-home .hero p, body.simple #view-home .hero-actions,
+        body.simple #view-home .section-title, body.simple #courses-grid, body.simple #home-videos, body.simple #home-continue-wrap,
+        body.simple .quote-card { display: none !important; }
+        body.simple #view-home .dash { grid-template-columns: minmax(0, 1fr) !important; }
+        body.simple #view-home .hero { margin-bottom: 18px; }
+        /* ألوان الخريطة الذهنية متناسقة مع ألوان المنصة */
+        .sticky.mindmap-node::before { background: var(--accent); }
+        .sticky.mindmap-master::before { background: var(--accent2); }
+        .sticky.mindmap-node.sh-bubble::after { border-top-color: var(--accent); }
+        .sticky.mindmap-master.sh-bubble::after { border-top-color: var(--accent2); }
+        .sticky.mindmap-node textarea { color: #0b1220; }
+        .sticky.mindmap-node textarea::placeholder { color: rgba(11,18,32,0.5); }
+        /* الساعة الرقمية */
+        #ck-digi { display: none; }
+        .clock-wrap.is-digital #clock-svg, .clock-wrap.is-digital #ck-digital { display: none; }
+        .clock-wrap.is-digital #ck-digi { display: block; min-width: 0; }
+        .ck-led { direction: ltr; text-align: center; font-size: 22px; font-weight: 800; letter-spacing: 1px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--accent); background: #05080a; padding: 14px 16px; border-radius: 16px; box-shadow: inset 0 0 18px rgba(0,0,0,0.6), 0 6px 14px rgba(0,0,0,0.35); text-shadow: 0 0 10px rgba(var(--accent-rgb, 56,189,248), 0.7); }
+        .ck-min { font-size: 40px; font-weight: 300; letter-spacing: -1px; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+        .ck-card { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-radius: 16px; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 6px 14px rgba(0,0,0,0.3); }
+        .ck-card b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .ck-card span { font-size: 13px; opacity: 0.92; font-weight: 700; }
+        /* ترتيب الإعدادات: أقسام واضحة، وكل صف اسمه على الشمال والتحكم على اليمين (وفي التليفون بيتنزل تحت بعض) */
+        #settings .modal-box { max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .set-sec { margin-bottom: 14px; padding: 14px; border-radius: 16px; background: var(--hover); border: 1px solid var(--line); }
+        .set-sec > h3 { font-size: 15px; font-weight: 800; color: var(--accent); margin-bottom: 12px; }
+        .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+        .set-sec > .set-row:first-of-type { border-top: 0; }
+        .set-lbl { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: var(--text); }
+        .set-ctl { flex: 0 0 auto; max-width: 60%; }
+        .set-ctl select { min-width: 160px; }
+        .set-check { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+        .set-block { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+        .set-block > .set-lbl { flex: none; }
+        .set-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+        .set-grades { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 4px; }
+        .set-sec .field { margin-bottom: 10px; }
+        .swatches { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .sw-btn { width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); background: var(--c, transparent); cursor: pointer; padding: 0; color: var(--text); font-weight: 800; }
+        .sw-default { background: var(--hover); border-color: var(--line-strong); font-size: 14px; }
+        .sw-btn.active { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+        .sw-custom { position: relative; width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.7); background: conic-gradient(#f87171, #fbbf24, #34d399, #38bdf8, #818cf8, #f472b6, #f87171); display: grid; place-items: center; cursor: pointer; font-size: 0; }
+        .sw-custom input { position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px); border: 0; padding: 0; cursor: pointer; opacity: 0; }
+        .sw-custom span { font-size: 0; pointer-events: none; }
+        @media (max-width: 599px) {
+            .set-row { flex-direction: column; align-items: stretch; }
+            .set-ctl { max-width: none; }
+            .set-ctl select, .set-ctl input[type=text] { width: 100%; }
+            .set-check { align-self: flex-start; }
+            .set-grades { grid-template-columns: 1fr; }
+            .set-sec .field-row { flex-wrap: wrap; }
+            .set-sec .field-row input { min-width: 0; }
+        }
 </style>
 </head>
 <body data-theme="dark">
@@ -1831,6 +1886,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         <div class="wcard">
                             <div class="clock-wrap">
                                 <svg id="clock-svg" viewBox="0 0 200 200" role="img" aria-label="ساعة"></svg>
+                                <div id="ck-digi"></div>
                                 <div class="clock-info">
                                     <div id="ck-digital"></div>
                                     <div id="date-g"></div>
@@ -2101,85 +2157,129 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         <div class="modal-box">
             <div class="modal-head">
                 <h2>الإعدادات</h2>
-                <button class="ibtn" onclick="closeSettings()"><i data-icon="x"></i></button>
+                <button class="ibtn" onclick="closeSettings()" aria-label="إغلاق"><i data-icon="x"></i></button>
             </div>
 
-            <div class="field">
-                <label for="inp-name">اسم المعلم</label>
-                <input type="text" id="inp-name" maxlength="40">
+            <div class="set-sec">
+                <h3>الملف الشخصي</h3>
+                <div class="field"><label for="inp-name">اسم المعلم</label><input type="text" id="inp-name" maxlength="40"></div>
+                <div class="field"><label for="inp-sub">العنوان أسفل الاسم</label><input type="text" id="inp-sub" maxlength="60"></div>
+                <div class="set-row">
+                    <span class="set-lbl">صورة المعلم (تظهر جنب الاسم)</span>
+                    <div class="set-ctl set-btns"><button class="btn-ghost" type="button" onclick="pickTeacherPhoto()"><i data-icon="image"></i><span>اختيار</span></button><button class="btn-ghost" type="button" onclick="removeTeacherPhoto()">إزالة</button></div>
+                </div>
+                <div class="set-grades">
+                    <div class="field"><label for="inp-grade3">اسم السنة الأولى</label><input type="text" id="inp-grade3" maxlength="30"></div>
+                    <div class="field"><label for="inp-grade2">اسم السنة الثانية</label><input type="text" id="inp-grade2" maxlength="30"></div>
+                    <div class="field"><label for="inp-grade-y3">اسم السنة الثالثة</label><input type="text" id="inp-grade-y3" maxlength="30"></div>
+                    <div class="field"><label for="inp-grade-y4">اسم السنة الرابعة</label><input type="text" id="inp-grade-y4" maxlength="30"></div>
+                </div>
+                <div class="modal-actions"><button class="btn-primary" onclick="saveProfile()">حفظ البيانات</button></div>
             </div>
-            <div class="field">
-                <label for="inp-sub">العنوان أسفل الاسم</label>
-                <input type="text" id="inp-sub" maxlength="60">
-            </div>
-            <div class="field">
-                <label for="inp-grade3">اسم السنة الأولى</label>
-                <input type="text" id="inp-grade3" maxlength="30">
-            </div>
-            <div class="field">
-                <label for="inp-grade2">اسم السنة الثانية</label>
-                <input type="text" id="inp-grade2" maxlength="30">
-            </div>
-            <div class="field">
-                <label for="inp-grade-y3">اسم السنة الثالثة</label>
-                <input type="text" id="inp-grade-y3" maxlength="30">
-            </div>
-            <div class="field">
-                <label for="inp-grade-y4">اسم السنة الرابعة</label>
-                <input type="text" id="inp-grade-y4" maxlength="30">
-            </div>
-            <div class="modal-actions" style="margin-bottom:14px;">
-                <button class="btn-ghost" onclick="showHiddenBooks()"><i data-icon="undo"></i><span>إظهار الملفات المحذوفة</span></button>
-            </div>
-            <div class="field">
-                <label>لون الواجهة (اختر الأريح لعينيك)</label>
-                <div class="acc-row">
-                    <button class="acc-btn" data-accent="calm" onclick="setAccent('calm')"><i></i>هادئ</button>
-                    <button class="acc-btn" data-accent="amber" onclick="setAccent('amber')"><i></i>دافئ</button>
-                    <button class="acc-btn" data-accent="blue" onclick="setAccent('blue')"><i></i>أزرق</button>
+
+            <div class="set-sec">
+                <h3>المظهر</h3>
+                <div class="set-block">
+                    <span class="set-lbl">الثيم (الخلفية ودرجة الألوان)</span>
+                    <div class="acc-row">
+                        <button class="acc-btn" data-accent="calm" onclick="setAccent('calm')"><i></i>هادئ</button>
+                        <button class="acc-btn" data-accent="amber" onclick="setAccent('amber')"><i></i>دافئ</button>
+                        <button class="acc-btn" data-accent="blue" onclick="setAccent('blue')"><i></i>أزرق</button>
+                    </div>
+                </div>
+                <div class="set-block">
+                    <span class="set-lbl">لون التمييز</span>
+                    <div class="swatches">
+                        <button type="button" class="sw-btn sw-default" data-c="" onclick="setAccentColor('')" title="افتراضي" aria-label="افتراضي">ح</button>
+                        <button type="button" class="sw-btn" data-c="#5fb7a8" style="--c:#5fb7a8" onclick="setAccentColor('#5fb7a8')" aria-label="تركواز"></button>
+                        <button type="button" class="sw-btn" data-c="#4f8cff" style="--c:#4f8cff" onclick="setAccentColor('#4f8cff')" aria-label="أزرق"></button>
+                        <button type="button" class="sw-btn" data-c="#d9a45b" style="--c:#d9a45b" onclick="setAccentColor('#d9a45b')" aria-label="ذهبي"></button>
+                        <button type="button" class="sw-btn" data-c="#818cf8" style="--c:#818cf8" onclick="setAccentColor('#818cf8')" aria-label="بنفسجي"></button>
+                        <button type="button" class="sw-btn" data-c="#f472b6" style="--c:#f472b6" onclick="setAccentColor('#f472b6')" aria-label="وردي"></button>
+                        <button type="button" class="sw-btn" data-c="#34d399" style="--c:#34d399" onclick="setAccentColor('#34d399')" aria-label="أخضر"></button>
+                        <button type="button" class="sw-btn" data-c="#f87171" style="--c:#f87171" onclick="setAccentColor('#f87171')" aria-label="أحمر"></button>
+                        <button type="button" class="sw-btn" data-c="#fb923c" style="--c:#fb923c" onclick="setAccentColor('#fb923c')" aria-label="برتقالي"></button>
+                        <button type="button" class="sw-btn" data-c="#38bdf8" style="--c:#38bdf8" onclick="setAccentColor('#38bdf8')" aria-label="سماوي"></button>
+                        <label class="sw-custom" title="لون مخصص">
+                            <input type="color" id="inp-acc-custom" value="#5fb7a8" oninput="setAccentColor(this.value)" aria-label="لون مخصص">
+                            <span>مخصص</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="set-block">
+                    <span class="set-lbl">خلفية التطبيق</span>
+                    <div class="presets" id="presets"></div>
+                    <div class="set-btns">
+                        <button class="btn-ghost" onclick="pickBackground()"><i data-icon="image"></i><span>صورة من الجهاز</span></button>
+                        <button class="btn-ghost" onclick="resetBg()"><i data-icon="undo"></i><span>الخلفية الافتراضية</span></button>
+                    </div>
+                </div>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-clock">شكل الساعة</label>
+                    <div class="set-ctl"><select id="inp-clock" onchange="setClockPref(this.value)">
+                        <optgroup label="عقارب">
+                            <option value="analog:gold">ذهبي كلاسيكي</option>
+                            <option value="analog:light">أبيض بسيط</option>
+                            <option value="analog:accent">بألوان المنصة</option>
+                        </optgroup>
+                        <optgroup label="رقمية">
+                            <option value="digital:led">شاشة LED</option>
+                            <option value="digital:min">خط رفيع بسيط</option>
+                            <option value="digital:card">كارت مع اسم اليوم</option>
+                        </optgroup>
+                    </select></div>
+                </div>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-eye">راحة العين (خلفية سوداء بالكامل بدون زجاج)</label>
+                    <div class="set-ctl"><input type="checkbox" class="set-check" id="inp-eye" onchange="setEyeCare(this.checked)"></div>
+                </div>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-simple">الوضع البسيط (الرئيسية بالأزرار الكبيرة بس)</label>
+                    <div class="set-ctl"><input type="checkbox" class="set-check" id="inp-simple" onchange="setSimple(this.checked)"></div>
                 </div>
             </div>
-            <div class="field">
-                <label for="inp-city">مدينة الطقس (اتركها فاضية للتحديد التلقائي)</label>
-                <div class="field-row"><input type="text" id="inp-city" maxlength="40" placeholder="مثال: القاهرة"><button class="btn-ghost" onclick="setWeatherCity()">ضبط</button></div>
-                <div class="hint">التحديد التلقائي بيستخدم موقع جهازك، ولو مش متاح بيستخدم موقع الإنترنت التقريبي.</div>
-            </div>
-            <div class="field">
-                <label for="inp-hijri">ضبط التاريخ الهجري</label>
-                <select id="inp-hijri" onchange="setHijriAdjust(this.value)"><option value="-1">يوم أقل</option><option value="0">كما هو (أم القرى)</option><option value="1">يوم أكثر</option></select>
-            </div>
-            <div class="field">
-                <label for="inp-gkey">مفتاح Gemini API (للتحويل التلقائي للاختبارات)</label>
-                <div class="field-row"><input type="password" id="inp-gkey" autocomplete="off" placeholder="AIza..."><input type="text" id="inp-gmodel" placeholder="gemini-flash-latest" style="max-width:190px"><button class="btn-ghost" onclick="saveGemini()">حفظ</button></div>
-                <div class="hint">مفتاح مجاني من aistudio.google.com/apikey ويُحفظ على جهازك فقط. بدونه تقدر تستخدم النسخ واللصق.</div>
-            </div>
-            <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                <label for="inp-lite" style="margin:0;">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
-                <input type="checkbox" id="inp-lite" style="width:22px;height:22px;" onchange="setLite(this.checked)">
-            </div>
-            <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                <label for="inp-lang" style="margin:0;">Language / اللغة</label>
-                <select id="inp-lang" onchange="setLang(this.value)" style="min-width:140px;">
-                    <option value="ar">العربية (من اليمين)</option>
-                    <option value="en">English (left to right)</option>
-                </select>
-            </div>
-            <div class="field" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                <label for="inp-eye" style="margin:0;">وضع راحة العين (خلفية سوداء بالكامل بدون زجاج)</label>
-                <input type="checkbox" id="inp-eye" style="width:22px;height:22px;" onchange="setEyeCare(this.checked)">
-            </div>
-            <div class="modal-actions" style="margin-bottom:18px;">
-                <button class="btn-primary" onclick="saveProfile()">حفظ البيانات</button>
+
+            <div class="set-sec">
+                <h3>اللغة والأداء</h3>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-lang">Language / اللغة</label>
+                    <div class="set-ctl"><select id="inp-lang" onchange="setLang(this.value)">
+                        <option value="ar">العربية (من اليمين)</option>
+                        <option value="en">English (left to right)</option>
+                    </select></div>
+                </div>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-lite">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
+                    <div class="set-ctl"><input type="checkbox" class="set-check" id="inp-lite" onchange="setLite(this.checked)"></div>
+                </div>
             </div>
 
-            <div class="field"><label>خلفية التطبيق</label></div>
-            <div class="presets" id="presets"></div>
-            <div class="modal-actions">
-                <button class="btn-ghost" onclick="pickBackground()"><i data-icon="image"></i><span>صورة من الجهاز</span></button>
-                <button class="btn-ghost" onclick="resetBg()"><i data-icon="undo"></i><span>الخلفية الافتراضية</span></button>
+            <div class="set-sec">
+                <h3>الطقس والتاريخ</h3>
+                <div class="field">
+                    <label for="inp-city">مدينة الطقس (اتركها فاضية للتحديد التلقائي)</label>
+                    <div class="field-row"><input type="text" id="inp-city" maxlength="40" placeholder="مثال: القاهرة"><button class="btn-ghost" onclick="setWeatherCity()">ضبط</button></div>
+                    <div class="hint">التحديد التلقائي بيستخدم موقع جهازك، ولو مش متاح بيستخدم موقع الإنترنت التقريبي.</div>
+                </div>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-hijri">ضبط التاريخ الهجري</label>
+                    <div class="set-ctl"><select id="inp-hijri" onchange="setHijriAdjust(this.value)"><option value="-1">يوم أقل</option><option value="0">كما هو (أم القرى)</option><option value="1">يوم أكثر</option></select></div>
+                </div>
             </div>
+
+            <div class="set-sec">
+                <h3>الكتب والذكاء الاصطناعي</h3>
+                <div class="modal-actions" style="margin:0 0 12px;"><button class="btn-ghost" onclick="showHiddenBooks()"><i data-icon="undo"></i><span>إظهار الملفات المحذوفة</span></button></div>
+                <div class="field">
+                    <label for="inp-gkey">مفتاح Gemini API (للتحويل التلقائي للاختبارات)</label>
+                    <div class="field-row"><input type="password" id="inp-gkey" autocomplete="off" placeholder="AIza..."><input type="text" id="inp-gmodel" placeholder="gemini-flash-latest" style="max-width:190px"><button class="btn-ghost" onclick="saveGemini()">حفظ</button></div>
+                    <div class="hint">مفتاح مجاني من aistudio.google.com/apikey ويُحفظ على جهازك فقط. بدونه تقدر تستخدم النسخ واللصق.</div>
+                </div>
+            </div>
+
             <input type="file" id="bg-file" accept="image/*" style="display:none;" onchange="onBgFile(event)">
-        </div>
+            <input type="file" id="tp-file" accept="image/*" style="display:none;" onchange="onTeacherPhotoFile(event)">
+                </div>
     </div>
 
     <!-- اسم الكورس -->
@@ -2708,6 +2808,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('t-name').innerText = t.name;
             $('t-sub').innerText = t.subtitle;
             $('t-avatar').innerText = (t.name || 'م').trim().charAt(0);
+            const av = $('t-avatar');
+            if (t.photo) { av.classList.add('has-photo'); av.style.backgroundImage = `url("${t.photo}")`; }
+            else { av.classList.remove('has-photo'); av.style.backgroundImage = ''; }
             $('hero-name').innerText = `أهلاً بك يا ${t.name}`;
         }
 
@@ -2775,6 +2878,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('inp-gkey').value = appState.geminiKey || ''; $('inp-gmodel').value = appState.geminiModel || '';
             $('inp-lite').checked = document.body.classList.contains('lite');
             $('inp-eye').checked = document.body.classList.contains('eyecare');
+            $('inp-simple').checked = document.body.classList.contains('simple');
+            $('inp-clock').value = mode2pref();
             $('inp-lang').value = appLang;
             renderPresets();
             $('settings').classList.add('open');
@@ -3374,6 +3479,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // وضع راحة العين: شاشة سوداء بالكامل من غير خلفيات أو زجاج، ومحفوظ مع بيانات المنصة
+        function setSimple(on) {
+            document.body.classList.toggle('simple', on);
+            appState.simple = on;
+            scheduleSave();
+        }
+
         function setEyeCare(on) {
             document.body.classList.toggle('eyecare', on);
             appState.eyeCare = on;
@@ -3400,7 +3511,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             applyGradeNames();
             const name = $('inp-name').value.trim();
             const sub = $('inp-sub').value.trim();
-            appState.teacher = { name: name || DEFAULT_STATE.teacher.name, subtitle: sub };
+            appState.teacher = { ...appState.teacher, name: name || DEFAULT_STATE.teacher.name, subtitle: sub };
             applyProfile();
             scheduleSave();
             toast('تم حفظ البيانات');
@@ -3431,6 +3542,36 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function resetBg() {
             setPreset('indigo');
             toast('رجعت الخلفية الافتراضية');
+        }
+
+        // ---- صورة المعلم ----
+        function pickTeacherPhoto() { $('tp-file').click(); }
+        function removeTeacherPhoto() {
+            if (appState.teacher) delete appState.teacher.photo;
+            applyProfile();
+            scheduleSave();
+            toast('اتشالت صورة المعلم');
+        }
+        async function onTeacherPhotoFile(e) {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            try {
+                const url = URL.createObjectURL(file);
+                const img = await loadImage(url);
+                URL.revokeObjectURL(url);
+                // مربع من نص الصورة الوسط، ويتصغّر لـ 256 بكسل عشان يفضل خفيف
+                const side = Math.min(img.width, img.height), S = 256;
+                const c = document.createElement('canvas');
+                c.width = S; c.height = S;
+                c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
+                appState.teacher = { ...appState.teacher, photo: c.toDataURL('image/jpeg', 0.85) };
+                applyProfile();
+                scheduleSave();
+                toast('تم تغيير صورة المعلم');
+            } catch (err) {
+                toast('تعذر تحميل الصورة');
+            }
         }
 
         // على الأندرويد الصورة بتتختار من الكود نفسه (أضمن)، وعلى الكمبيوتر من نافذة الملفات
@@ -3524,41 +3665,81 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         function setAccent(name) { appState.accent = name; applyAccent(name); scheduleSave(); }
 
+        // ---- لون التمييز المخصص: بيتطبق على الـ body (عشان يغلب على ألوان الثيم) ----
+        const hexToRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+        const shadeHex = (h, f) => '#' + hexToRgb(h).map(v => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f))).toString(16).padStart(2, '0')).join('');
+        function applyAccentColor() {
+            const body = document.body;
+            const hex = appState.accentColor;
+            if (!hex) {
+                ['--accent', '--accent-strong', '--accent-rgb'].forEach(k => body.style.removeProperty(k));
+            } else {
+                const [r, g, b] = hexToRgb(hex);
+                body.style.setProperty('--accent', hex);
+                body.style.setProperty('--accent-strong', shadeHex(hex, -0.16));
+                body.style.setProperty('--accent-rgb', r + ',' + g + ',' + b);
+            }
+            document.querySelectorAll('.sw-btn').forEach(x => x.classList.toggle('active', (x.dataset.c || '') === (hex || '')));
+            const cu = $('inp-acc-custom');
+            if (cu && hex) cu.value = hex;
+        }
+        function setAccentColor(hex) {
+            appState.accentColor = hex || null;
+            applyAccentColor();
+            scheduleSave();
+        }
+
+
         // ---- الساعة ----
-        function buildClock() {
+        // ---- أشكال الساعة: 3 عقارب + 3 رقمية، واللي المستخدم يختاره من الإعدادات ----
+        let clockMode = 'analog', clockStyle = 'gold';
+        // الألوان بتاعت الشكل: "var(...)" بتتحط في style عشان تتبع ألوان المنصة
+        const ckA = (prop, c) => c.indexOf('var(') === 0 ? ' style="' + prop + ':' + c + '"' : ' ' + prop + '="' + c + '"';
+        const CK_FACES = {
+            gold:   { rim: 'url(#ck-gold)', inner: '#0a0d0f', face: 'url(#ck-dial)', faceLine: '#8a6b2c', tickBig: '#e0bf72', tickSm: '#8c7440', num: '#e6c77d', numFam: "Georgia, 'Times New Roman', serif", hand: 'url(#ck-hand)', handLine: '#6b5120', hub: 'url(#ck-gold)', sec: '#d9674f', brand: '#c3a05a', ring: '#c3a05a' },
+            light:  { rim: '#cbd5e1', inner: '#ffffff', face: '#ffffff', faceLine: '#94a3b8', tickBig: '#0f172a', tickSm: '#94a3b8', num: '#0f172a', numFam: 'system-ui, sans-serif', hand: '#0f172a', handLine: '#0f172a', hub: '#0f172a', sec: 'var(--accent)', brand: '#64748b', ring: '#94a3b8' },
+            accent: { rim: 'url(#ck-acc)', inner: '#0b1220', face: '#0b1220', faceLine: 'var(--accent)', tickBig: 'var(--accent)', tickSm: '#475569', num: '#e2e8f0', numFam: 'system-ui, sans-serif', hand: '#f8fafc', handLine: '#0b1220', hub: 'var(--accent)', sec: 'var(--accent)', brand: 'var(--accent)', ring: 'var(--accent)' }
+        };
+        function buildClock(style) {
             const svg = $('clock-svg');
-            if (!svg || svg.dataset.built) return;
-            svg.dataset.built = '1';
+            if (!svg) return;
+            const st = CK_FACES[style || clockStyle] ? (style || clockStyle) : 'gold';
+            if (svg.dataset.built === st) return;
+            svg.dataset.built = st;
+            const C = CK_FACES[st];
             const P = (r, deg) => { const a = (deg - 90) * Math.PI / 180; return [100 + r * Math.cos(a), 100 + r * Math.sin(a)]; };
             let t = '<defs>' +
                 '<linearGradient id="ck-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1dba0"/><stop offset=".45" stop-color="#c3a05a"/><stop offset="1" stop-color="#7a5d27"/></linearGradient>' +
                 '<radialGradient id="ck-dial" cx=".5" cy=".38" r=".75"><stop offset="0" stop-color="#2a3034"/><stop offset="1" stop-color="#0c1012"/></radialGradient>' +
+                '<linearGradient id="ck-acc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient>' +
                 '<linearGradient id="ck-hand" x1="0" x2="1"><stop offset="0" stop-color="#ead294"/><stop offset=".5" stop-color="#b58f3f"/><stop offset="1" stop-color="#f0dca4"/></linearGradient></defs>';
-            t += '<circle cx="100" cy="100" r="98" fill="url(#ck-gold)"/><circle cx="100" cy="100" r="92" fill="#0a0d0f"/><circle cx="100" cy="100" r="90" fill="url(#ck-dial)" stroke="#8a6b2c" stroke-width=".7"/><circle cx="100" cy="100" r="76" fill="none" stroke="#c3a05a" stroke-opacity=".18" stroke-width=".6"/>';
+            t += '<circle cx="100" cy="100" r="98"' + ckA('fill', C.rim) + '/><circle cx="100" cy="100" r="92"' + ckA('fill', C.inner) + '/><circle cx="100" cy="100" r="90"' + ckA('fill', C.face) + ckA('stroke', C.faceLine) + ' stroke-width=".7"/><circle cx="100" cy="100" r="76" fill="none"' + ckA('stroke', C.ring) + ' stroke-opacity=".18" stroke-width=".6"/>';
             for (let i = 0; i < 60; i++) {
                 const big = i % 5 === 0;
                 const a = P(big ? 76 : 83, i * 6), b = P(87, i * 6);
-                t += '<line x1="' + a[0].toFixed(2) + '" y1="' + a[1].toFixed(2) + '" x2="' + b[0].toFixed(2) + '" y2="' + b[1].toFixed(2) + '" stroke="' + (big ? '#e0bf72' : '#8c7440') + '" stroke-width="' + (big ? 2.2 : 0.8) + '" stroke-linecap="round"/>';
+                t += '<line x1="' + a[0].toFixed(2) + '" y1="' + a[1].toFixed(2) + '" x2="' + b[0].toFixed(2) + '" y2="' + b[1].toFixed(2) + '"' + ckA('stroke', big ? C.tickBig : C.tickSm) + ' stroke-width="' + (big ? 2.2 : 0.8) + '" stroke-linecap="round"/>';
             }
             [[12, 0], [3, 90], [6, 180], [9, 270]].forEach(([n, d]) => {
                 const p = P(62, d);
-                t += '<text x="' + p[0].toFixed(2) + '" y="' + p[1].toFixed(2) + '" text-anchor="middle" dominant-baseline="central" font-family="Georgia, \'Times New Roman\', serif" font-size="17" font-weight="700" fill="#e6c77d">' + n + '</text>';
+                t += '<text x="' + p[0].toFixed(2) + '" y="' + p[1].toFixed(2) + '" text-anchor="middle" dominant-baseline="central" font-family="' + C.numFam + '" font-size="17" font-weight="700"' + ckA('fill', C.num) + '>' + n + '</text>';
             });
-            t += '<text x="100" y="132" text-anchor="middle" font-family="Georgia, serif" font-size="6.5" letter-spacing="2" fill="#c3a05a" fill-opacity=".7">EDUCATION</text>';
-            t += '<g id="ck-h"><path d="M100 54 L104.6 90 L100 96 L95.4 90Z" fill="url(#ck-hand)" stroke="#6b5120" stroke-width=".5"/><path d="M100 62 V88" stroke="#6b5120" stroke-width=".7" opacity=".55"/></g>';
-            t += '<g id="ck-m"><path d="M100 28 L103.2 90 L100 96 L96.8 90Z" fill="url(#ck-hand)" stroke="#6b5120" stroke-width=".5"/><path d="M100 36 V88" stroke="#6b5120" stroke-width=".6" opacity=".55"/></g>';
-            t += '<g id="ck-s"><line x1="100" y1="114" x2="100" y2="22" stroke="#d9674f" stroke-width="1.1" stroke-linecap="round"/><circle cx="100" cy="114" r="2.4" fill="#d9674f"/></g>';
-            t += '<circle cx="100" cy="100" r="5.2" fill="url(#ck-gold)" stroke="#6b5120" stroke-width=".5"/><circle cx="100" cy="100" r="1.8" fill="#0c1012"/>';
+            t += '<text x="100" y="132" text-anchor="middle" font-family="Georgia, serif" font-size="6.5" letter-spacing="2"' + ckA('fill', C.brand) + ' fill-opacity=".7">EDUCATION</text>';
+            t += '<g id="ck-h"><path d="M100 54 L104.6 90 L100 96 L95.4 90Z"' + ckA('fill', C.hand) + ckA('stroke', C.handLine) + ' stroke-width=".5"/><path d="M100 62 V88" stroke="' + C.handLine + '" stroke-width=".7" opacity=".55"/></g>';
+            t += '<g id="ck-m"><path d="M100 28 L103.2 90 L100 96 L96.8 90Z"' + ckA('fill', C.hand) + ckA('stroke', C.handLine) + ' stroke-width=".5"/><path d="M100 36 V88" stroke="' + C.handLine + '" stroke-width=".6" opacity=".55"/></g>';
+            t += '<g id="ck-s"><line x1="100" y1="114" x2="100" y2="22"' + ckA('stroke', C.sec) + ' stroke-width="1.1" stroke-linecap="round"/><circle cx="100" cy="114" r="2.4"' + ckA('fill', C.sec) + '/></g>';
+            t += '<circle cx="100" cy="100" r="5.2"' + ckA('fill', C.hub) + ' stroke="#6b5120" stroke-width=".5"/><circle cx="100" cy="100" r="1.8" fill="#0c1012"/>';
             svg.innerHTML = t;
         }
 
-        let dateFmtG = null, dateFmtH = null, timeFmt = null;
+        let dateFmtG = null, dateFmtH = null, timeFmt = null, clockFmt = null, wdFmt = null;
         // التاريخ والوقت بيتعرضوا بلغة المنصة (عربي أو إنجليزي)
         function buildDateFormatters(lang) {
             const en = lang === 'en';
             try { dateFmtG = new Intl.DateTimeFormat(en ? 'en-US' : 'ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { dateFmtG = null; }
             try { dateFmtH = new Intl.DateTimeFormat(en ? 'en-u-ca-islamic-umalqura' : 'ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { dateFmtH = null; }
             try { timeFmt = new Intl.DateTimeFormat(en ? 'en-US' : 'ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true }); } catch (e) { timeFmt = null; }
+            try { clockFmt = new Intl.DateTimeFormat(en ? 'en-US' : 'ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }); } catch (e) { clockFmt = null; }
+            try { wdFmt = new Intl.DateTimeFormat(en ? 'en-US' : 'ar-EG', { weekday: 'long' }); } catch (e) { wdFmt = null; }
         }
         buildDateFormatters('ar');
         let clockTimer = null, lastDateKey = '';
@@ -3566,6 +3747,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function tickClock() {
             const now = new Date();
             const h = now.getHours() % 12, m = now.getMinutes(), s = now.getSeconds(), ms = now.getMilliseconds();
+            if (clockMode === 'digital') { tickDigital(now); return; }
             const rot = (id, deg) => { const el = $(id); if (el) el.setAttribute('transform', 'rotate(' + deg.toFixed(2) + ' 100 100)'); };
             rot('ck-h', (h + m / 60) * 30);
             rot('ck-m', (m + s / 60) * 6);
@@ -3578,8 +3760,54 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if ($('date-h') && dateFmtH) $('date-h').textContent = dateFmtH.format(new Date(now.getTime() + (appState.hijriAdjust || 0) * 86400000));
             }
         }
+        // ---- الساعة الرقمية ----
+        const CK_DIGI = {
+            led:  '<div class="ck-led"><span id="ck-dt"></span></div>',
+            min:  '<div class="ck-min"><span id="ck-dt"></span></div>',
+            card: '<div class="ck-card"><b id="ck-dt"></b><span id="ck-dd"></span></div>'
+        };
+        let lastDigiKey = '';
+        function renderDigital() {
+            const box = $('ck-digi');
+            if (!box) return;
+            const st = CK_DIGI[clockStyle] ? clockStyle : 'led';
+            if (box.dataset.built !== st) { box.dataset.built = st; box.innerHTML = CK_DIGI[st]; lastDigiKey = ''; }
+        }
+        function tickDigital(now) {
+            const st = CK_DIGI[clockStyle] ? clockStyle : 'led';
+            if (!$('ck-dt')) renderDigital();
+            const key = (typeof appLang !== 'undefined' ? appLang : '') + '|' + st + '|' + now.getHours() + ':' + now.getMinutes() + ':' + (st === 'led' ? now.getSeconds() : 0) + '|' + now.getDate();
+            if (key === lastDigiKey) return;
+            lastDigiKey = key;
+            const dt = $('ck-dt');
+            if (dt) dt.textContent = (st === 'led' ? clockFmt : timeFmt) ? (st === 'led' ? clockFmt : timeFmt).format(now) : '';
+            const dd = $('ck-dd');
+            if (dd && wdFmt) dd.textContent = wdFmt.format(now);
+        }
+
+        // الشكل المختار: "analog:gold" أو "digital:led" ... بيتحفظ مع إعدادات المستخدم
+        function applyClockPref(v) {
+            const parts = String(v || 'analog:gold').split(':');
+            const mode = parts[0] === 'digital' ? 'digital' : 'analog';
+            const st = mode === 'digital' ? (CK_DIGI[parts[1]] ? parts[1] : 'led') : (CK_FACES[parts[1]] ? parts[1] : 'gold');
+            clockMode = mode;
+            clockStyle = st;
+            const wrap = document.querySelector('.clock-wrap');
+            if (wrap) wrap.classList.toggle('is-digital', mode === 'digital');
+            if (mode === 'digital') { renderDigital(); lastDigiKey = ''; tickDigital(new Date()); }
+            else buildClock(st);
+            const sel = $('inp-clock');
+            if (sel) sel.value = mode + ':' + st;
+        }
+        function setClockPref(v) {
+            applyClockPref(v);
+            appState.clockPref = mode2pref();
+            scheduleSave();
+        }
+        function mode2pref() { return clockMode + ':' + clockStyle; }
+
         function startClock() {
-            buildClock();
+            applyClockPref(appState.clockPref || 'analog:gold');
             tickClock();
             clearInterval(clockTimer);
             clockTimer = setInterval(() => {
@@ -3909,6 +4137,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function initDash() {
             appState.todos = Array.isArray(appState.todos) ? appState.todos : [];
             applyAccent(appState.accent || 'calm');
+            applyAccentColor();
             if ($('inp-city') && appState.weatherPlace) $('inp-city').value = appState.weatherPlace.place || '';
             if ($('inp-hijri')) $('inp-hijri').value = String(appState.hijriAdjust || 0);
             startClock(); startWeather(); startQuotes(); renderTodos(); inkBind();
@@ -6040,7 +6269,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const mmUid = () => 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         // المكان بيتحسب بالمركز (cx, cy)، والـ x/y هي الركن العلوي
         const mkNode = (cx, cy, w, h, shape) => ({ id: mmUid(), x: cx - w / 2, y: cy - h / 2, cx, cy, w, h, text: '', shape, mode: 'draw', ink: [] });
-        const mkLink = (a, b) => ({ t: 'pen', c: '#475569', w: 3, s: 'shape', kind: 'line', pts: [[a.cx, a.cy], [b.cx, b.cy]] });
+        const mkLink = (a, b) => ({ t: 'pen', c: '#4f8cff', w: 3, s: 'shape', kind: 'line', pts: [[a.cx, a.cy], [b.cx, b.cy]] });
         const mkLinks = (pairs) => pairs.map(([a, b]) => mkLink(a, b));
         const mkRing = (n, rx, ry, a0, w, h, shape) => Array.from({ length: n }, (_, i) => {
             const a = a0 + i * 2 * Math.PI / n;
@@ -6129,6 +6358,21 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const leaves = br.map((b, i) => { const a = -Math.PI / 4 + i * Math.PI / 2; return mkNode(Math.cos(a) * 560, Math.sin(a) * 440, 150, 70, 'tag'); });
                 return { nodes: [c, ...br, ...leaves], links: [...br.map(b => mkLink(c, b)), ...br.map((b, i) => mkLink(b, leaves[i]))] };
             } },
+            // ---- إضافات: تسلسل أفقي، دورة، وهرم ----
+            { id: 'timeline5', levels: 1, title: 'تسلسل أفقي من خمس خطوات', build() {
+                const arr = [-400, -200, 0, 200, 400].map((x, i) => mkNode(x, 0, 170, 110, ['rect', 'round', 'bubble', 'dogear', 'tag'][i]));
+                return { nodes: arr, links: mkChain(arr, false) };
+            } },
+            { id: 'cycle4', levels: 1, title: 'دورة من أربع مراحل', build() {
+                const arr = mkRing(4, 340, 260, UP, 170, 100, 'octagon');
+                return { nodes: arr, links: mkChain(arr, true) };
+            } },
+            { id: 'pyramid2', levels: 2, title: 'نجمة مركزية وثلاث سداسيات', build() {
+                const root = mkNode(0, -240, 230, 120, 'star');
+                const kids = [-340, 0, 340].map(x => mkNode(x, 60, 200, 100, 'hexagon'));
+                const leaves = kids.map(k => mkNode(k.cx, 280, 160, 70, 'diamond'));
+                return { nodes: [root, ...kids, ...leaves], links: [...kids.map(k => mkLink(root, k)), ...kids.map((k, i) => mkLink(k, leaves[i]))] };
+            } },
         ];
 
         function openMindMapPicker() {
@@ -6173,7 +6417,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
             nodes.forEach(n => {
                 const rx = n.shape === 'round' || n.shape === 'bubble' ? 4 : 1.5;
-                g += `<rect x="${tx(n.x)}" y="${ty(n.y)}" width="${n.w * k}" height="${n.h * k}" rx="${rx}" fill="#fde047" stroke="currentColor" stroke-width="0.7"/>`;
+                g += `<rect x="${tx(n.x)}" y="${ty(n.y)}" width="${n.w * k}" height="${n.h * k}" rx="${rx}" style="fill:var(--accent)" stroke="currentColor" stroke-width="0.7"/>`;
             });
             return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
         }
@@ -8529,6 +8773,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
             document.body.classList.toggle('lite', appState.lite === undefined ? (navigator.hardwareConcurrency || 8) <= 4 : !!appState.lite);
             document.body.classList.toggle('eyecare', !!appState.eyeCare);
+        document.body.classList.toggle('simple', !!appState.simple);
+        applyClockPref(appState.clockPref || 'analog:gold');
             applyLang(appState.lang || 'ar');
             applyBg();
             refreshToolButtons();
