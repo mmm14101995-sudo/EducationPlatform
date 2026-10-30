@@ -294,6 +294,8 @@
         .board-stage { position: relative; z-index: 1; flex: 1; min-height: 0; overflow: auto; background: #ffffff; }
         .board-paper { position: relative; background: #ffffff; }
         .board-stage, .board-paper { touch-action: none; }
+        /* أزرار الأدوات: من غير ده المتصفح بيستنى يتأكد إنها مش دبل تاب (zoom) قبل ما يبعت الضغطة، فبيحصل تأخير على اللمس */
+        .board-bar button, .board-bar .ibtn, .board-bar .sw, .board-bar .ptab, .board-bar input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .paper-style-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0 18px; }
         .paper-style-choice { min-height: 86px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.04); color: var(--text); padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; }
         .paper-style-choice.active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); background: rgba(255,255,255,.08); }
@@ -4032,7 +4034,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // السبورة: الخطوط متخزنة كأشكال (مش صور)، والتكبير بيكبّر كل حاجة مع بعض
         // ==========================================
         const canvas = $('custom-canvas');
-        const ctx = canvas.getContext('2d');
+        // desynchronized: الرسم بيوصل للشاشة من غير انتظار دورة الشاشة، فالقلم بيكون أسرع في الاستجابة
+        const ctx = canvas.getContext('2d', { desynchronized: true }) || canvas.getContext('2d');
         const stageEl = $('board-stage');
         const FINGER_ERASES = false;   // true = الإصبع ممحاة والقلم كتابة، false = الإصبع يرسم
 
@@ -4882,8 +4885,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('undo-btn').disabled = undoStack.length === 0;
             $('redo-btn').disabled = redoStack.length === 0;
         }
-        function afterChange() {
-            boardDirty = true;
+        function afterChange(keepCache) {
+            if (!keepCache) boardDirty = true;
             updateHistBtns();
             requestRender();
             scheduleSave();
@@ -5169,16 +5172,24 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 activeMode = null;
                 requestRender();
             } else if (e.pointerId === activeId) {
+                let appended = false;
                 if (activeMode === 'draw' && cur) {
                     if (cur.s === 'smart') smartSnap(cur);
                     currentPage().strokes = [...currentPage().strokes, cur];
+                    // الخط الجديد بيتضاف للكاش مباشرة بدل ما نعيد رسم كل الصفحة (ده كان بيسبب التأخير بعد رفع القلم)
+                    if (!boardDirty) {
+                        const d = boardDpr();
+                        cacheCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+                        drawStroke(cacheCtx, cur);
+                        appended = true;
+                    }
                 }
                 cur = null;
                 activeId = null;
                 activeMode = null;
                 lastErase = null;
                 hideEraserRing();
-                afterChange();
+                afterChange(appended);
             }
             try {
                 if (stageEl.hasPointerCapture && stageEl.hasPointerCapture(e.pointerId)) {
