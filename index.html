@@ -1780,6 +1780,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         /* وضع اليد */
         body.board-hand #custom-canvas, body.board-hand .board-stage { cursor: grab !important; }
+        .sticky-ink-text { pointer-events: none; }
+        body.ink-tool .sticky-ink-text { pointer-events: auto; cursor: crosshair; }
+        body.ink-tool .sticky textarea { pointer-events: none !important; }
+        body.board-hand .sticky-layer, body.board-hand .sticky, body.board-hand .sticky-ink, body.board-hand canvas.sticky-ink, body.board-hand .sticky textarea, body.board-hand .sticky-head, body.board-hand .science-resize-handle { pointer-events: none !important; }
         body.board-hand #hand-btn.active { background: rgba(var(--accent-rgb),0.22); box-shadow: 0 0 0 2px var(--accent); }
 
         /* ===== Sticky Notes: شريط النقل والإغلاق مخفي لحد ما تقف عليه ===== */
@@ -1836,7 +1840,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 <header class="app-header">
         <div class="ah-brand">
             <svg class="app-logo" viewBox="0 0 40 40" role="img" aria-label="شعار المنصة"><defs><linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient></defs><rect width="40" height="40" rx="12" fill="url(#logo-g)"/><path d="M20 14c-3.6-2-8-2-11-1v15c3-1 7.4-1 11 1 3.6-2 8-2 11-1V13c-3-1-7.4-1-11 1z" fill="#fff" fill-opacity=".95"/><path d="M20 14v15" stroke="url(#logo-g)" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <div class="ah-title"><b id="app-title">منصة أستاذ مصطفى محمد</b><small id="app-sub">دفعة 2027</small></div>
+            <div class="ah-title"><b id="app-title">المنصة التعليمية الشاملة</b><small id="app-sub">دفعة 2027</small></div>
         </div>
         <div class="gsearch" id="gsearch">
             <i data-icon="search"></i>
@@ -1851,7 +1855,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="teacher">
                 <div class="avatar" id="t-avatar">م</div>
                 <div>
-                    <h2 id="t-name">أستاذ مصطفى محمد</h2>
+                    <h2 id="t-name">المنصة التعليمية الشاملة</h2>
                     <p id="t-sub">لغة عربية - دفعة 2027</p>
                 </div>
             </div>
@@ -2825,7 +2829,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         const DEFAULT_STATE = {
             theme: 'dark',
-            teacher: { name: 'أستاذ مصطفى محمد', subtitle: 'لغة عربية - دفعة 2027' },
+            teacher: { name: 'المنصة التعليمية الشاملة', subtitle: 'لغة عربية - دفعة 2027' },
             bg: { type: 'preset', value: 'indigo' },
             whiteboard: {
                 sec3: { pages: [null], currentIndex: 0 },
@@ -2848,6 +2852,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 console.warn('تعذر تحميل الحفظ', e);
             }
             appState.teacher = { ...DEFAULT_STATE.teacher, ...(appState.teacher || {}) };
+            // ترحيل الاسم القديم مرة واحدة بس؛ بعدها أي اسم يتحفظ بيفضل زي ما هو
+            if (!appState.teacherNameMigrated) {
+                if (appState.teacher.name === 'أستاذ مصطفى محمد') appState.teacher.name = DEFAULT_STATE.teacher.name;
+                appState.teacherNameMigrated = true;
+            }
             appState.bg = appState.bg || { type: 'preset', value: 'indigo' };
             appState.whiteboard ||= {};
             appState.quizzes ||= []; appState.quizResults ||= [];
@@ -2893,14 +2902,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function applyProfile() {
             const t = appState.teacher;
-            if ($('app-title')) { $('app-title').innerText = 'منصة ' + (t.name || ''); $('app-sub').innerText = t.subtitle || ''; }
+            const isDefaultName = !t.name || t.name === 'المنصة التعليمية الشاملة';
+            if ($('app-title')) { $('app-title').innerText = isDefaultName ? 'المنصة التعليمية الشاملة' : 'منصة ' + t.name; $('app-sub').innerText = t.subtitle || ''; }
             $('t-name').innerText = t.name;
             $('t-sub').innerText = t.subtitle;
             $('t-avatar').innerText = (t.name || 'م').trim().charAt(0);
             const av = $('t-avatar');
             if (t.photo) { av.classList.add('has-photo'); av.style.backgroundImage = `url("${t.photo}")`; }
             else { av.classList.remove('has-photo'); av.style.backgroundImage = ''; }
-            $('hero-name').innerText = `أهلاً بك يا ${t.name}`;
+            $('hero-name').innerText = isDefaultName ? 'أهلاً بك في المنصة التعليمية الشاملة' : `أهلاً بك يا ${t.name}`;
         }
 
         const BG_CACHE_KEY = 'platform-bg-v1';
@@ -2997,7 +3007,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const EN = {
             nav: { home: 'Home', board: 'Interactive Board', books: 'Books & Notes', videos: 'Videos', todos: 'Tasks', exams: 'Exams', ai: 'AI Assistant' },
             settings: 'Settings',
-            title: 'Mostafa Mohamed Platform',
+            title: 'Comprehensive Educational Platform',
             sub: 'Class of 2027',
             search: 'Search the platform: books, courses, videos...',
             grades: { sec3: '3rd Secondary', sec2: '2nd Secondary (Bac)', y3: 'Third Year', y4: 'Fourth Year' }
@@ -3383,7 +3393,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 "فكرة مركزية وستة فروع": "Central idea with six branches",
 "لغة عربية - دفعة 2027": "Arabic language - Class of 2027",
 "مقالي بانتظار التصحيح": "Essay awaiting grading",
-"منصة أستاذ مصطفى محمد": "Mostafa Mohamed Platform",
+"منصة أستاذ مصطفى محمد": "Mostafa Mohamed Platform", "المنصة التعليمية الشاملة": "Comprehensive Educational Platform", "أهلاً بك في المنصة التعليمية الشاملة": "Welcome to the Comprehensive Educational Platform",
 "إخفاء أو إظهار الأدوات": "Show or hide tools",
 "إظهار الملفات المحذوفة": "Show deleted files",
 "الاختبارات الإلكترونية": "Online exams",
@@ -4833,7 +4843,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             let pid = null, start = null, st = null;
             const norm = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
             cv.addEventListener('pointerdown', e => {
-                if (el.classList.contains('moving') || tool === 'select') return;
+                if (handMode || el.classList.contains('moving') || tool === 'select') return;
                 pid = e.pointerId; start = norm(e); st = null;
                 if (tool === 'eraser') eraseInkAt(cv, n, el, e);
             });
@@ -4944,6 +4954,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const ta = el.querySelector('textarea');
                 ta.value = n.text || '';
                 ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
+                const tcv = document.createElement('canvas'); tcv.className = 'sticky-ink sticky-ink-text'; el.appendChild(tcv); bindInk(tcv, n, el);
             }
             const deleteButton = el.querySelector('.sticky-del');
             if (deleteButton) deleteButton.addEventListener('click', (e) => {
@@ -4985,7 +4996,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 el.style.width = (n.w * s) + 'px';
                 el.style.height = (n.h * s) + 'px';
                 el.style.fontSize = Math.max(9, 14 * s) + 'px';
-                if (n.mode === 'draw' || n.mode === 'image') drawInk(el, n);
+                drawInk(el, n);
             });
         }
 
@@ -6015,6 +6026,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         let handMode = false, panLast = null;
         function setHand(on) {
             handMode = !!on;
+            if (handMode) document.body.classList.remove('ink-tool');
             document.body.classList.toggle('board-hand', handMode);
             const b = $('hand-btn'); if (b) b.classList.toggle('active', handMode);
             if (handMode) { hideEraserRing(); cancelActive(); }
@@ -6024,6 +6036,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function setTool(newTool) {
             if (handMode) setHand(false);
             tool = newTool;
+            document.body.classList.toggle('ink-tool', newTool === 'pen' || newTool === 'eraser');
             if (newTool !== 'select') clearSelection();
             syncSlider();
             applyToolState();
