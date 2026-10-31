@@ -1870,6 +1870,20 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.native.board-active:not(.board-fs) .side-foot { width: 100%; flex-direction: column; margin: 0; gap: 4px; }
         body.native.board-active:not(.board-fs) .side-foot .btn-ghost { width: 100%; padding: 8px 0; }
         body.native.board-active:not(.board-fs) .side-foot .btn-ghost span { display: none; }
+    
+        /* أندرويد - هاتف: شريط السبورة يلف على أكتر من سطر جوه عرض الشاشة (من غير ما أي أداة تتقص برا الشاشة) */
+        @media (max-width: 599px) {
+            body.native .board:not(.fs) .board-bar { flex-wrap: wrap !important; justify-content: center; align-content: flex-start; gap: 4px; padding: 6px; overflow: visible !important; max-width: 100%; box-sizing: border-box; }
+            body.native .board:not(.fs) .board-bar .bgrp { flex-wrap: wrap !important; justify-content: center; max-width: 100%; min-width: 0; gap: 2px; padding: 3px; }
+            body.native .board:not(.fs) .board-bar .ibtn { width: 36px !important; height: 36px !important; min-width: 36px !important; min-height: 36px !important; flex: 0 0 36px; padding: 4px; }
+            body.native .board:not(.fs) .board-bar .ibtn svg { width: 22px !important; height: 22px !important; }
+            body.native .board:not(.fs) .board-bar .ibtn.pen-3d, body.native .board:not(.fs) .board-bar #eraser-btn { width: 36px !important; height: 44px !important; min-height: 44px !important; }
+            body.native .board:not(.fs) .board-bar .ibtn.pen-3d svg, body.native .board:not(.fs) .board-bar #eraser-btn svg { width: 18px !important; height: 30px !important; }
+            body.native .board:not(.fs) .board-bar .range { width: 84px; }
+            body.native .board:not(.fs) .board-bar .bar-break { display: none !important; }
+            body.native .board:not(.fs) .board-bar .bgtxt { display: none; }
+            body.native .board:not(.fs) .board-bar .lbl { min-width: 0; }
+        }
     </style>
 </head>
 <body data-theme="dark">
