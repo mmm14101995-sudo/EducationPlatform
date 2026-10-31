@@ -4679,6 +4679,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function applyBoardBg(hex) {
             appState.boardBg = hex;
             applyBoardBgStyles(hex);
+            requestRender();
             // لون الخلفية مستقل تماماً عن لون القلم، ولا يغيّر اختيار المستخدم للقلم.
             scheduleSave();
         }
@@ -5284,6 +5285,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBoardPaperOnCanvas(ctx, d);
             ctx.drawImage(cacheCanvas, 0, 0);
             if (cur) {
                 ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
@@ -5296,6 +5298,28 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         function drawPage() { requestRender(); }
+
+        // لون الخلفية والشبكة/المسطرة بيترسموا جوه الكانفاس نفسه، عشان ما يبقاش فيه طبقة سودا تحته (ويندوز / الوضع العادي)
+        function drawBoardPaperOnCanvas(g, d) {
+            const hex = boardBg();
+            const dk = boardIsDark(hex);
+            const line = dk ? 'rgba(255,255,255,0.18)' : 'rgba(148,163,184,0.48)';
+            g.save();
+            g.setTransform(1, 0, 0, 1, 0, 0);
+            g.fillStyle = hex;
+            g.fillRect(0, 0, canvas.width, canvas.height);
+            const step = Math.max(2, boardPaperSize() * view.s * d);
+            const ox = ((view.tx * d) % step + step) % step;
+            const oy = ((view.ty * d) % step + step) % step;
+            g.fillStyle = line;
+            if (boardPaperPattern() === 'lined') {
+                for (let y = oy; y < canvas.height; y += step) g.fillRect(0, Math.round(y), canvas.width, 1);
+            } else {
+                for (let x = ox; x < canvas.width; x += step) g.fillRect(Math.round(x), 0, 1, canvas.height);
+                for (let y = oy; y < canvas.height; y += step) g.fillRect(0, Math.round(y), canvas.width, 1);
+            }
+            g.restore();
+        }
 
         // حجم الكانفاس بيتبع المساحة المرئية بدقة الشاشة. التكبير ما بيغيرش الكانفاس، بس الـ view
         function resizeCanvas() {
