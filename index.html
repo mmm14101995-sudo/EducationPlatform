@@ -1884,6 +1884,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             body.native .board:not(.fs) .board-bar .bgtxt { display: none; }
             body.native .board:not(.fs) .board-bar .lbl { min-width: 0; }
         }
+    
+        /* أندرويد: صورة المدرس بتظهر في أعلى الشريط الجانبي (بدل ما كانت مخفية مع الاسم) */
+        body.native .sidebar .teacher { display: flex !important; justify-content: center; align-items: center; padding: 0; margin: 0 0 6px; }
+        body.native .sidebar .teacher > div:not(.avatar) { display: none !important; }
+        body.native .sidebar .teacher .avatar { width: 40px !important; height: 40px !important; min-width: 40px; border-radius: 50%; flex: 0 0 auto; }
+        body.native .sidebar .teacher .avatar.has-photo { background-repeat: no-repeat; }
     </style>
 </head>
 <body data-theme="dark">
