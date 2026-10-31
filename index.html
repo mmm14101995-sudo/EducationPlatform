@@ -1848,7 +1848,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 .sticky.science-note{overflow:visible}.sticky.science-note .sticky-head{gap:5px}.sticky.science-note .science-note-name{min-width:0;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.sticky.science-note .science-source-btn{border:0;border-radius:6px;background:rgba(15,23,42,.12);color:inherit;min-width:24px;min-height:24px;font-size:13px;font-weight:900;cursor:pointer}.science-resize-handle{position:absolute;z-index:18;right:-4px;bottom:-4px;width:27px;height:27px;border:2px solid #fff;border-radius:8px;background:#2563eb;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:nwse-resize;touch-action:none;opacity:0}.science-resize-handle:before{content:'';position:absolute;inset:6px;border-right:2px solid #fff;border-bottom:2px solid #fff}.sticky.science-note.head-on .science-resize-handle,.sticky.science-note:hover .science-resize-handle{opacity:1}
 @media(max-width:600px){.science-box{width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding:13px}.science-grid{grid-template-columns:minmax(0,1fr);gap:14px}.science-thumb{height:auto;aspect-ratio:1200/780}.science-searchrow button{padding:10px}}
 
-</style>
+
+        /* إصلاح الشاشة السوداء في الوضع العادي للسبورة (ويندوز): إلغاء blur فوق الكانفاس */
+        .board:not(.fs) .board-bar { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        body.board-active .modal { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    </style>
 </head>
 <body data-theme="dark">
     <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
