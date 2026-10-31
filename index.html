@@ -1852,6 +1852,24 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         /* إصلاح الشاشة السوداء في الوضع العادي للسبورة (ويندوز): إلغاء blur فوق الكانفاس */
         .board:not(.fs) .board-bar { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
         body.board-active .modal { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    
+        /* أندرويد: السبورة في الوضع العادي = شريط أيقونات على الجنب (من غير أسماء) زي الويندوز */
+        body.native.board-active:not(.board-fs) .sidebar {
+            display: flex !important;
+            flex: 0 0 56px; width: 56px; min-width: 56px; max-width: 56px;
+            height: 100%; flex-direction: column; align-items: center; justify-content: flex-start;
+            gap: 4px; padding: 8px 4px; border-radius: 0;
+            overflow-x: hidden; overflow-y: auto; scrollbar-width: none;
+        }
+        body.native.board-active:not(.board-fs) .sidebar::-webkit-scrollbar { display: none; }
+        body.native.board-active:not(.board-fs) .sidebar .nav { width: 100%; justify-content: center; padding: 4px 0; font-size: 0; gap: 0; box-shadow: none; }
+        body.native.board-active:not(.board-fs) .sidebar .nav span { display: none; }
+        body.native.board-active:not(.board-fs) .sidebar .nav .ico { width: 38px !important; height: 38px !important; min-width: 38px; padding: 8px; border-radius: 12px; background: transparent; }
+        body.native.board-active:not(.board-fs) .sidebar .nav.active .ico { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+        body.native.board-active:not(.board-fs) .sidebar .nav.settings-nav { margin: 0; border-top: 0; }
+        body.native.board-active:not(.board-fs) .side-foot { width: 100%; flex-direction: column; margin: 0; gap: 4px; }
+        body.native.board-active:not(.board-fs) .side-foot .btn-ghost { width: 100%; padding: 8px 0; }
+        body.native.board-active:not(.board-fs) .side-foot .btn-ghost span { display: none; }
     </style>
 </head>
 <body data-theme="dark">
@@ -5295,7 +5313,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 drawStroke(ctx, cur);
             }
             drawLaser(ctx, d);
-            applyBoardPaperPatternStyles();
             renderStickies();
             updateSelBox();
         }
@@ -9559,7 +9576,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             penColor = penColors[penStyle] || penColor;
             markCurrentColor(penColor);
             // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
-            document.body.classList.toggle('lite', appState.lite === undefined ? (navigator.hardwareConcurrency || 8) <= 4 : !!appState.lite);
+            document.body.classList.toggle('lite', appState.lite === undefined ? (!!NATIVE || (navigator.hardwareConcurrency || 8) <= 4) : !!appState.lite);
             document.body.classList.toggle('eyecare', !!appState.eyeCare);
         document.body.classList.toggle('simple', !!appState.simple);
         applyClockPref(appState.clockPref || 'analog:gold');
