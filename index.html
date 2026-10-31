@@ -2043,6 +2043,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                             <div class="bar-grip" id="bar-grip" title="اسحب الشريط لأي طرف"><svg viewBox="0 0 18 26" fill="currentColor"><circle cx="5" cy="4" r="2"/><circle cx="13" cy="4" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="5" cy="22" r="2"/><circle cx="13" cy="22" r="2"/></svg></div>
                             <button class="ibtn" id="bar-orient-btn" title="شريط أفقي / راسي" aria-label="شريط أفقي أو راسي" onclick="toggleBarOrient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="2"/><path d="M12 3v3M12 18v3M9.5 4.5L12 3l2.5 1.5M9.5 19.5L12 21l2.5-1.5"/></svg></button>
                                                     <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
+                                                    <button class="ibtn" id="board-to-reader" title="قارئ الكتب" aria-label="قارئ الكتب" onclick="boardToReader()"><i data-icon="book"></i></button>
                         </div>
                         <div class="bgrp pen-group">
                             <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
@@ -2608,6 +2609,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="reader-tools">
                 <button class="reader-btn" id="spread-btn" onclick="toggleSpread()">صفحتان</button>
                 <button class="reader-btn" onclick="toggleReaderPaper()">الخلفية</button>
+                <button class="reader-btn" id="reader-to-board" title="الذهاب للسبورة" onclick="readerToBoard()">السبورة</button>
             </div>
         </div>
         <div class="reader-notes">
@@ -3780,6 +3782,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ==========================================
         const VIEW_TITLES = { home: 'الرئيسية', board: 'السبورة التفاعلية', books: 'المكتبة الرقمية', exams: 'الاختبارات', ai: 'المساعد الذكي' };
 
+        // التنقل بين قارئ الكتب والسبورة من غير ما المستخدم يرجع للقائمة
+        function readerToBoard() {
+            closeReader();
+            switchView('board', document.querySelector('.nav[data-view="board"]'));
+        }
+        function boardToReader() {
+            if ($('board').classList.contains('fs')) setBoardFs(false);   // القارئ بيتفتح فوق الشاشة العادية بس
+            if (lastReaderBook) openBook(lastReaderBook);
+            else switchView('books', document.querySelector('.nav[data-view="books"]'));
+        }
         function backFromBoard() {
             if ($('board').classList.contains('fs')) setBoardFs(false);
             switchView('home', document.querySelector('[data-view=home]'));
@@ -4425,6 +4437,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const canvas = $('custom-canvas');
         // desynchronized: الرسم بيوصل للشاشة من غير انتظار دورة الشاشة، فالقلم بيكون أسرع في الاستجابة
         const ctx = canvas.getContext('2d', { desynchronized: true }) || canvas.getContext('2d');
+        const liveCanvas = document.createElement('canvas');
+        liveCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none;';
+        $('board-paper').appendChild(liveCanvas);
+        const liveCtx = liveCanvas.getContext('2d', { desynchronized: true }) || liveCanvas.getContext('2d');
+        let mainNeedsDraw = true;   // الكانفاس الرئيسية (الصفحة المحفوظة) محتاجة تترسم من الكاش
         const stageEl = $('board-stage');
         const FINGER_ERASES = false;   // true = الإصبع ممحاة والقلم كتابة، false = الإصبع يرسم
 
@@ -5296,6 +5313,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     cacheCanvas.width = canvas.width;
                     cacheCanvas.height = canvas.height;
                 }
+                mainNeedsDraw = true;
                 cacheCtx.setTransform(1, 0, 0, 1, 0, 0);
                 cacheCtx.clearRect(0, 0, cacheCanvas.width, cacheCanvas.height);
                 drawBoardPaperOnCanvas(cacheCtx, d);
@@ -5305,14 +5323,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 for (const st of page.strokes) drawStroke(cacheCtx, st);
                 boardDirty = false;
             }
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(cacheCanvas, 0, 0);
-            if (cur) {
-                ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
-                drawStroke(ctx, cur);
+            if (mainNeedsDraw) {
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(cacheCanvas, 0, 0);
+                mainNeedsDraw = false;
             }
-            drawLaser(ctx, d);
+            liveCtx.setTransform(1, 0, 0, 1, 0, 0);
+            liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
+            if (cur) {
+                liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+                drawStroke(liveCtx, cur);
+            }
+            drawLaser(liveCtx, d);
             renderStickies();
             updateSelBox();
         }
@@ -5351,6 +5374,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 boardDirty = true;
                 canvas.width = w;
                 canvas.height = h;
+                liveCanvas.width = w;
+                liveCanvas.height = h;
             }
             requestRender();
         }
@@ -5732,6 +5757,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     }
                 }
                 cur = null;
+                mainNeedsDraw = true;
                 activeId = null;
                 activeMode = null;
                 lastErase = null;
@@ -8429,7 +8455,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             applyReaderView();
         }
 
+        let lastReaderBook = null;   // آخر كتاب اتفتح، عشان زرار "قارئ الكتب" في السبورة يرجعله
         async function openBook(book) {
+            lastReaderBook = book;
             const t = ++reader.token;
             $('reader-title').innerText = book.title;
             $('reader').classList.add('open');
@@ -9576,7 +9604,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             penColor = penColors[penStyle] || penColor;
             markCurrentColor(penColor);
             // وضع الأداء: لو اتحفظ نستخدمه، وإلا يتفعّل تلقائي على الأجهزة الضعيفة
-            document.body.classList.toggle('lite', appState.lite === undefined ? (!!NATIVE || (navigator.hardwareConcurrency || 8) <= 4) : !!appState.lite);
+            document.body.classList.toggle('lite', appState.lite === undefined ? (navigator.hardwareConcurrency || 8) <= 4 : !!appState.lite);
             document.body.classList.toggle('eyecare', !!appState.eyeCare);
         document.body.classList.toggle('simple', !!appState.simple);
         applyClockPref(appState.clockPref || 'analog:gold');
