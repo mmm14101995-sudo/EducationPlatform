@@ -2059,11 +2059,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <section id="view-board" class="view">
                 <div class="board" id="board">
                     <div class="board-bar">
+                        <div class="bgrp">
+                                                    <button class="ibtn" id="board-to-reader" title="قارئ الكتب" aria-label="قارئ الكتب" onclick="boardToReader()"><i data-icon="book"></i></button>
+                        </div>
                         <div class="bgrp bar-ctl">
                             <div class="bar-grip" id="bar-grip" title="اسحب الشريط لأي طرف"><svg viewBox="0 0 18 26" fill="currentColor"><circle cx="5" cy="4" r="2"/><circle cx="13" cy="4" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="5" cy="22" r="2"/><circle cx="13" cy="22" r="2"/></svg></div>
                             <button class="ibtn" id="bar-orient-btn" title="شريط أفقي / راسي" aria-label="شريط أفقي أو راسي" onclick="toggleBarOrient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="2"/><path d="M12 3v3M12 18v3M9.5 4.5L12 3l2.5 1.5M9.5 19.5L12 21l2.5-1.5"/></svg></button>
                                                     <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
-                                                    <button class="ibtn" id="board-to-reader" title="قارئ الكتب" aria-label="قارئ الكتب" onclick="boardToReader()"><i data-icon="book"></i></button>
                         </div>
                         <div class="bgrp pen-group">
                             <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
@@ -2685,6 +2687,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
 
         function toast(msg, type) {
+            if (isEn()) msg = i18nTr(msg) || msg;
             const t = $('toast');
             msg = String(msg == null ? '' : msg);
             type = type || (/تعذر|فشل|خطأ|لا يمكن|غير محمّل|ما زالت/.test(msg) ? 'error' : /^(تم|اتحفظ|تمّ)/.test(msg) ? 'success' : 'info');
@@ -2975,7 +2978,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function applyProfile() {
             const t = appState.teacher;
             const isDefaultName = !t.name || t.name === 'المنصة التعليمية الشاملة';
-            if ($('app-title')) { $('app-title').innerText = isDefaultName ? 'المنصة التعليمية الشاملة' : 'منصة ' + t.name; $('app-sub').innerText = t.subtitle || ''; }
+            if ($('app-title')) { $('app-title').innerText = isDefaultName ? (isEn() ? EN.title : 'المنصة التعليمية الشاملة') : (isEn() ? enPlatformName(t.name) : 'منصة ' + t.name); $('app-sub').innerText = t.subtitle || ''; }
             $('t-name').innerText = t.name;
             $('t-sub').innerText = t.subtitle;
             $('t-avatar').innerText = (t.name || 'م').trim().charAt(0);
@@ -3086,7 +3089,17 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         };
         let appLang = 'ar';
         const isEn = () => appLang === 'en';
-        function gradeLabel(g) { return isEn() ? EN.grades[g] : gradeName(g); }
+        // بالإنجليزي: الأسماء الافتراضية بتتترجم، والاسم اللي المستخدم غيّره بيفضل زي ما هو. الترجمة مش بتتحفظ في البيانات.
+        function gradeLabel(g) {
+            if (!isEn()) return gradeName(g);
+            const custom = appState.gradeNames && appState.gradeNames[g];
+            if (custom && custom !== DEFAULT_GRADE_NAMES[g]) return custom;
+            return EN.grades[g];
+        }
+        function enPlatformName(n) {
+            const names = { 'مصطفى': 'Mostafa', 'مصطفى محمد': 'Mostafa Mohamed' };
+            return (names[(n || '').trim()] || n) + ' Platform';
+        }
         function viewTitle(view) { return isEn() ? (EN.nav[view] || '') : (VIEW_TITLES[view] || ''); }
         function setTextKeepAr(el, ar, en) {
             if (!el) return;
@@ -3111,6 +3124,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const activeView = (document.querySelector('.view.active') || {}).id || 'view-home';
             $('view-title').innerText = viewTitle(activeView.replace('view-', ''));
             applyGradeNames();
+            if (typeof applyBoardBgStyles === 'function') applyBoardBgStyles(boardBg());   // عناوين الأزرار بتتحدث باللغة
             buildDateFormatters(appLang);
             if (typeof lastDateKey !== 'undefined') lastDateKey = '';
             if (typeof tickClock === 'function' && $('ck-digital')) tickClock();
@@ -3576,7 +3590,123 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 "مفتاح Gemini API (للتحويل التلقائي للاختبارات)": "Gemini API key (for automatic exam conversion)",
 "وضع راحة العين (خلفية سوداء بالكامل بدون زجاج)": "Eye-comfort mode (fully black background, no glass)",
 "Language / اللغة": "Language / اللغة",
-"الوضع الليلي": "Dark mode"
+"الوضع الليلي": "Dark mode",
+            "صفحة 1": "Page 1",
+            "0 كتاب": "0 books",
+            "لا توجد هنا بعد. ضع ملفات PDF في المجلد: books/SEC3": "No books here yet. Put PDF files in the folder: books/SEC3",
+            "0 ملزمة": "0 handouts",
+            "لا توجد هنا بعد. ضع ملفات PDF في المجلد: books/SEC3/reviews": "No handouts yet. Put PDF files in the folder: books/SEC3/reviews",
+            "0 اختبار": "0 exams",
+            "لا توجد اختبارات بعد. ضع ملفات PDF في المجلد: books/SEC3/exams": "No exams yet. Put PDF files in the folder: books/SEC3/exams",
+            "لا توجد اختبارات إلكترونية. أنشئ اختباراً جديداً أو استورده من ملف Word أو PDF.": "No online exams yet. Create a new exam or import one from a Word or PDF file.",
+            "النص المستخرج (راجعه أو الصق نصاً مباشرة)": "Extracted text (review it or paste text directly)",
+            "ناتج Gemini (إن استخدمت النسخ واللصق)": "Gemini output (if you use copy and paste)",
+            "الملف الشخصي": "Profile",
+            "صورة المعلم (تظهر جنب الاسم)": "Teacher photo (shown next to the name)",
+            "اختيار": "Choose",
+            "إزالة": "Remove",
+            "المظهر": "Appearance",
+            "الثيم (الخلفية ودرجة الألوان)": "Theme (background and color tone)",
+            "لون التمييز": "Accent color",
+            "ح": "h",
+            "مخصص": "Custom",
+            "شكل الساعة": "Clock style",
+            "ذهبي كلاسيكي": "Classic gold",
+            "أبيض بسيط": "Simple white",
+            "بألوان المنصة": "Platform colors",
+            "شاشة LED": "LED display",
+            "خط رفيع بسيط": "Thin simple line",
+            "كارت مع اسم اليوم": "Card with day name",
+            "راحة العين (خلفية سوداء بالكامل بدون زجاج)": "Eye comfort (fully black background, no glass)",
+            "الوضع البسيط (الرئيسية بالأزرار الكبيرة بس)": "Simple mode (home with large buttons only)",
+            "اللغة والأداء": "Language & performance",
+            "الطقس والتاريخ": "Weather & date",
+            "مدينة الطقس (اتركها فاضية للتحديد التلقائي)": "Weather city (leave empty for automatic detection)",
+            "الكتب والذكاء الاصطناعي": "Books & AI",
+            "اكتب اسم الصفحة (مثلاً: المحاضرة الأولى)": "Enter a page name (for example: First lecture)",
+            "اختار الشكل، وبعدين اختار هتكتب نص ولا ترسم بالقلم.": "Choose a shape, then choose whether to type text or draw with the pen.",
+            "شارة": "Badge",
+            "المكتبة العلمية": "Science library",
+            "اختر رسمًا تعليميًا أو صورة موثقة، وستُضاف مباشرة إلى صفحة السبورة الحالية.": "Choose an educational diagram or a verified image. It will be added directly to the current board page.",
+            "+ إضافة صور": "+ Add images",
+            "اختيار من الجهاز": "Choose from device",
+            "إضافة من الرابط": "Add from link",
+            "الرسوم التخطيطية للتوضيح التعليمي. صور NASA تتطلب اتصالًا بالإنترنت.": "Diagrams are for educational illustration. NASA images need an internet connection.",
+            "شكل الصفحة: ": "Page style: ", "اختار شكل الورقة، ثم المسافة بين السطور أو المربعات.": "Choose the page style, then the spacing between lines or squares.",
+            "السبورة": "Board",
+            "قارئ الكتب": "Book reader",
+            "قلم نيون": "Neon pen",
+            "باقي الأقلام": "More pens",
+            "وضع اليد: حرّك الشاشة بالقلم أو بأي إصبع": "Hand mode: move the screen with the pen or any finger",
+            "وضع اليد": "Hand mode",
+            "المكتبة العلمية": "Science library",
+            "السمك": "Thickness",
+            "1. سؤال ...\nأ) ...  ب) ...  ج) ...  د) ...\nالإجابة: ب": "1. Question ...\nA) ...  B) ...  C) ...  D) ...\nAnswer: B",
+            "افتراضي": "Default",
+            "تركواز": "Turquoise",
+            "ذهبي": "Gold",
+            "بنفسجي": "Purple",
+            "وردي": "Pink",
+            "أخضر": "Green",
+            "برتقالي": "Orange",
+            "سماوي": "Sky blue",
+            "سهم": "Arrow",
+            "إغلاق المكتبة": "Close library",
+            "ابحث في الرسوم العلمية...": "Search science diagrams...",
+            "اسم الصورة (اختياري)": "Image name (optional)",
+            "أو الصق رابط صورة من الإنترنت (https://...)": "Or paste an image link from the internet (https://...)",
+            "الذهاب للسبورة": "Go to board",
+            "وضع اليد: تحريك وتكبير الصفحة بدون كتابة": "Hand mode: move and zoom the page without writing",
+            "أضف سؤالاً واحداً على الأقل": "Add at least one question",
+            "اتشالت صورة المعلم": "Teacher photo removed",
+            "اتضافت الخريطة للصفحة الحالية": "Map added to the current page",
+            "اتضافت الصورة للسبورة": "Image added to the board",
+            "استكملنا الفيديو من ": "Resumed the video from ",
+            "اضغط مرة أخرى للتأكيد": "Press again to confirm",
+            "اضغط مسح مرة أخرى للتأكيد": "Press clear again to confirm",
+            "اكتب اسم الكورس": "Type the course name",
+            "اكتب المهمة الأول": "Type the task first",
+            "اكتب رابط يبدأ بـ https://": "Type a link starting with https://",
+            "الاختبار فاضي": "The exam is empty",
+            "الطباعة غير متاحة هنا. استخدم حفظ PDF": "Printing is not available here. Use Save as PDF",
+            "الطباعة غير متاحة هنا. استخدم حفظ PDF ثم اطبعه": "Printing is not available here. Save as PDF, then print it",
+            "المساحة دي مش على الصفحة": "This area is not on the page",
+            "المكتبة ما زالت تحمل، حاول بعد لحظات": "The library is still loading. Try again in a moment",
+            "تعذر إضافة ": "Could not add ",
+            "تعذر إضافة الفيديو": "Could not add the video",
+            "تعذر إضافة ملفات PDF. تأكد أن التطبيق يعمل بشكل صحيح ثم حاول مرة أخرى.": "Could not add PDF files. Make sure the app is working properly, then try again.",
+            "تعذر البحث. تأكد من الإنترنت": "Search failed. Check your internet connection",
+            "تعذر الحفظ": "Could not save",
+            "تعذر الحفظ، حاول مرة تانية": "Could not save. Try again",
+            "تعذر تحميل الصورة": "Could not load the image",
+            "تعذر تحميل الصورة من المكتبة": "Could not load the image from the library",
+            "تم إخفاء: ": "Hidden: ",
+            "تم إظهار الملفات المخفية": "Hidden files are now shown",
+            "تم الحفظ في: ": "Saved to: ",
+            "تم تغيير الخلفية": "Background changed",
+            "تم تغيير صورة المعلم": "Teacher photo changed",
+            "تم حذف الصفحة": "Page deleted",
+            "تم حذف الصورة من المكتبة": "Image deleted from the library",
+            "تم حفظ إعدادات Gemini": "Gemini settings saved",
+            "تم حفظ الاختبار": "Exam saved",
+            "تم حفظ البيانات": "Data saved",
+            "تم ضبط المدينة: ": "City set: ",
+            "تمت إضافة الرسم إلى السبورة": "Diagram added to the board",
+            "تمت إضافة الصورة إلى السبورة": "Image added to the board",
+            "تمت إضافة صورة NASA إلى السبورة": "NASA image added to the board",
+            "جارٍ تجهيز صورة NASA...": "Preparing the NASA image...",
+            "حدّد الإجابة الصحيحة للسؤال: ": "Select the correct answer for question: ",
+            "راجع الأسئلة وحدّد الإجابات الصحيحة قبل الحفظ": "Review the questions and select the correct answers before saving",
+            "رجعت الخلفية الافتراضية": "Default background restored",
+            "فتحنا مجلد الاختبارات، ضع فيه ملفات PDF": "We opened the exams folder. Put PDF files in it",
+            "كل سؤال اختياري يحتاج اختيارين على الأقل": "Each optional question needs at least two choices",
+            "لا توجد صفحات لحفظها": "There are no pages to save",
+            "لا توجد مهام": "No tasks",
+            "ما لقيتش المدينة دي": "Could not find this city",
+            "نسخة أندرويد الحالية لا تدعم إضافة الكتب حسب السنة والتصنيف. يلزم تحديث Android مرة واحدة لتفعيلها.": "The current Android version does not support adding books by year and category. Update Android once to enable it.",
+            "هيتم تحديد الموقع تلقائياً": "Location will be detected automatically",
+            "وصلت للحد الأقصى (": "Maximum reached (",
+            "خلفية السبورة: ": "Board background: "
 };
         const I18N_ORIG_TEXT = new WeakMap();   // النص العربي الأصلي لكل text node اتترجم
         const I18N_ORIG_ATTR = new WeakMap();   // النص العربي الأصلي لكل عنصر (لكل خاصية)
@@ -3586,12 +3716,22 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function i18nKey(text) { return text.trim(); }
 
+        // يرجّع النص المترجم (مطابقة كاملة أو بادئة زي "تم إخفاء: " + الاسم)، أو null لو مفيش ترجمة
+        function i18nTr(s) {
+            const k = i18nKey(s);
+            if (!k) return null;
+            if (k in I18N_EN) return s.replace(k, I18N_EN[k]);
+            for (const key in I18N_EN) {
+                if (!(key.endsWith(': ') || key.endsWith(' '))) continue;   // بس المفاتيح اللي فيها بادئة (زي "تم إخفاء: ")
+                const pre = key.trim();
+                if (pre && k.startsWith(pre)) return s.replace(k, I18N_EN[key] + k.slice(pre.length).replace(/^\s+/, ''));
+            }
+            return null;
+        }
         function i18nTranslateText(node, toEn) {
             if (toEn) {
-                const k = i18nKey(node.nodeValue);
-                if (!k || !(k in I18N_EN)) return;
-                const next = node.nodeValue.replace(k, I18N_EN[k]);
-                if (next === node.nodeValue) return;          // مفيش تغيير: ما نكتبش عشان ما نعملش حلقة
+                const next = i18nTr(node.nodeValue);
+                if (next === null || next === node.nodeValue) return;          // مفيش ترجمة أو مفيش تغيير: ما نعملش حلقة
                 if (!I18N_ORIG_TEXT.has(node)) I18N_ORIG_TEXT.set(node, node.nodeValue);
                 node.nodeValue = next;
             } else if (I18N_ORIG_TEXT.has(node)) {
@@ -3606,11 +3746,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             for (const attr of I18N_ATTRS) {
                 if (!el.hasAttribute(attr)) continue;
                 const val = el.getAttribute(attr);
-                const k = i18nKey(val);
                 if (toEn) {
-                    if (!k || !(k in I18N_EN)) continue;
-                    const next = val.replace(k, I18N_EN[k]);
-                    if (next === val) continue;                // نفس النص: ما نغيّرش عشان ما نعملش حلقة
+                    const next = i18nTr(val);
+                    if (next === null || next === val) continue;                // مفيش ترجمة أو نفس النص: ما نغيّرش عشان ما نعملش حلقة
                     if (!I18N_ORIG_ATTR.has(el)) I18N_ORIG_ATTR.set(el, {});
                     const rec = I18N_ORIG_ATTR.get(el);
                     if (!(attr in rec)) rec[attr] = val;
@@ -4446,7 +4584,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('st-books').innerText = books;
             $('st-reviews').innerText = reviews;
             $('st-reading').innerText = reading.length;
-            $('hero-grade').innerText = gradeName(currentGrade);
+            $('hero-grade').innerText = gradeLabel(currentGrade);
             $('home-continue-wrap').style.display = reading.length ? 'block' : 'none';
             fillShelf('home-continue', reading.slice(0, 8), null, '', null);
         }
@@ -4672,7 +4810,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const dot = $('board-bg-dot');
             if (dot) dot.style.backgroundColor = hex || boardBg();
             const btn = $('board-bg-btn');
-            if (btn) btn.title = 'خلفية السبورة: ' + (hex || boardBg());
+            if (btn) btn.title = (isEn() ? 'Board background: ' : 'خلفية السبورة: ') + (hex || boardBg());
         }
         function boardPaperPattern() { return appState.boardPaperPattern === 'lined' ? 'lined' : 'grid'; }
         function boardPaperSize() {
@@ -4693,7 +4831,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 stageEl.style.backgroundPosition = (view.tx % step) + 'px ' + (view.ty % step) + 'px';
             }
             const btn = $('paper-style-btn');
-            if (btn) btn.title = 'شكل الصفحة: ' + (boardPaperPattern() === 'lined' ? 'مسطرة' : 'مربعات') + '، الحجم ' + boardPaperSize();
+            if (btn) btn.title = isEn()
+                ? 'Page style: ' + (boardPaperPattern() === 'lined' ? 'lines' : 'grid') + ', size ' + boardPaperSize()
+                : 'شكل الصفحة: ' + (boardPaperPattern() === 'lined' ? 'مسطرة' : 'مربعات') + '، الحجم ' + boardPaperSize();
         }
         function applyBoardBgStyles(hex) {
             stageEl.style.backgroundColor = hex;
