@@ -1808,7 +1808,29 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         .sp-col.on { box-shadow: 0 0 0 2px var(--card, #111827), 0 0 0 4px var(--accent); }
         .sh-bubble::after { border-top-color: var(--note-c, color-mix(in srgb, var(--accent) 18%, #fffdf8)); }
 
-/* إضافة صور المستخدم للمكتبة */
+/* الأقلام: أربعة ظاهرين + قائمة منبثقة للباقي */
+        .pen-group .pen-style-btn[data-style="neon"] svg { filter: drop-shadow(0 0 3px var(--pc, #22d3ee)) drop-shadow(0 0 6px var(--pc, #22d3ee)); }
+        .pen-more-wrap { position: relative; display: inline-flex; }
+        .pen-plus { font-size: 22px; font-weight: 800; line-height: 1; }
+        .pen-pop { display: none; position: absolute; top: calc(100% + 10px); bottom: auto; left: 50%; transform: translateX(-50%); flex-wrap: wrap; gap: 6px; width: max-content; max-width: 280px; padding: 8px; border-radius: 14px; background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25); z-index: 60; }
+        .pen-pop.open { display: flex; }
+        .pen-pop .pen-style-btn svg { width: 22px; height: 34px; }
+        /* زرارين الخلفية وشكل الصفحة جنب بعض في صف واحد */
+        .board-bar .board-color-group { display: inline-flex !important; flex-wrap: nowrap !important; align-items: center; gap: 6px; }
+        /* السايدبار يتقفل لأيقونات على اليمين وانت في السبورة */
+        @media (min-width: 900px) {
+            body.board-active .sidebar { width: 78px; padding: 14px 10px; align-items: center; }
+            body.board-active .sidebar .teacher { justify-content: center; }
+            body.board-active .sidebar .teacher > div:not(.avatar) { display: none; }
+            body.board-active .sidebar .nav { justify-content: center; padding: 12px 0; gap: 0; }
+            body.board-active .sidebar .nav span { display: none; }
+        }
+        /* الشريط في الشاشات المتوسطة: مسافات أضيق عشان يفضل في صفين بالكتير */
+        @media (min-width: 900px) and (max-width: 1280px) {
+            .board:not(.fs) .board-bar { gap: 6px 6px; padding: 8px 10px; }
+            .board:not(.fs) .board-bar .bgrp { gap: 2px; padding: 3px 5px; }
+        }
+        /* إضافة صور المستخدم للمكتبة */
         .science-upload-toggle{flex:0 0 auto;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
         .science-upload-panel{flex-direction:column;gap:9px;padding:12px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,.04)}
         .science-upload-target{font-size:12px;color:var(--muted);font-weight:700}
@@ -1832,7 +1854,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
     <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
         <linearGradient id="pn-grad" x1="0" x2="1"><stop offset="0" stop-color="#3a4668"/><stop offset=".5" stop-color="#27304d"/><stop offset="1" stop-color="#1b2238"/></linearGradient>
         <linearGradient id="pn-metal" x1="0" x2="1"><stop offset="0" stop-color="#c9d2e3"/><stop offset=".5" stop-color="#f2f5fb"/><stop offset="1" stop-color="#9aa6bd"/></linearGradient>
-        <g id="pn-body"><rect x="8" y="17" width="10" height="21" rx="3.2" fill="url(#pn-grad)"/><rect x="10" y="19" width="1.6" height="16" rx=".8" fill="#fff" opacity=".16"/><rect x="8" y="14.5" width="10" height="3.4" rx="1" fill="url(#pn-metal)"/></g>
+        <g id="pn-body"><rect x="6.5" y="17" width="13" height="21" rx="3.6" fill="url(#pn-grad)"/><rect x="8.6" y="19" width="2" height="16" rx="1" fill="#fff" opacity=".16"/><rect x="6.5" y="14.5" width="13" height="3.4" rx="1.2" fill="url(#pn-metal)"/></g>
     </defs></svg>
 
     <div id="bg-layer"></div>
@@ -1998,34 +2020,42 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         <div class="bgrp bar-ctl">
                             <div class="bar-grip" id="bar-grip" title="اسحب الشريط لأي طرف"><svg viewBox="0 0 18 26" fill="currentColor"><circle cx="5" cy="4" r="2"/><circle cx="13" cy="4" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="5" cy="22" r="2"/><circle cx="13" cy="22" r="2"/></svg></div>
                             <button class="ibtn" id="bar-orient-btn" title="شريط أفقي / راسي" aria-label="شريط أفقي أو راسي" onclick="toggleBarOrient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="2"/><path d="M12 3v3M12 18v3M9.5 4.5L12 3l2.5 1.5M9.5 19.5L12 21l2.5-1.5"/></svg></button>
+                                                    <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
                         </div>
-                        <button class="ibtn back-btn" title="رجوع" onclick="backFromBoard()"><i data-icon="x"></i></button>
-                        <div class="bgrp">
-                            <button class="ibtn pen-3d pen-style-btn" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="feather" title="قلم ريشة" onclick="penTap('feather')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M12 14.5 L12.7 3 H13.3 L14 14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="hl" title="تظليل" onclick="penTap('hl')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penTap('broad')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M8.8 14.5 V9 Q8.8 3.5 13 3.5 Q17.2 3.5 17.2 9 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penTap('pencil')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path d="M8.8 14.5 L13 3 L17.2 14.5Z" fill="#e8c58f"/><path class="nib" d="M11.9 6.2 L13 3 L14.1 6.2Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="penTap('striped')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13 V14.5Z"/><path d="M13 4.5 H13.6 L15 14.5 H13Z" fill="#f8fafc"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="5" height="3"/><rect x="13" y="20.5" width="5" height="3" fill="#f8fafc"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="laser" title="مؤشر ليزر (أثر مضيء بيختفي لوحده)" aria-label="مؤشر ليزر" onclick="penTap('laser')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><rect class="nib" x="10.2" y="9" width="5.6" height="5.5" rx="1.2"/><circle class="nib" cx="13" cy="6.4" r="2.2"/><path class="nib-s" d="M13 1.2V2.4M7.9 3.4l1.1 1M18.1 3.4l-1.1 1M6.4 8.4h1.4M18.2 8.4h1.4"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
-                            <button class="ibtn pen-3d pen-style-btn" data-style="smart" title="القلم الذكي (يحوّل رسمك لشكل مظبوط: خط، دائرة، مثلث، مستطيل)" aria-label="القلم الذكي" onclick="penTap('smart')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 6 H13.6 L15 14.5Z"/><path class="nib" d="M19.4 1.4l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/><path d="M13 25.4L16.7 32H9.3Z" fill="none" stroke="#fff" stroke-width="1.1" stroke-linejoin="round" opacity=".9"/></svg></button>
+                        <div class="bgrp pen-group">
+                            <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="normal" title="قلم حبر" onclick="penTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="feather" title="قلم ريشة" onclick="penTap('feather')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M12 14.5 L12.7 3 H13.3 L14 14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="hl" title="تظليل" onclick="penTap('hl')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="neon" title="قلم نيون" onclick="penTap('neon')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <div class="pen-more-wrap">
+                                <button class="ibtn" id="pen-more-btn" title="باقي الأقلام" aria-label="باقي الأقلام" onclick="togglePenMore(event)"><span class="pen-plus">+</span></button>
+                                <div class="pen-pop" id="pen-more-pop">
+                            <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M8.8 14.5 V9 Q8.8 3.5 13 3.5 Q17.2 3.5 17.2 9 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path d="M8.8 14.5 L13 3 L17.2 14.5Z" fill="#e8c58f"/><path class="nib" d="M11.9 6.2 L13 3 L14.1 6.2Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13 V14.5Z"/><path d="M13 4.5 H13.6 L15 14.5 H13Z" fill="#f8fafc"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="5" height="3"/><rect x="13" y="20.5" width="5" height="3" fill="#f8fafc"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="laser" title="مؤشر ليزر (أثر مضيء بيختفي لوحده)" aria-label="مؤشر ليزر" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><rect class="nib" x="10.2" y="9" width="5.6" height="5.5" rx="1.2"/><circle class="nib" cx="13" cy="6.4" r="2.2"/><path class="nib-s" d="M13 1.2V2.4M7.9 3.4l1.1 1M18.1 3.4l-1.1 1M6.4 8.4h1.4M18.2 8.4h1.4"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+                            <button class="ibtn pen-3d pen-style-btn" data-style="smart" title="القلم الذكي (يحوّل رسمك لشكل مظبوط: خط، دائرة، مثلث، مستطيل)" aria-label="القلم الذكي" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 6 H13.6 L15 14.5Z"/><path class="nib" d="M19.4 1.4l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/><path d="M13 25.4L16.7 32H9.3Z" fill="none" stroke="#fff" stroke-width="1.1" stroke-linejoin="round" opacity=".9"/></svg></button>
+                                </div>
+                            </div>
+                            <button class="ibtn" id="hand-btn" title="وضع اليد: حرّك الشاشة بالقلم أو بأي إصبع" aria-label="وضع اليد" onclick="toggleHand()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 11.5V8.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.5a6 6 0 0 1-4.6-2.2L4 15.2a1.6 1.6 0 0 1 2.3-2.2L8 15"/></svg></button>
                             <button class="ibtn pen-3d" id="eraser-btn" title="ممحاة" onclick="setEraser()"><svg viewBox="0 0 26 40"><rect x="8" y="17" width="10" height="21" rx="3.2" fill="url(#pn-grad)"/><rect x="8" y="4" width="10" height="13" rx="2.6" fill="#f9a8c9"/><rect x="8" y="12" width="10" height="5" fill="#fff" opacity=".85"/><rect x="10" y="6" width="1.6" height="8" rx=".8" fill="#fff" opacity=".4"/></svg></button>
                             <button class="ibtn" id="select-btn" title="تحديد (مربع خط مقطع) للحذف أو النقل" aria-label="تحديد" onclick="setTool('select')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2" stroke-dasharray="3.5 3"/><path d="M10 10l7 3-3 1.5L12.5 18z" fill="currentColor" stroke="none"/></svg></button>
+                            <button class="ibtn" id="undo-btn" title="تراجع" onclick="undo()" disabled><i data-icon="undo"></i></button>
+                            <button class="ibtn" id="redo-btn" title="إعادة" onclick="redo()" disabled><i data-icon="redo"></i></button>
+                            <button class="ibtn danger" id="clear-btn" title="مسح الصفحة" onclick="clearBoard()"><i data-icon="trash"></i></button>
                         </div>
 
                         <div class="bgrp">
                             <button class="ibtn" id="shape-open" title="الأشكال" onclick="openShapes('board')"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
                             <button class="ibtn sticky-btn" title="Sticky Notes" aria-label="Sticky Notes" onclick="openStickyPicker()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" style="fill:var(--accent)" stroke="#a16207" stroke-width="1.2"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
                             <button class="ibtn" id="mindmap-btn" title="خرائط ذهنية" aria-label="خرائط ذهنية" onclick="openMindMapPicker()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="5" r="2"/><circle cx="4.5" cy="19" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="M9.5 10.5 6 6.5M14.5 10.5 18 6.5M9.5 13.5 6 17.5M14.5 13.5 18 17.5"/></svg></button>
-                            <button class="ibtn" id="science-open-btn" title="المكتبة العلمية" aria-label="المكتبة العلمية" onclick="openScienceLibrary()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v5l-5.2 9.1A2.6 2.6 0 0 0 7.1 21h9.8a2.6 2.6 0 0 0 2.3-3.9L14 8V3M7.7 15h8.6M9.5 12h5"/><circle cx="17.8" cy="5.2" r="1.2"/></svg></button>
+                            <button class="ibtn" id="science-open-btn" title="المكتبة العلمية" aria-label="المكتبة العلمية" onclick="openScienceLibrary()"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="2.5" y="2.5" width="8.5" height="8.5" rx="2.2" fill="#38bdf8"/><circle cx="16.8" cy="6.8" r="4.3" fill="#34d399"/><path d="M2.5 21.5 L6.75 13.5 L11 21.5 Z" fill="#f472b6"/><rect x="13.3" y="13.3" width="8.2" height="8.2" rx="2.2" fill="#fbbf24"/></svg></button>
                         </div>
                         <div class="bar-break"></div>
                         <div class="bgrp board-color-group">
                             <button class="ibtn board-bg-btn" id="board-bg-btn" title="خلفية السبورة" aria-label="اختيار لون خلفية السبورة" onclick="openBoardBg()">
                                 <span class="board-bg-dot" id="board-bg-dot"></span><span class="bgtxt">خلفية السبورة</span>
                             </button>
-                        </div>
-                        <div class="bgrp paper-style-group">
                             <button class="ibtn" id="paper-style-btn" title="شكل الصفحة: مسطرة أو مربعات" aria-label="اختيار شكل الصفحة" onclick="openBoardPaperStyle()">
                                 <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="2.5" width="18" height="19" rx="2"/><path d="M7 7h10M7 11h10M7 15h10M7 19h10"/><path d="M7 3v18" opacity=".45"/></svg>
                             </button>
@@ -2037,13 +2067,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         </div>
 
                         <div class="bgrp">
-                            <button class="ibtn" id="undo-btn" title="تراجع" onclick="undo()" disabled><i data-icon="undo"></i></button>
-                            <button class="ibtn" id="redo-btn" title="إعادة" onclick="redo()" disabled><i data-icon="redo"></i></button>
-                            <button class="ibtn danger" id="clear-btn" title="مسح الصفحة" onclick="clearBoard()"><i data-icon="trash"></i></button>
                         </div>
 
                         <div class="bgrp">
-                            <button class="ibtn" id="hand-btn" title="وضع اليد: حرّك الشاشة بالقلم أو بأي إصبع" aria-label="وضع اليد" onclick="toggleHand()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 11.5V8.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.5a6 6 0 0 1-4.6-2.2L4 15.2a1.6 1.6 0 0 1 2.3-2.2L8 15"/></svg></button>
                             <button class="ibtn" title="تصغير" onclick="zoomBy(-0.25)"><i data-icon="zoomOut"></i></button>
                             <span class="lbl" id="zoom-label">100%</span>
                             <button class="ibtn" title="تكبير" onclick="zoomBy(0.25)"><i data-icon="zoomIn"></i></button>
@@ -2564,10 +2590,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         </div>
         <div class="reader-notes">
             <button class="reader-btn" id="ann-toggle" onclick="toggleAnnotate()"><i data-icon="feather"></i><span>كتابة</span></button>
+            <button class="rn-tool" id="tool-hand" title="وضع اليد: تحريك وتكبير الصفحة بدون كتابة" aria-label="وضع اليد" onclick="readerHand()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10"/><path d="M12 10V4a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.6 14a1.5 1.5 0 0 1 2.4-1.8L9 15"/></svg></button>
             <span class="rn-sep"></span>
             <button class="rn-tool" id="tool-normal" title="قلم حبر" onclick="readerPenTap('normal')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
             <button class="rn-tool" id="tool-feather" title="قلم ريشة" onclick="readerPenTap('feather')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M12 14.5 L12.7 3 H13.3 L14 14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
             <button class="rn-tool" id="tool-hl" title="تظليل" onclick="readerPenTap('hl')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
+            <button class="rn-tool" id="tool-neon" title="قلم نيون" onclick="readerPenTap('neon')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
             <button class="rn-tool" id="tool-broad" title="ماركر عريض" onclick="readerPenTap('broad')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M8.8 14.5 V9 Q8.8 3.5 13 3.5 Q17.2 3.5 17.2 9 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
             <button class="rn-tool" id="tool-pencil" title="قلم رصاص" onclick="readerPenTap('pencil')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path d="M8.8 14.5 L13 3 L17.2 14.5Z" fill="#e8c58f"/><path class="nib" d="M11.9 6.2 L13 3 L14.1 6.2Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
             <button class="rn-tool" id="tool-striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="readerPenTap('striped')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13 V14.5Z"/><path d="M13 4.5 H13.6 L15 14.5 H13Z" fill="#f8fafc"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="5" height="3"/><rect x="13" y="20.5" width="5" height="3" fill="#f8fafc"/></svg></button>
@@ -3419,7 +3447,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             "تسلسل خطوات (4 مراحل)": "Step sequence (4 stages)",
             "دورة من 4 مراحل": "Cycle of 4 stages",
             "خط زمني بمراحل": "Timeline of stages",
-            "مقارنة بين شيئين (3 صفوف)": "Comparing two things (3 rows)",
+            "مقارنة بين شيئين (3 صفوف)": "Comparing two things (3 rows)", "شبكات ومخططات سبب ونتيجة": "Networks and cause-effect diagrams", "فكرة مركزية وثمانية فروع": "Central idea with eight branches", "أربعة فروع وتفصيلتين لكل فرع": "Four branches with two details each", "تفريع من اليسار (3 فروع وتفاصيل)": "Right-to-left tree (3 branches and details)", "تصنيف من أعلى لتحت (4 فروع)": "Top-down classification (4 branches)", "فكرة في المنتصف وفروع على الجانبين": "Central idea with branches on both sides", "فقاعات مترابطة حول فكرة": "Linked bubbles around an idea", "خطوات متتالية من أعلى لتحت": "Steps from top to bottom", "هرم من ثلاث مستويات": "Three-level pyramid", "شبكة مترابطة حول فكرة": "Linked network around an idea", "سبب ونتيجة (عظم السمكة)": "Cause and effect (fishbone)",
 "دائرة حوالين الفكرة (8)": "Circle around the idea (8)",
 "رجعت الخلفية الافتراضية": "Default background restored",
 "فكرة مركزية وأربعة فروع": "Central idea with four branches",
@@ -3735,6 +3763,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             switchView('home', document.querySelector('[data-view=home]'));
         }
 
+        document.querySelectorAll('.sidebar .nav').forEach(n => { const t = n.querySelector('span'); if (t) n.title = t.textContent; });
         function switchView(view, navEl) {
             document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === view));
             document.querySelectorAll('.view').forEach(s => s.classList.remove('active'));
@@ -4381,7 +4410,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const view = { s: 1, tx: 0, ty: 0 };
         const VIEW_MIN = 0.1, VIEW_MAX = 8;
         let tool = 'pen';            // pen | eraser
-        let penColors = { normal: '#0f172a', feather: '#0f172a', hl: '#8b5cf6', broad: '#dc2626', pencil: '#334155', striped: '#2563eb', laser: '#ef4444', smart: '#0f172a' };
+        let penColors = { normal: '#0f172a', feather: '#0f172a', hl: '#8b5cf6', broad: '#dc2626', pencil: '#334155', striped: '#2563eb', laser: '#ef4444', smart: '#0f172a', neon: '#22d3ee' };
         let penColor = penColors.normal;
         let penWidth = 3;            // بالبيكسل على الشاشة
         let eraserWidth = 35;        // بالبيكسل على الشاشة
@@ -4795,11 +4824,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             head.addEventListener('pointercancel', end);
         }
 
-        function drawInk(el, n) {
-            const c = el.querySelector('canvas.sticky-ink');
-            if (!c) return;
+        function inkCanvasCtx(c) {
             const W = c.clientWidth, H = c.clientHeight;
-            if (!W || !H) return;
+            if (!W || !H) return null;
             const dpr = window.devicePixelRatio || 1;
             if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) {
                 c.width = Math.round(W * dpr);
@@ -4807,18 +4834,29 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             const g = c.getContext('2d');
             g.setTransform(dpr, 0, 0, dpr, 0, 0);
+            return { g, W, H };
+        }
+        // نفس رسم السبورة بالظبط: الأنماط كلها (ريشة، ماركر، تظليل، نيون...) بتشتغل على الصور والملاحظات
+        function inkToPx(st, W, H) {
+            const px = st.pts.map(p => [p[0] * W, p[1] * H]);
+            if (px.length === 1) px.push([px[0][0] + 0.01, px[0][1]]);
+            return { c: st.c || '#1e293b', w: Math.max(1.5, st.w * W), s: st.s, t: st.t, pts: px };
+        }
+        function drawInk(el, n) {
+            const c = el.querySelector('canvas.sticky-ink');
+            if (!c) return;
+            const ctx = inkCanvasCtx(c);
+            if (!ctx) return;
+            const { g, W, H } = ctx;
             g.clearRect(0, 0, W, H);
-            g.lineCap = 'round';
-            g.lineJoin = 'round';
-            (n.ink || []).forEach(st => {
-                if (!st.pts || !st.pts.length) return;
-                g.strokeStyle = st.c || '#1e293b';
-                g.lineWidth = Math.max(1.5, st.w * W);
-                g.beginPath();
-                st.pts.forEach((p, i) => { const x = p[0] * W, y = p[1] * H; if (i) g.lineTo(x, y); else g.moveTo(x, y); });
-                if (st.pts.length === 1) g.lineTo(st.pts[0][0] * W + 0.01, st.pts[0][1] * H);
-                g.stroke();
-            });
+            (n.ink || []).forEach(st => { if (st.pts && st.pts.length) drawStroke(g, inkToPx(st, W, H)); });
+        }
+        // أثناء الكتابة: نرسم القطعة الجديدة بس بدل إعادة رسم كل الخطوط (أسرع بكتير)
+        function drawInkSegment(c, st, W, H) {
+            const ctx = inkCanvasCtx(c);
+            if (!ctx || st.pts.length < 2) return;
+            const a = st.pts[st.pts.length - 2], b = st.pts[st.pts.length - 1];
+            drawStroke(ctx.g, inkToPx({ c: st.c, w: st.w, s: st.s, t: st.t, pts: [a, b] }, W, H));
         }
 
         // الممحاة فوق ملاحظة الرسم: بتمسح الخطوط اللي تحت المؤشر بدل ما ترسم
@@ -4840,11 +4878,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         function bindInk(cv, n, el) {
-            let pid = null, start = null, st = null;
-            const norm = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+            let pid = null, start = null, st = null, rect = null, W = 0, H = 0;
+            const norm = e => [(e.clientX - rect.left) / W, (e.clientY - rect.top) / H];
             cv.addEventListener('pointerdown', e => {
                 if (handMode || el.classList.contains('moving') || tool === 'select') return;
-                pid = e.pointerId; start = norm(e); st = null;
+                pid = e.pointerId; st = null;
+                rect = cv.getBoundingClientRect(); W = cv.clientWidth; H = cv.clientHeight;
+                start = norm(e);
                 if (tool === 'eraser') eraseInkAt(cv, n, el, e);
             });
             cv.addEventListener('pointermove', e => {
@@ -4852,18 +4892,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (tool === 'eraser') { eraseInkAt(cv, n, el, e); return; }
                 const p = norm(e);
                 if (!st) {
-                    if (Math.hypot((p[0] - start[0]) * cv.clientWidth, (p[1] - start[1]) * cv.clientHeight) < 3) return;
-                    st = { w: Math.max(1.5, penWidth) / cv.clientWidth, c: penColor, pts: [start] };
+                    if (Math.hypot((p[0] - start[0]) * W, (p[1] - start[1]) * H) < 3) return;
+                    st = { w: Math.max(1.5, penWidth) / W, c: penColor, s: penStyle === 'laser' ? 'normal' : penStyle, pts: [start] };
                     n.ink = n.ink || [];
                     n.ink.push(st);
                 }
                 st.pts.push(p);
-                drawInk(el, n);
+                drawInkSegment(cv, st, W, H);
             });
             const up = e => {
                 if (pid !== e.pointerId) return;
                 pid = null;
-                if (st) { st = null; scheduleSave(); }
+                if (st) { st = null; drawInk(el, n); scheduleSave(); }
             };
             cv.addEventListener('pointerup', up);
             cv.addEventListener('pointercancel', up);
@@ -5109,6 +5149,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             g.stroke();
         }
 
+        // قلم النيون: هالة ملونة مضيئة وقلب فاتح
+        function paintNeon(g, pts, w, col) {
+            g.lineCap = 'round'; g.lineJoin = 'round';
+            g.globalAlpha = 0.45; g.strokeStyle = col; g.lineWidth = Math.max(2, w * 1.9);
+            g.shadowColor = col; g.shadowBlur = Math.max(6, w * 2.2);
+            tracePath(g, pts, 0, 0);
+            g.globalAlpha = 1; g.shadowBlur = 0;
+            g.strokeStyle = '#ffffff'; g.lineWidth = Math.max(1.2, w * 0.5);
+            g.shadowColor = col; g.shadowBlur = Math.max(3, w * 0.9);
+            tracePath(g, pts, 0, 0);
+            g.shadowBlur = 0;
+        }
         function drawStroke(g, st) {
             const pts = st.pts;
             if (!pts || !pts.length) return;
@@ -5174,6 +5226,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     });
                     tracePath(g, jit, 0, 0);
                 }
+            } else if (st.s === 'neon') {
+                paintNeon(g, pts, w, st.c);
             } else {
                 // قلم حبر: خط صلب ناعم
                 g.lineWidth = w;
@@ -5446,12 +5500,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return f;
         }
 
+        // خطوط الخرائط الذهنية مقفولة على الممحاة (الجديد والقديم)
+        function isLockedStroke(st) { return !!st.locked || (typeof st.groupId === 'string' && st.groupId.startsWith('mm-')); }
         function eraseBoardAt(p, R) {
             const [px, py] = p;
             const page = currentPage();
             const out = [];
             let changed = false;
             for (const st of page.strokes) {
+                if (isLockedStroke(st)) { out.push(st); continue; }
                 const r = cutOutsideCircle(st.pts, px, py, R, true);
                 if (!r.changed) { out.push(st); continue; }
                 changed = true;
@@ -6052,6 +6109,35 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             setTool('pen');
         }
 
+        function togglePenMore(ev) {
+            if (ev) ev.stopPropagation();
+            $('pen-more-pop').classList.toggle('open');
+        }
+        document.addEventListener('click', e => {
+            const pop = $('pen-more-pop');
+            if (pop && pop.classList.contains('open') && !e.target.closest('.pen-more-wrap')) pop.classList.remove('open');
+        });
+        // القلم اللي اتختار من القائمة بيحل محل القلم الرابع الظاهر، والقلم اللي كان فيه بيروح للقائمة
+        function penPickFromMore(btn) {
+            const style = btn.dataset.style;
+            const pop = $('pen-more-pop');
+            const vis = [...document.querySelectorAll('.pen-group > .pen-style-btn.pen-visible')];
+            const slot = vis[vis.length - 1];
+            if (slot && slot !== btn) {
+                const ph = document.createElement('span');
+                btn.replaceWith(ph);
+                slot.replaceWith(btn);
+                pop.appendChild(slot);
+                btn.classList.add('pen-visible');
+                slot.classList.remove('pen-visible');
+                btn.setAttribute('onclick', "penTap('" + style + "')");
+                slot.setAttribute('onclick', 'penPickFromMore(this)');
+                ph.remove();
+            }
+            pop.classList.remove('open');
+            setPenStyle(style);
+        }
+
         function setPenStyle(style) {
             penStyle = style;
             penColor = penColors[style] || penColor;
@@ -6535,7 +6621,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return { x: Math.cos(a) * rx, y: Math.sin(a) * ry };
         });
 
-        const MM_GROUPS = [['branch', 'فكرة مركزية وفروع'], ['flow', 'تسلسل ودورات'], ['compare', 'مقارنة']];
+        const MM_GROUPS = [['branch', 'فكرة مركزية وفروع'], ['flow', 'تسلسل ودورات'], ['compare', 'مقارنة'], ['web', 'شبكات ومخططات سبب ونتيجة']];
 
         const MM_TEMPLATES = [
             { id: 'radial', group: 'branch', title: 'فكرة مركزية وستة فروع', build() {
@@ -6610,6 +6696,121 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 });
                 return { nodes, links: [mkStraight(0, -300, 0, 240, MM_PAL.muted.line, 3)] };
             } },
+            { id: 'radial8', group: 'branch', title: 'فكرة مركزية وثمانية فروع', build() {
+                const root = mkNode(0, 0, 250, 130, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const keys = ['sky', 'green', 'pink', 'amber', 'violet', 'teal', 'sky', 'green'];
+                const br = ringPos(8, 480, 330, UPA).map((p, i) => ({ n: mkNode(p.x, p.y, 180, 72, 'rect', MM_PAL[keys[i]], 'فرع ' + (i + 1)), pal: MM_PAL[keys[i]] }));
+                return { nodes: [root, ...br.map(b => b.n)], links: br.map(b => mkCurve(root, b.n, b.pal.line, 4, 'arc')) };
+            } },
+            { id: 'radial_leaves', group: 'branch', title: 'أربعة فروع وتفصيلتين لكل فرع', build() {
+                const root = mkNode(0, 0, 240, 120, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const keys = ['sky', 'green', 'pink', 'amber'];
+                const nodes = [root], links = [];
+                ringPos(4, 400, 270, -Math.PI / 4).forEach((p, i) => {
+                    const pal = MM_PAL[keys[i]];
+                    const b = mkNode(p.x, p.y, 190, 76, 'rect', pal, 'فرع ' + (i + 1));
+                    nodes.push(b); links.push(mkCurve(root, b, pal.line, 4, 'arc'));
+                    const L = Math.hypot(p.x, p.y) || 1, ux = p.x / L, uy = p.y / L, px = -uy, py = ux;
+                    [-1, 1].forEach((sg, j) => {
+                        const l = mkNode(p.x + ux * 190 + px * sg * 95, p.y + uy * 190 + py * sg * 95, 170, 60, 'rect', LEAF(pal), 'تفصيلة ' + (i * 2 + j + 1));
+                        nodes.push(l); links.push(mkCurve(b, l, pal.line, 2.5, 'arc'));
+                    });
+                });
+                return { nodes, links };
+            } },
+            { id: 'tree_left', group: 'branch', title: 'تفريع من اليسار (3 فروع وتفاصيل)', build() {
+                const root = mkNode(360, 0, 240, 130, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const nodes = [root], links = [];
+                ['sky', 'green', 'amber'].forEach((k, i) => {
+                    const pal = MM_PAL[k], y = (i - 1) * 230;
+                    const b = mkNode(10, y, 210, 84, 'rect', pal, 'فرع ' + (i + 1));
+                    nodes.push(b); links.push(mkCurve(root, b, pal.line, 4, 'h'));
+                    [-70, 70].forEach((dy, j) => {
+                        const l = mkNode(-350, y + dy, 230, 64, 'rect', LEAF(pal), 'تفصيلة ' + (i * 2 + j + 1));
+                        nodes.push(l); links.push(mkCurve(b, l, pal.line, 2.5, 'h'));
+                    });
+                });
+                return { nodes, links };
+            } },
+            { id: 'vtree4', group: 'branch', title: 'تصنيف من أعلى لتحت (4 فروع)', build() {
+                const root = mkNode(0, -250, 280, 110, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const nodes = [root], links = [];
+                ['sky', 'pink', 'green', 'amber'].forEach((k, i) => {
+                    const pal = MM_PAL[k], x = (i - 1.5) * 320;
+                    const b = mkNode(x, -30, 210, 84, 'rect', pal, 'فرع ' + (i + 1));
+                    nodes.push(b); links.push(mkCurve(root, b, pal.line, 4, 'v'));
+                    [-68, 68].forEach((dx, j) => {
+                        const l = mkNode(x + dx, 170, 120, 60, 'rect', LEAF(pal), 'تفصيلة ' + (i * 2 + j + 1));
+                        nodes.push(l); links.push(mkCurve(b, l, pal.line, 2.5, 'v'));
+                    });
+                });
+                return { nodes, links };
+            } },
+            { id: 'two_sided', group: 'branch', title: 'فكرة في المنتصف وفروع على الجانبين', build() {
+                const root = mkNode(0, 0, 250, 130, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const nodes = [root], links = [];
+                [[300, -120, 'sky', 550], [300, 120, 'green', 550], [-300, -120, 'pink', -550], [-300, 120, 'amber', -550]].forEach(([x, y, k, lx], i) => {
+                    const pal = MM_PAL[k];
+                    const b = mkNode(x, y, 200, 80, 'rect', pal, 'فرع ' + (i + 1));
+                    const l = mkNode(lx, y, 180, 62, 'rect', LEAF(pal), 'تفصيلة ' + (i + 1));
+                    nodes.push(b, l); links.push(mkCurve(root, b, pal.line, 4, 'h'), mkCurve(b, l, pal.line, 2.5, 'h'));
+                });
+                return { nodes, links };
+            } },
+            { id: 'bubbles', group: 'branch', title: 'فقاعات مترابطة حول فكرة', build() {
+                const root = mkNode(0, 0, 240, 130, 'round', MM_PAL.root, 'الموضوع الرئيسي');
+                const keys = ['sky', 'green', 'pink', 'amber', 'violet'];
+                const sizes = [[190, 110], [160, 96], [200, 120], [150, 92], [180, 104]];
+                const nodes = [root], links = [];
+                ringPos(5, 380, 260, UPA).forEach((p, i) => {
+                    const pal = MM_PAL[keys[i]];
+                    const b = mkNode(p.x, p.y, sizes[i][0], sizes[i][1], 'round', pal, 'فكرة ' + (i + 1));
+                    nodes.push(b); links.push(mkCurve(root, b, pal.line, 3, 'arc'));
+                });
+                return { nodes, links };
+            } },
+            { id: 'steps_vertical', group: 'flow', title: 'خطوات متتالية من أعلى لتحت', build() {
+                const keys = ['sky', 'green', 'amber', 'pink', 'violet'];
+                const arr = keys.map((k, i) => mkNode(0, -320 + i * 160, 280, 84, 'rect', MM_PAL[k], 'الخطوة ' + (i + 1)));
+                return { nodes: arr, links: arr.slice(1).map((n, i) => mkCurve(arr[i], n, MM_PAL[keys[i]].line, 4, 'v')) };
+            } },
+            { id: 'pyramid', group: 'flow', title: 'هرم من ثلاث مستويات', build() {
+                const top = mkNode(0, -230, 220, 84, 'rect', MM_PAL.sky, 'المستوى الأول');
+                const l = mkNode(-200, 0, 210, 84, 'rect', MM_PAL.green, 'المستوى الثاني أ');
+                const r = mkNode(200, 0, 210, 84, 'rect', MM_PAL.pink, 'المستوى الثاني ب');
+                const b0 = mkNode(-320, 230, 190, 84, 'rect', MM_PAL.amber, 'أساس 1');
+                const b1 = mkNode(0, 230, 190, 84, 'rect', MM_PAL.violet, 'أساس 2');
+                const b2 = mkNode(320, 230, 190, 84, 'rect', MM_PAL.teal, 'أساس 3');
+                return {
+                    nodes: [top, l, r, b0, b1, b2],
+                    links: [mkCurve(top, l, MM_PAL.sky.line, 4, 'arc'), mkCurve(top, r, MM_PAL.sky.line, 4, 'arc'),
+                            mkCurve(l, b0, MM_PAL.green.line, 3, 'arc'), mkCurve(l, b1, MM_PAL.green.line, 3, 'arc'),
+                            mkCurve(r, b1, MM_PAL.pink.line, 3, 'arc'), mkCurve(r, b2, MM_PAL.pink.line, 3, 'arc')]
+                };
+            } },
+            { id: 'network', group: 'web', title: 'شبكة مترابطة حول فكرة', build() {
+                const root = mkNode(0, 0, 200, 110, 'round', MM_PAL.root, 'المفهوم');
+                const keys = ['sky', 'green', 'pink', 'amber', 'violet', 'teal'];
+                const pos = ringPos(6, 380, 250, UPA);
+                const nodes = [root], links = [];
+                const hex = pos.map((p, i) => { const n = mkNode(p.x, p.y, 180, 70, 'rect', MM_PAL[keys[i]], 'عنصر ' + (i + 1)); nodes.push(n); links.push(mkCurve(root, n, MM_PAL[keys[i]].line, 3, 'arc')); return n; });
+                hex.forEach((n, i) => links.push(mkCurve(n, hex[(i + 1) % hex.length], MM_PAL.muted.line, 2, 'arc')));
+                return { nodes, links };
+            } },
+            { id: 'fishbone', group: 'web', title: 'سبب ونتيجة (عظم السمكة)', build() {
+                const spine = mkStraight(-420, 0, 420, 0, MM_PAL.muted.line, 6);
+                const head = mkNode(540, 0, 230, 120, 'rect', MM_PAL.root, 'النتيجة');
+                const nodes = [head], links = [spine];
+                const topK = ['sky', 'green', 'amber'], botK = ['pink', 'violet', 'teal'];
+                [-320, 0, 320].forEach((x, i) => {
+                    const t = mkNode(x - 80, -190, 200, 70, 'rect', MM_PAL[topK[i]], 'سبب ' + (i + 1));
+                    const b = mkNode(x - 80, 190, 200, 70, 'rect', MM_PAL[botK[i]], 'سبب ' + (i + 4));
+                    nodes.push(t, b);
+                    links.push(mkStraight(x - 80, -155, x, 0, MM_PAL[topK[i]].line, 4));
+                    links.push(mkStraight(x - 80, 155, x, 0, MM_PAL[botK[i]].line, 4));
+                });
+                return { nodes, links };
+            } },
         ];
 
         function openMindMapPicker() {
@@ -6673,7 +6874,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const groupId = 'mm-' + mmUid();
             const ox = (stageEl.clientWidth / 2 - view.tx) / view.s;
             const oy = (stageEl.clientHeight / 2 - view.ty) / view.s;
-            links.forEach(st => pg.strokes.push({ ...st, groupId, pts: st.pts.map(([x, y]) => [x + ox, y + oy]) }));
+            links.forEach(st => pg.strokes.push({ ...st, groupId, locked: true, pts: st.pts.map(([x, y]) => [x + ox, y + oy]) }));
             nodes.forEach(({ cx, cy, ...n }, i) => pg.notes.push({ ...n, groupId, groupMaster: i === 0, x: n.x + ox, y: n.y + oy }));
             boardDirty = true;
             scheduleSave();
@@ -8410,6 +8611,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         });
                         tracePath(g, jit, 0, 0);
                     }
+                } else if (s.s === 'neon') {
+                    paintNeon(g, pts, w, s.c);
                 } else {
                     g.lineWidth = w;
                     tracePath(g, pts, 0, 0);
@@ -8424,20 +8627,31 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const liveInk = { layer: null, cache: null, stroke: null, raf: 0, full: null };
         function liveInkBegin(layer, pageNo, stroke) {
             liveInkStop();
-            const cache = document.createElement('canvas');
-            cache.width = layer.width;
-            cache.height = layer.height;
-            paintNoteStrokes(cache.getContext('2d'), cache, pageStrokes(pageNo).filter(x => x !== stroke));
-            liveInk.layer = layer; liveInk.cache = cache; liveInk.stroke = stroke;
-            liveInkFrame();
+            liveInk.layer = layer; liveInk.stroke = stroke; liveInk.drawn = 0;
+            if (stroke.start) {
+                // الأشكال بتتغير شكلها كل حركة، فبنحتفظ بصورة الصفحة ونعيد رسم الشكل بس
+                const cache = document.createElement('canvas');
+                cache.width = layer.width; cache.height = layer.height;
+                paintNoteStrokes(cache.getContext('2d'), cache, pageStrokes(pageNo).filter(x => x !== stroke));
+                liveInk.cache = cache;
+            }
         }
+        // الخط الحر: بنرسم القطعة الجديدة بس فوق الطبقة (من غير مسح ولا نسخ للصفحة كلها)
         function liveInkFrame() {
             liveInk.raf = 0;
-            if (!liveInk.layer || !liveInk.cache) return;
-            const g = liveInk.layer.getContext('2d');
-            g.clearRect(0, 0, liveInk.layer.width, liveInk.layer.height);
-            g.drawImage(liveInk.cache, 0, 0);
-            paintNoteStrokes(g, liveInk.layer, [liveInk.stroke]);
+            const layer = liveInk.layer, st = liveInk.stroke;
+            if (!layer || !st) return;
+            const g = layer.getContext('2d');
+            if (liveInk.cache) {
+                g.clearRect(0, 0, layer.width, layer.height);
+                g.drawImage(liveInk.cache, 0, 0);
+                paintNoteStrokes(g, layer, [st]);
+                return;
+            }
+            const from = Math.max(0, liveInk.drawn - 1);
+            if (liveInk.drawn > 0 && st.pts.length <= liveInk.drawn) return;
+            paintNoteStrokes(g, layer, [{ ...st, pts: st.pts.slice(from) }]);
+            liveInk.drawn = st.pts.length;
         }
         function liveInkSchedule() {
             if (!liveInk.raf) liveInk.raf = requestAnimationFrame(liveInkFrame);
@@ -8458,8 +8672,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             noteRedrawQ.set(layer, job);
         }
 
+        let noteRectCache = null;   // مكان الطبقة اتحسب مرة واحدة عند بداية الضغطة
         function notePoint(layer, e) {
-            const r = layer.getBoundingClientRect();
+            const r = (noteRectCache && noteRectCache.layer === layer) ? noteRectCache.r : layer.getBoundingClientRect();
             const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
             const y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
             return [Math.round(x * 10000) / 10000, Math.round(y * 10000) / 10000];
@@ -8524,6 +8739,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (e.pointerType === 'touch' && readerTouches.size >= 2) return;
                 if (readerTouches.size >= 2) return;      // إصبعين = تكبير وتحريك مش كتابة
                 e.preventDefault();
+                noteRectCache = { layer, r: layer.getBoundingClientRect() };
                 try { layer.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
                 const p = notePoint(layer, e);
                 pushNoteUndo(pageNo);
@@ -8561,6 +8777,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
 
             const finish = e => {
+                noteRectCache = null;
                 if (activeStroke && activeStroke.layer === layer && activeStroke.pid === e.pointerId) {
                     if (activeStroke.stroke) { liveInkStop(); drawNotesOn(layer, pageStrokes(activeStroke.pageNo)); }
                     activeStroke = null;
@@ -8878,6 +9095,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // ---- أدوات الكتابة ----
+        function readerHand() {
+            reader.annotate = false;
+            syncAnnotateUI();
+        }
         function toggleAnnotate() {
             reader.annotate = !reader.annotate;
             syncAnnotateUI();
@@ -8929,11 +9150,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 l.style.cursor = reader.annotate ? 'crosshair' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
-            ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped'].forEach(t => {
+            ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon'].forEach(t => {
                 const b = $('tool-' + t);
                 if (b) b.style.setProperty('--pc', readerPenColors[t]);
             });
-            ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'eraser', 'shape'].forEach(t => {
+            ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon', 'eraser', 'shape'].forEach(t => {
                 $('tool-' + t).classList.toggle('active', reader.annotate && reader.tool === t);
             });
             document.querySelectorAll('.ncolor').forEach(b => {
