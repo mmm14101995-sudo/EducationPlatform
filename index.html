@@ -395,7 +395,7 @@
         .rpage { position: relative; flex-shrink: 0; background: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.5); animation: fadeIn 0.25s ease; }
         .rpage > canvas { display: block; }
         .rpage .note-layer { position: absolute; left: 0; top: 0; pointer-events: none; touch-action: none; }
-        .reader.annotating .rpage .note-layer { pointer-events: auto; cursor: crosshair; }
+        .reader.annotating .rpage .note-layer { pointer-events: auto; cursor: none; }
         .reader.annotating .reader-stage { cursor: default; }
         .reader-overlay.paper .rpage > canvas { filter: sepia(0.25) brightness(0.98); }
         .reader-msg { color: #ccc; font-size: 18px; text-align: center; padding: 20px; line-height: 1.8; }
@@ -4664,6 +4664,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function setBoardPaperPattern(type) {
             if (type !== 'lined' && type !== 'grid') return;
             appState.boardPaperPattern = type;
+            boardDirty = true;
             refreshBoardPaperStyleChoices();
             applyBoardPaperPatternStyles();
             scheduleSave();
@@ -4672,6 +4673,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             size = Number(size);
             if (![14, 20, 28, 40, 52].includes(size)) return;
             appState.boardPaperSize = size;
+            boardDirty = true;
             refreshBoardPaperStyleChoices();
             applyBoardPaperPatternStyles();
             scheduleSave();
@@ -4679,6 +4681,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function applyBoardBg(hex) {
             appState.boardBg = hex;
             applyBoardBgStyles(hex);
+            boardDirty = true;
             requestRender();
             // لون الخلفية مستقل تماماً عن لون القلم، ولا يغيّر اختيار المستخدم للقلم.
             scheduleSave();
@@ -5277,6 +5280,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 }
                 cacheCtx.setTransform(1, 0, 0, 1, 0, 0);
                 cacheCtx.clearRect(0, 0, cacheCanvas.width, cacheCanvas.height);
+                drawBoardPaperOnCanvas(cacheCtx, d);
                 cacheCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
                 const page = currentPage();
                 if (page.bg) drawBg(cacheCtx, page.bg);
@@ -5285,7 +5289,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBoardPaperOnCanvas(ctx, d);
             ctx.drawImage(cacheCanvas, 0, 0);
             if (cur) {
                 ctx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
@@ -6137,13 +6140,42 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             setTool('pen');
         }
 
+        // القائمة بتتفتح في الـbody بموضع ثابت عشان ما تتقصش جوه الشريط (ولا تنزل تحت الشاشة)
+        function placePenPop() {
+            const pop = $('pen-more-pop');
+            const btn = $('pen-more-btn').getBoundingClientRect();
+            pop.style.position = 'fixed';
+            pop.style.zIndex = '1500';
+            pop.style.transform = 'none';
+            pop.style.bottom = 'auto';
+            pop.style.left = '0px';
+            pop.style.top = '0px';
+            const pw = pop.offsetWidth, ph = pop.offsetHeight;
+            const vw = window.innerWidth, vh = window.innerHeight;
+            let left, top;
+            if (document.querySelector('.board.fs.bar-v')) {
+                const onRight = $('board').classList.contains('bar-right');
+                left = onRight ? btn.left - pw - 12 : btn.right + 12;
+                top = btn.top + btn.height / 2 - ph / 2;
+            } else {
+                left = btn.left + btn.width / 2 - pw / 2;
+                top = btn.bottom + 10;
+                if (top + ph > vh - 8) top = btn.top - ph - 10;   // مفيش مكان تحت؟ افتحها لفوق
+            }
+            left = Math.max(8, Math.min(left, vw - pw - 8));
+            top = Math.max(8, Math.min(top, vh - ph - 8));
+            pop.style.left = left + 'px';
+            pop.style.top = top + 'px';
+        }
         function togglePenMore(ev) {
             if (ev) ev.stopPropagation();
-            $('pen-more-pop').classList.toggle('open');
+            const pop = $('pen-more-pop');
+            if (pop.parentElement !== document.body) document.body.appendChild(pop);
+            if (pop.classList.toggle('open')) placePenPop();
         }
         document.addEventListener('click', e => {
             const pop = $('pen-more-pop');
-            if (pop && pop.classList.contains('open') && !e.target.closest('.pen-more-wrap')) pop.classList.remove('open');
+            if (pop && pop.classList.contains('open') && !e.target.closest('.pen-more-wrap, #pen-more-pop')) pop.classList.remove('open');
         });
         // القلم اللي اتختار من القائمة بيحل محل القلم الرابع الظاهر، والقلم اللي كان فيه بيروح للقائمة
         function penPickFromMore(btn) {
@@ -8435,7 +8467,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const notes = getNotes(reader.book.id);
             if (strokes.length) notes[pageNo] = strokes;
             else delete notes[pageNo];
-            scheduleSave();
+            scheduleSaveLazy();
+        }
+        // حفظ الحالة كلها (JSON كبير) بيتأجل لحد ما الكتابة تقف، عشان ما يحصلش بطء أثناء الكتابة
+        let lazySaveTimer = null;
+        function scheduleSaveLazy() {
+            clearTimeout(lazySaveTimer);
+            lazySaveTimer = setTimeout(() => { lazySaveTimer = null; api.saveState(appState); }, 2000);
         }
 
         // ---- قص جزء من صفحة الكتاب وإضافته للسبورة ----
@@ -8809,7 +8847,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (activeStroke && activeStroke.layer === layer && activeStroke.pid === e.pointerId) {
                     if (activeStroke.stroke) { liveInkStop(); drawNotesOn(layer, pageStrokes(activeStroke.pageNo)); }
                     activeStroke = null;
-                    scheduleSave();
+                    scheduleSaveLazy();
                 }
             };
             layer.addEventListener('pointerup', finish);
@@ -8993,7 +9031,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 layer.style.zIndex = '2';
                 layer.style.touchAction = 'none';
                 layer.style.pointerEvents = reader.annotate ? 'auto' : 'none';
-                layer.style.cursor = reader.annotate ? 'crosshair' : 'default';
+                layer.style.cursor = reader.annotate ? 'none' : 'default';
 
                 wrap.appendChild(pc);
                 wrap.appendChild(layer);
@@ -9175,7 +9213,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             overlay.classList.toggle('annotating', reader.annotate);
             document.querySelectorAll('.note-layer').forEach(l => {
                 l.style.pointerEvents = reader.annotate ? 'auto' : 'none';
-                l.style.cursor = reader.annotate ? 'crosshair' : 'default';
+                l.style.cursor = reader.annotate ? 'none' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
             ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon'].forEach(t => {
