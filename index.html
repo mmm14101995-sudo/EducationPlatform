@@ -5836,7 +5836,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // من غير كده: إصبعين على الشاشة = تكبير وتحريك زي ما هو، ومفيش تعارض.
         const palm = { penAt: 0, penDown: false };
         const PALM_PEN_GRACE = 700;      // ms بعد ما القلم يبعد
-        const palmSizeNow = () => Number(appState.palmSize) || 45;   // px: أي لمسة أكبر من كده تعتبر ظهر إيد/كف
+        // الحد بيتظبط لوحده حسب حجم لمسة الإصبع على السبورة دي (كل سبورة بتبعت أحجام مختلفة)
+        const touchSizes = [];
+        function palmSizeNow() {
+            if (touchSizes.length < 6) return 110;
+            const a = [...touchSizes].sort((x, y) => x - y);
+            const p20 = a[Math.floor(a.length * 0.2)];
+            return Math.max(60, p20 * 2.2);
+        }
         const penTrack = e => { if (e.pointerType === 'pen') palm.penAt = Date.now(); };
         document.addEventListener('pointerdown', e => { if (e.pointerType === 'pen') { palm.penAt = Date.now(); palm.penDown = true; } }, true);
         document.addEventListener('pointermove', penTrack, true);   // بيشتغل مع الـ hover كمان
@@ -5866,6 +5873,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             return sz;
         }
+        document.addEventListener('pointerdown', e => {
+            if (e.pointerType !== 'touch') return;
+            const z = touchSize(e);
+            if (z > 2) { touchSizes.push(z); if (touchSizes.length > 40) touchSizes.shift(); }
+        }, true);
         function isBigTouch(e) {
             if (e.pointerType !== 'touch' || appState.palmErase === false) return false;
             return touchSize(e) > palmSizeNow();
@@ -5908,10 +5920,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // ظهر الإيد/الكف على السبورة = ممحاة كبيرة (من غير قلم قريب)
-        function startPalmErase(e) {
+        function startPalmErase(e, size) {
             if (activeMode) cancelActive();
             touches.delete(e.pointerId);
-            eraseOverride = Math.max(70, Math.min(180, touchSize(e) * 1.2));
+            eraseOverride = Math.max(70, Math.min(180, size || touchSize(e) * 1.2));
             pushHistory();
             activeId = e.pointerId;
             activeMode = 'erase';
@@ -5943,10 +5955,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
             if (e.pointerType === 'touch') {
                 touches.set(e.pointerId, screenPoint(e));
+                if (touches.size >= 3) {                       // 3 نقط لمس = كف/ظهر إيد
+                    touches.clear(); pinch = null;
+                    startPalmErase(e, 110);
+                    return;
+                }
                 if (touches.size >= 2) {
                     cancelActive();
                     const [a, b] = [...touches.values()];
                     pinch = {
+                        decided: false,
                         s0: view.s, t0x: view.tx, t0y: view.ty,
                         c0x: (a.x + b.x) / 2, c0y: (a.y + b.y) / 2,
                         d0: Math.hypot(a.x - b.x, a.y - b.y) || 1
@@ -5988,7 +6006,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (e.pointerType === 'touch') {
                 // ظهر الإيد شغال: نكمل مسح ونكبّر الممحاة حسب حجم اللمسة
                 if (e.pointerId === activeId && activeMode === 'erase' && eraseOverride) {
-                    eraseOverride = Math.max(70, Math.min(180, touchSize(e) * 1.2));
+                    eraseOverride = Math.max(eraseOverride, Math.min(180, touchSize(e) * 1.2));
                     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
                     let f = 1;
                     for (const ce of (evs.length ? evs : [e])) f = eraseStep(ce);
@@ -6000,6 +6018,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (isBigTouch(e) && !pinch && touches.size === 1 && !penNear()) { startPalmErase(e); return; }
                 touches.set(e.pointerId, screenPoint(e));
                 if (pinch && touches.size >= 2) {
+                    if (!pinch.decided) {
+                        // نقطتين: لو بيبعدوا/يقربوا عن بعض = تكبير، ولو بيتحركوا مع بعض بنفس المسافة = كف بيمسح
+                        const [a, b] = [...touches.values()];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        const dd = Math.abs(d - pinch.d0);
+                        const dc = Math.hypot((a.x + b.x) / 2 - pinch.c0x, (a.y + b.y) / 2 - pinch.c0y);
+                        if (dd > 12 && dd > 0.6 * dc) pinch.decided = true;
+                        else if (dc > 16 && dd < 0.35 * dc) {
+                            touches.clear(); pinch = null;
+                            startPalmErase(e, Math.min(180, d + 70));
+                            return;
+                        } else return;
+                    }
                     applyPinch();
                     return;
                 }
