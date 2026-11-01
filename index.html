@@ -2392,6 +2392,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     <label class="set-lbl" for="inp-lite">وضع الأداء (أسرع على الأجهزة الضعيفة)</label>
                     <div class="set-ctl"><input type="checkbox" class="set-check" id="inp-lite" onchange="setLite(this.checked)"></div>
                 </div>
+                <div class="set-row">
+                    <label class="set-lbl" for="inp-palm">المسح بظهر الإيد على السبورة</label>
+                    <div class="set-ctl"><input type="checkbox" class="set-check" id="inp-palm" onchange="appState.palmErase=this.checked;scheduleSave()"></div>
+                </div>
             </div>
 
             <div class="set-sec">
@@ -2955,7 +2959,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         let saveTimer = null;
         function scheduleSave() {
             clearTimeout(saveTimer);
-            saveTimer = setTimeout(() => api.saveState(appState), 300);
+            // JSON.stringify للحالة كلها تقيل ويهنّج القلم: نأجّله لحد ما القلم يخلص ونعمله وقت الراحة
+            const run = () => {
+                let busy = false;
+                try { busy = !!activeMode; } catch (e) { /* لسه ما اتعرّفش */ }
+                if (busy) { saveTimer = setTimeout(run, 600); return; }
+                if (window.requestIdleCallback) requestIdleCallback(() => api.saveState(appState), { timeout: 2000 });
+                else api.saveState(appState);
+            };
+            saveTimer = setTimeout(run, 800);
         }
         window.addEventListener('pagehide', () => api.saveState(appState));
 
@@ -3051,6 +3063,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('inp-grade-y4').value = gradeName('y4');
             $('inp-gkey').value = appState.geminiKey || ''; $('inp-gmodel').value = appState.geminiModel || '';
             $('inp-lite').checked = document.body.classList.contains('lite');
+            $('inp-palm').checked = appState.palmErase !== false;
             $('inp-eye').checked = document.body.classList.contains('eyecare');
             $('inp-simple').checked = document.body.classList.contains('simple');
             $('inp-clock').value = mode2pref();
@@ -4593,12 +4606,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // السبورة: الخطوط متخزنة كأشكال (مش صور)، والتكبير بيكبّر كل حاجة مع بعض
         // ==========================================
         const canvas = $('custom-canvas');
-        // desynchronized: الرسم بيوصل للشاشة من غير انتظار دورة الشاشة، فالقلم بيكون أسرع في الاستجابة
-        const ctx = canvas.getContext('2d', { desynchronized: true }) || canvas.getContext('2d');
+        // الكانفاس الرئيسية (الورق والخطوط المحفوظة) عادية. desynchronized على ويندوز بيخليها سودا في الوضع العادي (مش ملء الشاشة)
+        const ctx = canvas.getContext('2d');
+        const IS_WIN = /Windows/i.test(navigator.userAgent || '');
         const liveCanvas = document.createElement('canvas');
         liveCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;touch-action:none;';
         $('board-paper').appendChild(liveCanvas);
-        const liveCtx = liveCanvas.getContext('2d', { desynchronized: true }) || liveCanvas.getContext('2d');
+        // طبقة القلم الحي بس هي اللي فيها desynchronized (استجابة أسرع)، ومش على ويندوز
+        const liveCtx = (!IS_WIN && liveCanvas.getContext('2d', { desynchronized: true })) || liveCanvas.getContext('2d');
         let mainNeedsDraw = true;   // الكانفاس الرئيسية (الصفحة المحفوظة) محتاجة تترسم من الكاش
         const stageEl = $('board-stage');
         const FINGER_ERASES = false;   // true = الإصبع ممحاة والقلم كتابة، false = الإصبع يرسم
@@ -4898,7 +4913,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         $('board-bg-custom').addEventListener('change', e => { closeModal('board-bg-modal'); applyBoardBg(e.target.value); });
 
-        function boardDpr() { const d = window.devicePixelRatio || 1; return document.body.classList.contains('lite') ? Math.min(1.5, d) : Math.min(3, d * 1.25); }
+        // دقة السبورة: وضع الأداء بيقلل الدقة وعدد البكسلات الكلي (على الشاشات الكبيرة ده أكبر سبب للتقل)
+        function boardDpr() {
+            const raw = window.devicePixelRatio || 1;
+            const lite = document.body.classList.contains('lite');
+            let d = lite ? Math.min(1.25, raw) : Math.min(3, raw * 1.25);
+            const w = (typeof stageEl !== 'undefined' && stageEl.clientWidth) || 0;
+            const h = (typeof stageEl !== 'undefined' && stageEl.clientHeight) || 0;
+            if (w && h) {
+                const budget = lite ? 2.6e6 : 9e6;            // أقصى عدد بكسلات للكانفاس
+                d = Math.min(d, Math.sqrt(budget / (w * h)));
+            }
+            return Math.max(1, d);
+        }
         function wbGrade() { return appState.whiteboard[currentGrade]; }
 
         // صفحة السبورة: {strokes: [...], bg?: dataURL}. الصفحات القديمة (صور) بتتحول تلقائياً
@@ -5364,6 +5391,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             tracePath(g, pts, 0, 0);
             g.shadowBlur = 0;
         }
+        let strokeFast = false;   // رسم الخط الحي بشكل مبسّط في وضع الأداء (الخط النهائي بيترسم كامل)
         function drawStroke(g, st) {
             const pts = st.pts;
             if (!pts || !pts.length) return;
@@ -5391,7 +5419,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 g.lineCap = 'butt';
                 const a = -0.6, ux = Math.cos(a), uy = Math.sin(a);
                 g.lineWidth = Math.max(1, w * 0.3);
-                for (let k = -3; k <= 3; k++) {
+                for (let k = -3; k <= 3; k += (strokeFast ? 3 : 1)) {
                     const off = (k / 3) * w * 0.9;
                     tracePath(g, pts, ux * off, uy * off);
                 }
@@ -5421,14 +5449,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             } else if (st.s === 'pencil') {
                 // قلم رصاص: خط متقطع بحبيبات (تأثير الورق)
                 g.lineWidth = Math.max(1, w * 0.7);
-                for (let k = 0; k < 3; k++) {
-                    g.globalAlpha = 0.45;
+                for (let k = 0; k < (strokeFast ? 1 : 3); k++) {
+                    g.globalAlpha = strokeFast ? 0.6 : 0.45;
                     const jit = pts.map((p, i) => {
                         const r = Math.sin((i + 1) * (k + 3) * 12.9898) * 43758.5453;
                         return [p[0] + ((r - Math.floor(r)) - 0.5) * w * 0.9, p[1] + ((Math.sin(r) * 0.5 + 0.5) - 0.5) * w * 0.9];
                     });
                     tracePath(g, jit, 0, 0);
                 }
+            } else if (st.s === 'neon' && strokeFast) {
+                g.lineWidth = Math.max(2, w * 1.2);
+                tracePath(g, pts, 0, 0);
+                g.strokeStyle = '#ffffff'; g.lineWidth = Math.max(1, w * 0.4);
+                tracePath(g, pts, 0, 0);
             } else if (st.s === 'neon') {
                 paintNeon(g, pts, w, st.c);
             } else {
@@ -5464,6 +5497,22 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
         }
 
+        let liveBox = null, liveBoxOK = false;
+        function strokeScreenBox(st, d) {
+            let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+            for (const q of st.pts) { if (q[0] < x1) x1 = q[0]; if (q[0] > x2) x2 = q[0]; if (q[1] < y1) y1 = q[1]; if (q[1] > y2) y2 = q[1]; }
+            const pad = (st.w * 4 + 40) * view.s;   // عرض الخط + التوهج/الريشة/الحبيبات
+            const x = Math.max(0, Math.floor((x1 * view.s + view.tx - pad) * d));
+            const y = Math.max(0, Math.floor((y1 * view.s + view.ty - pad) * d));
+            const r = Math.min(liveCanvas.width, Math.ceil((x2 * view.s + view.tx + pad) * d));
+            const b = Math.min(liveCanvas.height, Math.ceil((y2 * view.s + view.ty + pad) * d));
+            return { x, y, w: Math.max(0, r - x), h: Math.max(0, b - y) };
+        }
+        function unionBox(a, b) {
+            const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+            return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+        }
+
         function renderBoard() {
             if (stageEl.dataset.bg !== boardBg()) { stageEl.dataset.bg = boardBg(); applyBoardBgStyles(boardBg()); }
             if (!canvas.width || !canvas.height) return;
@@ -5490,14 +5539,38 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 mainNeedsDraw = false;
             }
             liveCtx.setTransform(1, 0, 0, 1, 0, 0);
-            liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
-            if (cur) {
-                liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
-                drawStroke(liveCtx, cur);
+            const laserOn = laser.pts.length || laser.head;
+            if (laserOn || !liveBoxOK) {
+                // الليزر أو أول رسمة: مسح كامل (زي الأول)
+                liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
+                liveBox = null;
             }
+            if (cur && !laserOn) {
+                // نمسح ونرسم المنطقة اللي فيها الخط بس، مش الكانفاس كله (نفس الدقة بالظبط)
+                const nb = strokeScreenBox(cur, d);
+                const u = liveBox ? unionBox(liveBox, nb) : nb;
+                liveCtx.save();
+                liveCtx.beginPath();
+                liveCtx.rect(u.x, u.y, u.w, u.h);
+                liveCtx.clip();
+                liveCtx.clearRect(u.x, u.y, u.w, u.h);
+                liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+                strokeFast = document.body.classList.contains('lite');
+                drawStroke(liveCtx, cur);
+                strokeFast = false;
+                liveCtx.restore();
+                liveBox = nb; liveBoxOK = true;
+            } else if (!laserOn) {
+                if (liveBox) { liveCtx.clearRect(liveBox.x, liveBox.y, liveBox.w, liveBox.h); liveBox = null; }
+                liveBoxOK = false;   // المرة الجاية نبدأ بمسح كامل للأمان
+            } else {
+                if (cur) { liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d); drawStroke(liveCtx, cur); }
+                liveBoxOK = false;
+            }
+            liveCtx.setTransform(1, 0, 0, 1, 0, 0);
             drawLaser(liveCtx, d);
-            renderStickies();
-            updateSelBox();
+            // أثناء الرسم مفيش داعي نحدّث الملاحظات ومربع التحديد كل فريم
+            if (activeMode !== 'draw') { renderStickies(); updateSelBox(); }
         }
 
         function drawPage() { requestRender(); }
@@ -5708,12 +5781,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         // الممحاة على السبورة: كل ما تحركها أسرع المساحة بتكبر، ولو الحركة سريعة بنمسح الفراغ اللي بين النقط كمان
         let lastErase = null;
+        let eraseOverride = 0;       // قطر ممحاة ظهر الإيد (0 = الممحاة العادية)
         const eraserRing = document.getElementById('eraser-ring');
         function hideEraserRing() { if (eraserRing) eraserRing.style.display = 'none'; }
         function showEraserRing(ev, f) {
             if (!eraserRing) return;
             const r = stageEl.getBoundingClientRect();
-            const d = eraserWidth * f;
+            const d = (eraseOverride || eraserWidth) * f;
             eraserRing.style.width = eraserRing.style.height = d + 'px';
             eraserRing.style.left = (ev.clientX - r.left) + 'px';
             eraserRing.style.top = (ev.clientY - r.top) + 'px';
@@ -5721,7 +5795,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         function eraseStep(ev) {
             const f = 1 + Math.min(3, (eraseSpeedFactor(ev) - 1) * 1.5);
-            const R = (eraserWidth / 2) * f / view.s;
+            const R = ((eraseOverride || eraserWidth) / 2) * f / view.s;
             const p = worldPoint(ev);
             if (lastErase) {
                 const dx = p[0] - lastErase[0], dy = p[1] - lastErase[1];
@@ -5757,6 +5831,48 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ==========================================
         // اللمس والقلم
         // ==========================================
+        // ---- رفض كف الإيد (مشترك بين السبورة والقارئ) ----
+        // القاعدة: لو القلم قريب أو نازل، أي لمس بيتتجاهل. ولو اللمسة نفسها كبيرة (كف) بتتتجاهل.
+        // من غير كده: إصبعين على الشاشة = تكبير وتحريك زي ما هو، ومفيش تعارض.
+        const palm = { penAt: 0, penDown: false };
+        const PALM_PEN_GRACE = 700;      // ms بعد ما القلم يبعد
+        const palmSizeNow = () => Number(appState.palmSize) || 45;   // px: أي لمسة أكبر من كده تعتبر ظهر إيد/كف
+        const penTrack = e => { if (e.pointerType === 'pen') palm.penAt = Date.now(); };
+        document.addEventListener('pointerdown', e => { if (e.pointerType === 'pen') { palm.penAt = Date.now(); palm.penDown = true; } }, true);
+        document.addEventListener('pointermove', penTrack, true);   // بيشتغل مع الـ hover كمان
+        document.addEventListener('pointerup', e => { if (e.pointerType === 'pen') { palm.penAt = Date.now(); palm.penDown = false; } }, true);
+        document.addEventListener('pointercancel', e => { if (e.pointerType === 'pen') { palm.penAt = Date.now(); palm.penDown = false; } }, true);
+        function penNear() { return palm.penDown || Date.now() - palm.penAt < PALM_PEN_GRACE; }
+        // حجم اللمسة: من الـ pointer، ولو الجهاز (سبورة الأشعة تحت الحمراء مثلًا) مش بيبعته، من أحداث اللمس
+        const recentTouches = [];
+        function noteTouchEvent(ev) {
+            const now = performance.now();
+            for (const t of ev.changedTouches) {
+                const r = Math.max(t.radiusX || t.webkitRadiusX || 0, t.radiusY || t.webkitRadiusY || 0);
+                recentTouches.push({ x: t.clientX, y: t.clientY, s: r * 2, t: now });
+            }
+            while (recentTouches.length > 24 || (recentTouches.length && now - recentTouches[0].t > 400)) recentTouches.shift();
+        }
+        document.addEventListener('touchstart', noteTouchEvent, { capture: true, passive: true });
+        document.addEventListener('touchmove', noteTouchEvent, { capture: true, passive: true });
+        function touchSize(e) {
+            let sz = Math.max(e.width || 0, e.height || 0);
+            if (sz <= 2) {
+                const now = performance.now();
+                for (let i = recentTouches.length - 1; i >= 0; i--) {
+                    const q = recentTouches[i];
+                    if (now - q.t < 400 && Math.hypot(q.x - e.clientX, q.y - e.clientY) < 40) { sz = Math.max(sz, q.s); break; }
+                }
+            }
+            return sz;
+        }
+        function isBigTouch(e) {
+            if (e.pointerType !== 'touch' || appState.palmErase === false) return false;
+            return touchSize(e) > palmSizeNow();
+        }
+        // القارئ: الكف بيتتجاهل (من غير ممحاة)
+        function isPalmTouch(e) { return e.pointerType === 'touch' && (penNear() || isBigTouch(e)); }
+
         const touches = new Map();   // كل لمسة على الشاشة
         let pinch = null;            // بداية التكبير بإصبعين
         let activeId = null;         // الـ pointer اللي بيرسم أو بيمسح دلوقتي
@@ -5766,6 +5882,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function cancelActive() {
             if (activeMode === 'select' || activeMode === 'selmove') { marqueeEl.style.display = 'none'; selDrag = null; activeId = null; activeMode = null; return; }
             if (activeMode === 'laser') laser.head = null;
+            eraseOverride = 0; lastErase = null; hideEraserRing();
             if (activeMode === 'draw') undoStack.pop();   // نلغي الخط اللي اتبدأ
             cur = null;
             activeId = null;
@@ -5790,12 +5907,38 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             requestRender();
         }
 
+        // ظهر الإيد/الكف على السبورة = ممحاة كبيرة (من غير قلم قريب)
+        function startPalmErase(e) {
+            if (activeMode) cancelActive();
+            touches.delete(e.pointerId);
+            eraseOverride = Math.max(70, Math.min(180, touchSize(e) * 1.2));
+            pushHistory();
+            activeId = e.pointerId;
+            activeMode = 'erase';
+            eraseTrail.t = 0;
+            lastErase = null;
+            showEraserRing(e, eraseStep(e));
+        }
+
         stageEl.addEventListener('pointerdown', e => {
             if (e.target.closest && e.target.closest('.sel-actions')) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
-            if (e.pointerType === 'pen') lastPenAt = Date.now();
-            // كف الإيد أثناء الكتابة بالقلم: نتجاهل اللمس لحظة ما القلم يشتغل
-            if (e.pointerType === 'touch' && Date.now() - lastPenAt < 1500) return;
+            if (e.pointerType === 'pen') {
+                lastPenAt = Date.now();
+                // الكف ممكن يكون سبق القلم: نشيل أي لمس شغال ونلغي اللي بيرسم بإصبع
+                if (touches.size || pinch) { touches.clear(); pinch = null; }
+                if (activeMode && activeId !== e.pointerId) cancelActive();
+            }
+            if (e.pointerType === 'touch') {
+                if (penNear()) return;                       // القلم في إيدك: الكف يتجاهل
+                if (eraseOverride && activeMode === 'erase') return;   // ظهر الإيد بيمسح بالفعل: باقي نقط الكف تتجاهل
+                if (isBigTouch(e) && !pinch) {      // مفيش قلم: ظهر الإيد = ممحاة
+                    try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                    startPalmErase(e);
+                    return;
+                }
+                if (isBigTouch(e)) return;
+            }
             try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
 
             if (e.pointerType === 'touch') {
@@ -5843,7 +5986,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         stageEl.addEventListener('pointermove', e => {
             if (e.pointerType === 'touch') {
+                // ظهر الإيد شغال: نكمل مسح ونكبّر الممحاة حسب حجم اللمسة
+                if (e.pointerId === activeId && activeMode === 'erase' && eraseOverride) {
+                    eraseOverride = Math.max(70, Math.min(180, touchSize(e) * 1.2));
+                    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+                    let f = 1;
+                    for (const ce of (evs.length ? evs : [e])) f = eraseStep(ce);
+                    showEraserRing(e, f);
+                    return;
+                }
                 if (!touches.has(e.pointerId)) return;
+                // اللمسة بدأت صغيرة وكبرت (كف نزل تدريجيًا): نحوّلها لممحاة
+                if (isBigTouch(e) && !pinch && touches.size === 1 && !penNear()) { startPalmErase(e); return; }
                 touches.set(e.pointerId, screenPoint(e));
                 if (pinch && touches.size >= 2) {
                     applyPinch();
@@ -5887,6 +6041,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         });
 
         function endPointer(e) {
+            if (e.pointerId === activeId && eraseOverride) eraseOverride = 0;
             if (e.pointerType === 'touch') {
                 touches.delete(e.pointerId);
                 if (touches.size < 2) pinch = null;
@@ -9105,8 +9260,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             readerView.ty = Math.min(0, Math.max(H - H * readerView.z, readerView.ty));
         }
 
-        function readerPinchStart() {
-            // إصبعين: نلغي أي كتابة كانت بتبدأ بالإصبع الأول
+        function readerCancelStroke() {
             if (activeStroke) {
                 if (activeStroke.stroke) {
                     liveInkStop();
@@ -9115,6 +9269,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 }
                 activeStroke = null;
             }
+        }
+
+        function readerPinchStart() {
+            // إصبعين: نلغي أي كتابة كانت بتبدأ بالإصبع الأول
+            readerCancelStroke();
             const [a, b] = [...readerTouches.values()];
             const r = $('reader-stage').getBoundingClientRect();
             readerPinch = {
@@ -9142,7 +9301,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         const readerStage = $('reader-stage');
         readerStage.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'pen') {
+                // الكف ممكن يكون سبق القلم: نلغي أي لمس وكتابة بإصبع
+                if (readerTouches.size || readerPinch) { readerTouches.clear(); readerPinch = null; }
+                if (activeStroke && activeStroke.pid !== e.pointerId) readerCancelStroke();
+                return;
+            }
             if (e.pointerType !== 'touch') return;
+            if (isPalmTouch(e)) { e.stopPropagation(); e.preventDefault(); return; }   // كف: يتجاهل خالص
             readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
             if (readerTouches.size >= 2) readerPinchStart();
         }, true);
