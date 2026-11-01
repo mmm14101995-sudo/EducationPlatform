@@ -310,6 +310,14 @@
             background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 24px 24px;
         }
 
+        /* السبورة: أي طبقة blur فوق الكانفاس بتتحسب من جديد مع كل حركة قلم وده بيقطّع الرسم على أندرويد */
+        .board .board-bar, .board .fs-exit, .board .fs-toggle-bar, .board .pen-pop, .board .sel-actions,
+        .board .sticky, .board .board-stage * {
+            backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        }
+        .board.fs .board-bar { background: rgba(15,23,42,0.94) !important; }
+        .board.fs .fs-exit, .board.fs .fs-toggle-bar { background: rgba(15,23,42,0.9) !important; }
+
         /* النوافذ */
         .modal {
             position: fixed; inset: 0; z-index: 150; display: none; align-items: center; justify-content: center;
@@ -4921,7 +4929,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const w = (typeof stageEl !== 'undefined' && stageEl.clientWidth) || 0;
             const h = (typeof stageEl !== 'undefined' && stageEl.clientHeight) || 0;
             if (w && h) {
-                const budget = lite ? 2.6e6 : 9e6;            // أقصى عدد بكسلات للكانفاس
+                const budget = lite ? 2.6e6 : 4e6;            // أقصى عدد بكسلات للكانفاس (السبورة 4K كانت بتعمل كانفاس 13 مليون بكسل)
                 d = Math.min(d, Math.sqrt(budget / (w * h)));
             }
             return Math.max(1, d);
@@ -5545,7 +5553,31 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
                 liveBox = null;
             }
-            if (cur && !laserOn) {
+            const plainInk = cur && cur.t !== 'hl' && !['shape', 'feather', 'broad', 'hl', 'striped', 'pencil', 'neon'].includes(cur.s);
+            const vkey = view.s + ',' + view.tx + ',' + view.ty;
+            if (cur && !laserOn && plainInk && cur._m && liveBoxOK && cur._v === vkey && !document.body.classList.contains('lite')) {
+                // الحبر العادي: نرسم الجزء الجديد بس من الخط (نفس الشكل بالظبط، من غير إعادة رسم الخط كله كل فريم)
+                const pts = cur.pts, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+                if (pts.length - 1 > cur._m || pts.length === 1) {
+                    liveCtx.save();
+                    liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
+                    liveCtx.strokeStyle = cur.c; liveCtx.lineWidth = cur.w;
+                    liveCtx.lineCap = 'round'; liveCtx.lineJoin = 'round'; liveCtx.globalAlpha = 1;
+                    liveCtx.beginPath();
+                    const m = cur._m;
+                    const st0 = m === 1 ? pts[0] : mid(pts[m - 1], pts[m]);
+                    liveCtx.moveTo(st0[0], st0[1]);
+                    for (let i = m; i <= pts.length - 2; i++) { const e2 = mid(pts[i], pts[i + 1]); liveCtx.quadraticCurveTo(pts[i][0], pts[i][1], e2[0], e2[1]); }
+                    const last = pts[pts.length - 1];
+                    liveCtx.lineTo(last[0] + (pts.length === 1 ? 0.01 : 0), last[1]);
+                    liveCtx.stroke();
+                    liveCtx.restore();
+                    // نكبّر مربع التنضيف بالنقط الجديدة بس
+                    const sub = strokeScreenBox({ pts: pts.slice(Math.max(0, m - 1)), w: cur.w }, d);
+                    liveBox = liveBox ? unionBox(liveBox, sub) : sub;
+                    cur._m = Math.max(1, pts.length - 1);
+                }
+            } else if (cur && !laserOn) {
                 // نمسح ونرسم المنطقة اللي فيها الخط بس، مش الكانفاس كله (نفس الدقة بالظبط)
                 const nb = strokeScreenBox(cur, d);
                 const u = liveBox ? unionBox(liveBox, nb) : nb;
@@ -5559,9 +5591,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 drawStroke(liveCtx, cur);
                 strokeFast = false;
                 liveCtx.restore();
+                if (plainInk) { cur._m = Math.max(1, cur.pts.length - 1); cur._v = vkey; }
                 liveBox = nb; liveBoxOK = true;
             } else if (!laserOn) {
-                if (liveBox) { liveCtx.clearRect(liveBox.x, liveBox.y, liveBox.w, liveBox.h); liveBox = null; }
+                if (liveBox) { liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height); liveBox = null; }
                 liveBoxOK = false;   // المرة الجاية نبدأ بمسح كامل للأمان
             } else {
                 if (cur) { liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d); drawStroke(liveCtx, cur); }
@@ -5614,8 +5647,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // ---- المكان على الشاشة والسبورة ----
+        let stageRectCache = null;
         function screenPoint(e) {
-            const r = stageEl.getBoundingClientRect();
+            let r = stageRectCache;
+            if (!r) {
+                r = stageRectCache = stageEl.getBoundingClientRect();
+                requestAnimationFrame(() => { stageRectCache = null; });
+            }
             return { x: e.clientX - r.left, y: e.clientY - r.top };
         }
         function worldPoint(e) {
@@ -5794,7 +5832,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             eraserRing.style.display = 'block';
         }
         function eraseStep(ev) {
-            const f = 1 + Math.min(3, (eraseSpeedFactor(ev) - 1) * 1.5);
+            // ممحاة ظهر الإيد: الحركة السريعة بتكبرها شوية بس (مش 4 أضعاف زي الممحاة العادية)
+            const f = 1 + Math.min(eraseOverride ? 0.25 : 3, (eraseSpeedFactor(ev) - 1) * 1.5);
             const R = ((eraseOverride || eraserWidth) / 2) * f / view.s;
             const p = worldPoint(ev);
             if (lastErase) {
@@ -5809,6 +5848,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         // خطوط الخرائط الذهنية مقفولة على الممحاة (الجديد والقديم)
         function isLockedStroke(st) { return !!st.locked || (typeof st.groupId === 'string' && st.groupId.startsWith('mm-')); }
+        const bboxCache = new WeakMap();
+        function ptsBox(pts) {
+            let b = bboxCache.get(pts);
+            if (!b) {
+                b = [Infinity, Infinity, -Infinity, -Infinity];
+                for (const q of pts) { if (q[0] < b[0]) b[0] = q[0]; if (q[0] > b[2]) b[2] = q[0]; if (q[1] < b[1]) b[1] = q[1]; if (q[1] > b[3]) b[3] = q[1]; }
+                bboxCache.set(pts, b);
+            }
+            return b;
+        }
         function eraseBoardAt(p, R) {
             const [px, py] = p;
             const page = currentPage();
@@ -5816,6 +5865,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             let changed = false;
             for (const st of page.strokes) {
                 if (isLockedStroke(st)) { out.push(st); continue; }
+                if (st.pts && st.pts.length) {
+                    const b = ptsBox(st.pts);
+                    if (px < b[0] - R - 1 || px > b[2] + R + 1 || py < b[1] - R - 1 || py > b[3] + R + 1) { out.push(st); continue; }
+                }
                 const r = cutOutsideCircle(st.pts, px, py, R, true);
                 if (!r.changed) { out.push(st); continue; }
                 changed = true;
@@ -5923,7 +5976,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function startPalmErase(e, size) {
             if (activeMode) cancelActive();
             touches.delete(e.pointerId);
-            eraseOverride = Math.max(70, Math.min(180, size || touchSize(e) * 1.2));
+            eraseOverride = Math.max(45, Math.min(110, size || touchSize(e) * 0.8));
             pushHistory();
             activeId = e.pointerId;
             activeMode = 'erase';
@@ -5957,7 +6010,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 touches.set(e.pointerId, screenPoint(e));
                 if (touches.size >= 3) {                       // 3 نقط لمس = كف/ظهر إيد
                     touches.clear(); pinch = null;
-                    startPalmErase(e, 110);
+                    startPalmErase(e, 80);
                     return;
                 }
                 if (touches.size >= 2) {
@@ -6006,7 +6059,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (e.pointerType === 'touch') {
                 // ظهر الإيد شغال: نكمل مسح ونكبّر الممحاة حسب حجم اللمسة
                 if (e.pointerId === activeId && activeMode === 'erase' && eraseOverride) {
-                    eraseOverride = Math.max(eraseOverride, Math.min(180, touchSize(e) * 1.2));
+                    eraseOverride = Math.max(eraseOverride, Math.min(110, touchSize(e) * 0.8));
                     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
                     let f = 1;
                     for (const ce of (evs.length ? evs : [e])) f = eraseStep(ce);
@@ -6027,7 +6080,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         if (dd > 12 && dd > 0.6 * dc) pinch.decided = true;
                         else if (dc > 16 && dd < 0.35 * dc) {
                             touches.clear(); pinch = null;
-                            startPalmErase(e, Math.min(180, d + 70));
+                            startPalmErase(e, Math.min(110, d * 0.6 + 30));
                             return;
                         } else return;
                     }
@@ -6071,6 +6124,34 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (activeMode === 'draw') requestRender();
         });
 
+        // تبسيط الخط عند رفع القلم: بنشيل النقط اللي واقعة على نفس الاتجاه (الفرق أقل من 0.1 بكسل على الشاشة)
+        // فالشكل واحد، لكن النقط أقل بكتير فالرسم والحفظ أسرع
+        function simplifyPts(pts, tol) {
+            const n = pts.length;
+            if (n < 4) return pts;
+            const keep = new Uint8Array(n);
+            keep[0] = keep[n - 1] = 1;
+            const stack = [[0, n - 1]];
+            const t2 = tol * tol;
+            while (stack.length) {
+                const [a, b] = stack.pop();
+                let maxD = 0, idx = -1;
+                const ax = pts[a][0], ay = pts[a][1], dx = pts[b][0] - ax, dy = pts[b][1] - ay;
+                const L2 = dx * dx + dy * dy;
+                for (let i = a + 1; i < b; i++) {
+                    let t = L2 ? ((pts[i][0] - ax) * dx + (pts[i][1] - ay) * dy) / L2 : 0;
+                    t = t < 0 ? 0 : t > 1 ? 1 : t;
+                    const ex = ax + t * dx - pts[i][0], ey = ay + t * dy - pts[i][1];
+                    const d2 = ex * ex + ey * ey;
+                    if (d2 > maxD) { maxD = d2; idx = i; }
+                }
+                if (idx > 0 && maxD > t2) { keep[idx] = 1; stack.push([a, idx], [idx, b]); }
+            }
+            const out = [];
+            for (let i = 0; i < n; i++) if (keep[i]) out.push(pts[i]);
+            return out;
+        }
+
         function endPointer(e) {
             if (e.pointerId === activeId && eraseOverride) eraseOverride = 0;
             if (e.pointerType === 'touch') {
@@ -6092,6 +6173,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             } else if (e.pointerId === activeId) {
                 let appended = false;
                 if (activeMode === 'draw' && cur) {
+                    delete cur._m; delete cur._v;
+                    if (!cur.start && cur.s !== 'shape' && cur.s !== 'smart' && cur.s !== 'pencil') cur.pts = simplifyPts(cur.pts, 0.1 / view.s);
                     if (cur.s === 'smart') smartSnap(cur);
                     currentPage().strokes = [...currentPage().strokes, cur];
                     // الخط الجديد بيتضاف للكاش مباشرة بدل ما نعيد رسم كل الصفحة (ده كان بيسبب التأخير بعد رفع القلم)
