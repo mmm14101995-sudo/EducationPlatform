@@ -318,6 +318,26 @@
         .board.fs .board-bar { background: rgba(15,23,42,0.94) !important; }
         .board.fs .fs-exit, .board.fs .fs-toggle-bar { background: rgba(15,23,42,0.9) !important; }
 
+        /* العرض التقديمي */
+        .present-bar {
+            position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 4000;
+            display: none; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 18px;
+            background: rgba(15,23,42,0.94); border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            color: #fff; max-width: 96vw;
+        }
+        body.presenting .present-bar { display: flex; }
+        .pb-btn { height: 46px; min-width: 46px; padding: 0 12px; border-radius: 13px; border: 0; background: rgba(255,255,255,0.1); color: #fff;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 14px; cursor: pointer; touch-action: manipulation; }
+        .pb-btn:active { background: rgba(255,255,255,0.22); }
+        .pb-btn.active { background: #2563eb; box-shadow: 0 0 0 2px #93c5fd; }
+        .pb-exit { background: rgba(239,68,68,0.9); }
+        .pb-count { min-width: 64px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .pb-sep { width: 1px; height: 26px; background: rgba(255,255,255,0.2); margin: 0 2px; }
+        body.presenting .board .fs-exit, body.presenting .board .fs-toggle-bar { display: none !important; }
+        body.presenting-reader .reader-overlay .rd-corner { display: none; }
+        body.presenting-reader .reader-overlay:not(.bars-hidden) .reader-bar,
+        body.presenting-reader .reader-overlay:not(.bars-hidden) .reader-foot { display: none; }
+
         /* النوافذ */
         .modal {
             position: fixed; inset: 0; z-index: 150; display: none; align-items: center; justify-content: center;
@@ -2130,6 +2150,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
                         <div class="bgrp">
                             <button class="ibtn" id="fs-btn" title="ملء الشاشة" onclick="toggleBoardFs()"><i data-icon="maximize"></i></button>
+                            <button class="ibtn" id="present-btn" title="عرض تقديمي" aria-label="عرض تقديمي" onclick="startPresent('board')"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
                             <button class="ibtn" title="حفظ الصفحة الحالية PDF" onclick="saveBoardAsPDF(true)"><i data-icon="file"></i></button>
                             <button class="ibtn" title="حفظ كل الصفحات PDF" onclick="saveBoardAsPDF(false)"><i data-icon="upload"></i></button>
                         </div>
@@ -2631,12 +2652,25 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         </div>
     </div>
 
+    <!-- شريط العرض التقديمي (للسبورة وللقارئ) -->
+    <div id="present-bar" class="present-bar" dir="rtl">
+        <button class="pb-btn" onclick="presentStep(1)" title="التالي (←)" aria-label="التالي"><i data-icon="chevL"></i></button>
+        <span class="pb-count" id="pb-count">1 / 1</span>
+        <button class="pb-btn" onclick="presentStep(-1)" title="السابق (→)" aria-label="السابق"><i data-icon="chevR"></i></button>
+        <span class="pb-sep"></span>
+        <button class="pb-btn pb-write" id="pb-write" onclick="presentToggleWrite()" title="الكتابة على العرض"><i data-icon="feather"></i><span>كتابة</span></button>
+        <button class="pb-btn" id="pb-fit" onclick="presentFit()" title="ملاءمة الشاشة"><i data-icon="maximize"></i></button>
+        <span class="pb-sep"></span>
+        <button class="pb-btn pb-exit" onclick="endPresent()" title="إنهاء العرض (Esc)"><i data-icon="x"></i><span>إنهاء</span></button>
+    </div>
+
     <!-- القارئ -->
     <div id="reader" class="reader-overlay">
         <div class="reader-bar">
             <button class="reader-btn" onclick="closeReader()">✕ إغلاق</button>
             <div id="reader-title" class="reader-title"></div>
             <div class="reader-tools">
+                <button class="reader-btn" id="reader-present-btn" title="عرض تقديمي" onclick="startPresent('reader')">▶ عرض تقديمي</button>
                 <button class="reader-btn" id="spread-btn" onclick="toggleSpread()">صفحتان</button>
                 <button class="reader-btn" onclick="toggleReaderPaper()">الخلفية</button>
                 <button class="reader-btn" id="reader-to-board" title="الذهاب للسبورة" onclick="readerToBoard()">السبورة</button>
@@ -9999,6 +10033,141 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (window.ResizeObserver) new ResizeObserver(() => resizeCanvas()).observe($('board-stage'));
             await loadBooks();
         })();
+
+        // ==========================================
+        // العرض التقديمي: السبورة (كل صفحة شريحة) وقارئ الكتب (كل صفحة PDF شريحة)، مع خيار الكتابة على العرض
+        // ==========================================
+        const present = { mode: null, write: false, prevHand: false };
+
+        function presentSync() {
+            if (!present.mode) return;
+            let cur1 = 1, total = 1;
+            if (present.mode === 'board') { cur1 = wbGrade().currentIndex + 1; total = wbGrade().pages.length; }
+            else { cur1 = reader.page; total = reader.total || 1; }
+            $('pb-count').textContent = cur1 + ' / ' + total;
+            $('pb-write').classList.toggle('active', present.write);
+        }
+
+        function boardContentBounds() {
+            const pg = currentPage();
+            let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+            const add = (ax, ay, bx, by) => { x1 = Math.min(x1, ax); y1 = Math.min(y1, ay); x2 = Math.max(x2, bx); y2 = Math.max(y2, by); };
+            for (const st of (pg.strokes || [])) { if (st.pts && st.pts.length) { const b = ptsBox(st.pts); const pad = (st.w || 2) * 1.5; add(b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad); } }
+            for (const n of (pg.notes || [])) add(n.x, n.y, n.x + n.w, n.y + n.h);
+            if (pg.bg) { const im = bgCache.get(pg.bg); if (im && im.complete && im.naturalWidth) add(0, 0, im.naturalWidth, im.naturalHeight); }
+            return x1 === Infinity ? null : { x1, y1, x2, y2 };
+        }
+        // نخلي محتوى الصفحة كله يتعرض في الشاشة (زي الشريحة)
+        function boardFitView() {
+            const W = stageEl.clientWidth, H = stageEl.clientHeight;
+            const b = boardContentBounds();
+            if (!b || !W || !H) { view.s = 1; view.tx = 0; view.ty = 0; }
+            else {
+                const bw = Math.max(40, b.x2 - b.x1), bh = Math.max(40, b.y2 - b.y1);
+                const s = Math.max(VIEW_MIN, Math.min(VIEW_MAX, Math.min(W * 0.94 / bw, H * 0.94 / bh, 2.5)));
+                view.s = s;
+                view.tx = (W - bw * s) / 2 - b.x1 * s;
+                view.ty = (H - bh * s) / 2 - b.y1 * s;
+            }
+            boardDirty = true; updateZoomLabel(); requestRender();
+        }
+
+        function startPresent(mode) {
+            if (present.mode) return;
+            if (mode === 'reader' && !(reader.book && reader.doc)) return;
+            present.mode = mode; present.write = false;
+            document.body.classList.add('presenting');
+            if (mode === 'board') {
+                present.prevHand = handMode;
+                setBoardFs(true);
+                $('board').classList.add('bar-hidden');
+                setHand(true);                    // من غير كتابة: إصبع واحد يحرّك وإصبعين تكبير
+                setTimeout(boardFitView, 150);
+            } else {
+                document.body.classList.add('presenting-reader');
+                setReaderFs(true);
+                $('reader').classList.add('bars-hidden');
+                reader.annotate = false; syncAnnotateUI();
+                resetReaderView();
+            }
+            presentSync();
+        }
+
+        function presentToggleWrite() {
+            if (!present.mode) return;
+            present.write = !present.write;
+            if (present.mode === 'board') {
+                if (present.write) {
+                    setHand(false);
+                    if (!['pen', 'eraser', 'shape'].includes(tool)) setTool('pen');
+                    $('board').classList.remove('bar-hidden');   // الأدوات (ألوان وأقلام) تظهر مع الكتابة
+                } else {
+                    setHand(true);
+                    $('board').classList.add('bar-hidden');
+                }
+            } else {
+                $('reader').classList.toggle('bars-hidden', !present.write);   // شريط أدوات الكتابة يظهر مع الكتابة
+                reader.annotate = present.write; syncAnnotateUI();
+                if (present.write) { renderReader(); }
+            }
+            presentSync();
+        }
+
+        function presentStep(dir) {
+            if (!present.mode) return;
+            if (present.mode === 'board') {
+                const s = wbGrade();
+                const i = s.currentIndex + dir;
+                if (i < 0 || i >= s.pages.length) return;
+                switchPage(i);
+                setTimeout(boardFitView, 30);
+            } else {
+                step(dir);
+            }
+        }
+        function presentFit() {
+            if (present.mode === 'board') boardFitView();
+            else if (present.mode === 'reader') resetReaderView();
+        }
+
+        function endPresent() {
+            const m = present.mode;
+            if (!m) return;
+            present.mode = null;
+            document.body.classList.remove('presenting', 'presenting-reader');
+            if (m === 'board') {
+                setHand(present.prevHand);
+                setBoardFs(false);
+            } else {
+                $('reader').classList.remove('bars-hidden');
+                reader.annotate = false; syncAnnotateUI();
+                setReaderFs(false);
+            }
+            present.write = false;
+        }
+
+        document.addEventListener('keydown', e => {
+            if (!present.mode) return;
+            const t = e.target && e.target.tagName;
+            if (t === 'INPUT' || t === 'TEXTAREA') return;
+            if (e.key === 'Escape') { endPresent(); e.preventDefault(); }
+            else if (e.key === 'ArrowLeft' || e.key === 'PageDown' || e.key === ' ') { presentStep(1); e.preventDefault(); }
+            else if (e.key === 'ArrowRight' || e.key === 'PageUp') { presentStep(-1); e.preventDefault(); }
+        });
+
+        // لو العرض خرج لوحده (خرج من ملء الشاشة أو اتقفل القارئ): ننهيه
+        {
+            const _setBoardFs = setBoardFs;
+            setBoardFs = function (on) { if (!on && present.mode === 'board') { endPresent(); return; } return _setBoardFs(on); };
+            const _setReaderFs = setReaderFs;
+            setReaderFs = function (on) { if (!on && present.mode === 'reader') { endPresent(); return; } return _setReaderFs(on); };
+            const _closeReader = closeReader;
+            closeReader = function () { if (present.mode === 'reader') endPresent(); return _closeReader(); };
+            const _switchPage = switchPage;
+            switchPage = function (i) { const r = _switchPage(i); presentSync(); return r; };
+            const _renderReader = renderReader;
+            renderReader = async function (...a) { const r = await _renderReader.apply(this, a); presentSync(); return r; };
+        }
     </script>
 </body>
 </html>
