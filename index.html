@@ -5350,8 +5350,20 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             el.style.fontSize = '15px';
             wireNoteColor(el, n, null);
             const ta = el.querySelector('textarea');
-            ta.value = n.text || '';
-            ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
+            const icv = document.createElement('canvas');
+            icv.className = 'sticky-ink';
+            if (n.mode === 'draw') {
+                // ملاحظة بخط اليد: الكتابة بالقلم أو الإصبع مباشرة عليها
+                ta.remove();
+            } else {
+                // الملاحظات النصية القديمة: النص زي ما هو، والكتابة باليد بتشتغل لما وضع الرسم على الكتاب يكون مفتوح
+                ta.value = n.text || '';
+                ta.addEventListener('input', () => { n.text = ta.value; scheduleSave(); });
+                icv.classList.add('sticky-ink-text');
+                icv.style.pointerEvents = reader.annotate ? 'auto' : 'none';
+            }
+            el.appendChild(icv);
+            bindReaderInk(icv, n, el);
             el.querySelector('.sticky-del').addEventListener('click', () => {
                 const list = stickiesFor(pageNo);
                 const i = list.indexOf(n);
@@ -5363,13 +5375,57 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return el;
         }
 
+        // كتابة باليد على ملاحظة القارئ (بنفس لون وحجم قلم الكتاب)
+        function bindReaderInk(cv, n, el) {
+            let pid = null, start = null, st = null, rect = null, W = 0, H = 0;
+            const norm = e => [(e.clientX - rect.left) / W, (e.clientY - rect.top) / H];
+            cv.addEventListener('pointerdown', e => {
+                if (el.classList.contains('moving') || e.button > 0) return;
+                if (e.pointerType === 'touch' && readerTouches.size >= 2) return;   // إصبعين = تكبير
+                pid = e.pointerId; st = null;
+                try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+                rect = cv.getBoundingClientRect(); W = cv.clientWidth; H = cv.clientHeight;
+                start = norm(e);
+                if (reader.tool === 'eraser') eraseInkAt(cv, n, el, e);
+            });
+            cv.addEventListener('pointermove', e => {
+                if (pid !== e.pointerId || el.classList.contains('moving')) return;
+                if (readerTouches.size >= 2) {   // بدأ تكبير: نلغي الخط اللي بدأ
+                    if (st && n.ink) { n.ink = n.ink.filter(x => x !== st); drawInk(el, n); }
+                    st = null; pid = null; return;
+                }
+                if (reader.tool === 'eraser') { eraseInkAt(cv, n, el, e); return; }
+                const p = norm(e);
+                if (!st) {
+                    if (Math.hypot((p[0] - start[0]) * W, (p[1] - start[1]) * H) < 3) return;
+                    const sty = ['hl', 'shape', 'eraser'].includes(reader.tool) ? 'normal' : reader.tool;
+                    st = { w: Math.max(1.5, reader.size * 0.6) / W, c: reader.color, s: sty, pts: [start] };
+                    n.ink = n.ink || [];
+                    n.ink.push(st);
+                }
+                st.pts.push(p);
+                drawInkSegment(cv, st, W, H);
+            });
+            const up = e => {
+                if (pid !== e.pointerId) return;
+                pid = null;
+                if (st) { st = null; drawInk(el, n); scheduleSave(); }
+            };
+            cv.addEventListener('pointerup', up);
+            cv.addEventListener('pointercancel', up);
+        }
+
         function renderReaderStickies(wrap, pageNo) {
-            stickiesFor(pageNo).forEach(n => wrap.appendChild(makeReaderSticky(n, wrap, pageNo)));
+            stickiesFor(pageNo).forEach(n => {
+                const el = makeReaderSticky(n, wrap, pageNo);
+                wrap.appendChild(el);
+                requestAnimationFrame(() => drawInk(el, n));   // بعد ما الملاحظة تتحط في الصفحة ويبقى ليها حجم
+            });
         }
 
         function addReaderSticky() {
             if (!reader.book) return;
-            stickiesFor(reader.page).push({ id: 'n' + Date.now().toString(36), x: 0.34, y: 0.3, w: 0.28, h: 0.22, text: '' });
+            stickiesFor(reader.page).push({ id: 'n' + Date.now().toString(36), x: 0.3, y: 0.3, w: 0.4, h: 0.28, text: '', mode: 'draw', ink: [] });
             scheduleSave();
             renderReader();
         }
@@ -9575,6 +9631,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         function syncAnnotateUI() {
+            document.querySelectorAll('.rpage canvas.sticky-ink-text').forEach(c => { c.style.pointerEvents = reader.annotate ? 'auto' : 'none'; });
             const overlay = $('reader');
             overlay.classList.toggle('annotating', reader.annotate);
             document.querySelectorAll('.note-layer').forEach(l => {
@@ -9582,6 +9639,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 l.style.cursor = reader.annotate ? 'none' : 'default';
             });
             $('ann-toggle').classList.toggle('active', reader.annotate);
+            const handBtn = $('tool-hand'); if (handBtn) handBtn.classList.toggle('active', !reader.annotate);   // زر اليد يتعلّم لما يكون هو المختار
             ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon'].forEach(t => {
                 const b = $('tool-' + t);
                 if (b) b.style.setProperty('--pc', readerPenColors[t]);
