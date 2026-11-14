@@ -2000,6 +2000,44 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.lite .reader-overlay .reader-notes, body.lite .rd-pen-pop, body.lite .sidebar, body.lite .app-header {
             background-image: none !important;
         }
+    
+        /* شريط السكرول الرأسي على يمين القارئ */
+        .rd-vscroll { position: absolute; right: 6px; top: 66px; bottom: 16px; width: 12px; z-index: 6; border-radius: 8px; background: rgba(255,255,255,0.08); display: none; touch-action: none; cursor: pointer; }
+        .rd-vscroll.show { display: block; }
+        .rd-vthumb { position: absolute; left: 1px; right: 1px; top: 0; height: 40px; border-radius: 6px; background: rgba(255,255,255,0.55); }
+        .reader-overlay.bars-hidden .rd-vscroll { top: 12px; }
+        .reader-overlay.paper .rd-vscroll { background: rgba(61,46,26,0.12); }
+        .reader-overlay.paper .rd-vthumb { background: rgba(61,46,26,0.5); }
+    
+        /* شريط السكرول الأفقي تحت (لما الصفحة المكبّرة تعدي الشاشة) */
+        .rd-hscroll { position: absolute; height: 12px; z-index: 6; border-radius: 8px; background: rgba(255,255,255,0.08); display: none; touch-action: none; cursor: pointer; }
+        .rd-hscroll.show { display: block; }
+        .rd-hthumb { position: absolute; top: 1px; bottom: 1px; left: 0; width: 40px; border-radius: 6px; background: rgba(255,255,255,0.55); }
+        .reader-overlay.paper .rd-hscroll { background: rgba(61,46,26,0.12); }
+        .reader-overlay.paper .rd-hthumb { background: rgba(61,46,26,0.5); }
+    
+        /* ===== شرائط الأدوات القابلة للتحريك والتقليب والتثبيت (الوضع العادي) ===== */
+        .bar-ctl2 { display: flex; align-items: center; gap: 4px; flex: none; }
+        .bar-handle { cursor: grab; width: 24px; height: 32px; display: grid; place-items: center; opacity: .75; touch-action: none; border-radius: 8px; }
+        .bar-handle:active { cursor: grabbing; }
+        .bar-orient, .bar-lock { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); background: var(--hover); color: var(--text); cursor: pointer; display: grid; place-items: center; font-size: 14px; padding: 0; line-height: 1; }
+        .bar-locked .bar-handle { cursor: not-allowed; opacity: .25; }
+        .bar-locked .bar-lock { background: rgba(37,99,235,0.25); }
+        /* السبورة: الشريط العائم تحت (أفقي افتراضياً) */
+        #board:not(.fs) #board-float.bar-vert {
+            flex-direction: column; align-items: center; left: 12px; top: 50%; bottom: auto;
+            transform: translateY(-50%); max-height: calc(100% - 40px); overflow-y: auto !important; overflow-x: hidden !important;
+            border-radius: 22px; padding: 10px 8px;
+        }
+        #board:not(.fs) #board-float.bar-vert .bar-ctl2 { flex-direction: column; }
+        /* القارئ: أدوات الكتابة رأسي على اليسار (افتراضياً)، ولو اتقلبت أفقي تحت */
+        .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) {
+            flex-direction: row; flex-wrap: wrap; top: auto; bottom: 14px; left: 50%; transform: translateX(-50%);
+            max-width: calc(100% - 24px); max-height: none; overflow-x: auto; overflow-y: hidden; padding: 8px 10px;
+        }
+        .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) .rn-sep { width: 1px; height: 22px; }
+        .reader-overlay:not(.fs) .reader-notes.bar-vert .bar-ctl2 { flex-direction: column; }
+        .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) .bar-ctl2 { flex-direction: row; }
     </style>
 </head>
 <body data-theme="dark">
@@ -2772,20 +2810,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <button class="rn-tool" id="tool-striped" title="قلم مخطط بلونين" aria-label="قلم مخطط بلونين" onclick="readerPenTap('striped')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13 V14.5Z"/><path d="M13 4.5 H13.6 L15 14.5 H13Z" fill="#f8fafc"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="5" height="3"/><rect x="13" y="20.5" width="5" height="3" fill="#f8fafc"/></svg></button>
         <div class="rd-pen-colors" id="rd-pen-colors"></div>
         </div>
+        <div class="rd-vscroll" id="rd-vscroll"><div class="rd-vthumb" id="rd-vthumb"></div></div>
+        <div class="rd-hscroll" id="rd-hscroll"><div class="rd-hthumb" id="rd-hthumb"></div></div>
         <div id="reader-stage" class="reader-stage" onclick="handleReaderTap(event)"></div>
-        <button class="rd-side rd-prev" title="الصفحة السابقة" onclick="prevPage()"><i data-icon="chevR"></i></button>
-        <button class="rd-side rd-next" title="الصفحة التالية" onclick="nextPage()"><i data-icon="chevL"></i></button>
         <div class="rd-corner">
             <button class="rd-btn" title="إظهار الأدوات" onclick="toggleReaderBars()"><i data-icon="eye"></i></button>
         </div>
         <div class="reader-foot">
-            <button class="reader-btn" onclick="prevPage()">➡ الصفحة السابقة</button>
             <span id="reader-info" class="reader-info">
                 <span>الصفحة</span>
                 <input id="page-jump" class="page-jump" type="number" inputmode="numeric" min="1" step="1" title="اكتب رقم الصفحة واضغط Enter للانتقال" aria-label="رقم الصفحة">
                 <span id="page-total"></span>
             </span>
-            <button class="reader-btn" onclick="nextPage()">⬅ الصفحة التالية</button>
         </div>
     </div>
 
@@ -6897,6 +6933,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function setBoardFs(on) {
             $('board').classList.toggle('fs', on);
             placeBoardSide();
+            applyBar('board');
             if (!on) $('board').classList.remove('bar-hidden');
             document.body.classList.toggle('board-fs', on);
             $('fs-btn').innerHTML = icon(on ? 'minimize' : 'maximize');
@@ -6915,6 +6952,68 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function toggleBoardFs() {
             setBoardFs(!$('board').classList.contains('fs'));
+        }
+
+        // ---- شرائط الأدوات: قابلة للتحريك، وتتقلب أفقي/رأسي، وتتثبّت (في الوضع العادي) ----
+        const BAR_GRIP = '<svg viewBox="0 0 18 26" width="14" height="20" fill="currentColor"><circle cx="5" cy="4" r="2"/><circle cx="13" cy="4" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="5" cy="22" r="2"/><circle cx="13" cy="22" r="2"/></svg>';
+        const BAR_LOCK_ON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+        const BAR_LOCK_OFF = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-1.8"/></svg>';
+        function barElFor(key) { return key === 'board' ? $('board-float') : document.querySelector('#reader .reader-notes'); }
+        function barIsFs(key) { return key === 'board' ? $('board').classList.contains('fs') : $('reader').classList.contains('fs'); }
+        function barState(key) {
+            appState.barLayout = appState.barLayout || {};
+            return appState.barLayout[key] || (appState.barLayout[key] = { locked: false, vert: key === 'reader', x: null, y: null });
+        }
+        function applyBar(key) {
+            const el = barElFor(key);
+            if (!el) return;
+            if (!el.querySelector('.bar-ctl2')) addBarControls(key, el);
+            const st = barState(key);
+            el.classList.toggle('bar-vert', !!st.vert);
+            el.classList.toggle('bar-locked', !!st.locked);
+            if (!barIsFs(key) && st.x != null) {
+                el.style.left = st.x + 'px'; el.style.top = st.y + 'px';
+                el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
+            } else {
+                el.style.left = ''; el.style.top = ''; el.style.right = ''; el.style.bottom = ''; el.style.transform = '';
+            }
+            const lock = el.querySelector('.bar-lock');
+            if (lock) { lock.innerHTML = st.locked ? BAR_LOCK_ON : BAR_LOCK_OFF; lock.title = st.locked ? 'فك تثبيت الشريط' : 'تثبيت الشريط'; }
+        }
+        function addBarControls(key, el) {
+            const wrap = document.createElement('div');
+            wrap.className = 'bar-ctl2';
+            wrap.innerHTML = '<span class="bar-handle" title="اسحب الشريط">' + BAR_GRIP + '</span>' +
+                '<button type="button" class="bar-orient" title="أفقي / رأسي">↔</button>' +
+                '<button type="button" class="bar-lock" title="تثبيت الشريط"></button>';
+            el.insertBefore(wrap, el.firstChild);
+            wrap.querySelector('.bar-orient').onclick = e => { e.stopPropagation(); const st = barState(key); st.vert = !st.vert; applyBar(key); scheduleSave(); };
+            wrap.querySelector('.bar-lock').onclick = e => { e.stopPropagation(); const st = barState(key); st.locked = !st.locked; applyBar(key); scheduleSave(); };
+            const handle = wrap.querySelector('.bar-handle');
+            let drag = null;
+            handle.addEventListener('pointerdown', e => {
+                if (barState(key).locked || barIsFs(key)) return;
+                e.preventDefault();
+                try { handle.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                const r = el.getBoundingClientRect();
+                drag = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, pr: el.parentElement.getBoundingClientRect() };
+            });
+            handle.addEventListener('pointermove', e => {
+                if (!drag || e.pointerId !== drag.id) return;
+                const pr = drag.pr, w = el.offsetWidth, h = el.offsetHeight;
+                const x = Math.min(Math.max(0, e.clientX - drag.dx - pr.left), Math.max(0, pr.width - w));
+                const y = Math.min(Math.max(0, e.clientY - drag.dy - pr.top), Math.max(0, pr.height - h));
+                el.style.left = x + 'px'; el.style.top = y + 'px';
+                el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
+                drag.x = x; drag.y = y;
+            });
+            const end = e => {
+                if (!drag || e.pointerId !== drag.id) return;
+                if (drag.x != null) { const st = barState(key); st.x = drag.x; st.y = drag.y; scheduleSave(); }
+                drag = null;
+            };
+            handle.addEventListener('pointerup', end);
+            handle.addEventListener('pointercancel', end);
         }
 
         // مجموعات الكتابة والأشكال بتتحط في شريط عائم تحت في الوضع العادي، وفي ملء الشاشة بترجع للشريط
@@ -6970,6 +7069,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function setReaderFs(on) {
             $('reader').classList.toggle('fs', on);
+            applyBar('reader');
             api.setFullscreen(on);
             if (!NATIVE) {
                 try {
@@ -9482,7 +9582,83 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             const inner = document.querySelector('#reader-stage .rinner');
             if (inner) inner.style.transform = 'translate(' + readerView.tx + 'px, ' + readerView.ty + 'px) scale(' + readerView.z + ')';
+            updateRdScroll();
         }
+
+        // شريطا السكرول: الرأسي على اليمين (للكتاب)، والأفقي تحت (لما الصفحة تكبر عن الشاشة)
+        function updateRdScroll() {
+            if (!reader.doc || typeof rdMetrics !== 'function') return;
+            const { stage, W, H } = rdMetrics();
+            const R = $('reader');
+            const vb = $('rd-vscroll'), vt = $('rd-vthumb');
+            if (vb && vt) {
+                const cH = rdContentH() * readerView.z;
+                if (cH <= H + 2) vb.classList.remove('show');
+                else {
+                    vb.classList.add('show');
+                    const track = vb.clientHeight, tH = Math.max(36, track * H / cH);
+                    const p = Math.min(1, Math.max(0, -readerView.ty / (cH - H)));
+                    vt.style.height = tH + 'px';
+                    vt.style.top = (p * (track - tH)) + 'px';
+                }
+            }
+            const hb = $('rd-hscroll'), ht = $('rd-hthumb');
+            if (hb && ht) {
+                const cW = W * readerView.z;
+                if (cW <= W + 2) hb.classList.remove('show');
+                else {
+                    const sr = stage.getBoundingClientRect(), rr = R.getBoundingClientRect();
+                    const foot = R.querySelector('.reader-foot');
+                    hb.classList.add('show');
+                    hb.style.left = (sr.left - rr.left + 14) + 'px';
+                    hb.style.width = Math.max(60, sr.width - 40) + 'px';
+                    hb.style.bottom = ((foot ? foot.offsetHeight : 0) + 8) + 'px';
+                    const track = hb.clientWidth, tW = Math.max(36, track * W / cW);
+                    const p = Math.min(1, Math.max(0, -readerView.tx / (cW - W)));
+                    ht.style.width = tW + 'px';
+                    ht.style.left = (p * (track - tW)) + 'px';
+                }
+            }
+        }
+        (function bindRdScroll() {
+            const bindBar = (bar, horiz) => {
+                if (!bar) return;
+                const jump = e => {
+                    if (!reader.doc) return;
+                    const { W, H } = rdMetrics();
+                    const r = bar.getBoundingClientRect();
+                    const th = bar.querySelector('div');
+                    if (horiz) {
+                        const cW = W * readerView.z;
+                        if (cW <= W) return;
+                        const tW = parseFloat(th.style.width) || 36;
+                        const p = Math.min(1, Math.max(0, (e.clientX - r.left - tW / 2) / Math.max(1, r.width - tW)));
+                        readerView.tx = -p * (cW - W);
+                    } else {
+                        const cH = rdContentH() * readerView.z;
+                        if (cH <= H) return;
+                        const tH = parseFloat(th.style.height) || 36;
+                        const p = Math.min(1, Math.max(0, (e.clientY - r.top - tH / 2) / Math.max(1, r.height - tH)));
+                        readerView.ty = -p * (cH - H);
+                    }
+                    clampReaderView();
+                    applyReaderView();
+                    rdOnMove();
+                };
+                bar.addEventListener('pointerdown', e => {
+                    try { bar.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                    bar._drag = true;
+                    jump(e);
+                    e.preventDefault();
+                });
+                bar.addEventListener('pointermove', e => { if (bar._drag) jump(e); });
+                const end = () => { bar._drag = false; };
+                bar.addEventListener('pointerup', end);
+                bar.addEventListener('pointercancel', end);
+            };
+            bindBar($('rd-vscroll'), false);
+            bindBar($('rd-hscroll'), true);
+        })();
 
         function readerSharpen() {
             // لو لسه بيكبّر بإصبعين نستنى، عشان الصفحة ما تتبدلش تحت إيده
@@ -9825,6 +10001,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function prevPage() { step(-1); }
 
         function handleReaderTap(e) {
+            // الانتقال بين الصفحات بالتمرير بس، والضغط على الصفحة ما بيعملش حاجة
+            return;
             if (reader.annotate || readerNoTap) return;   // وضع الكتابة أو بعد التكبير: ما نقلبش الصفحة
             const r = $('reader-stage').getBoundingClientRect();
             if (e.clientX - r.left < r.width / 2) nextPage();
@@ -10074,6 +10252,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('nav')) { e.preventDefault(); e.target.click(); } });
             await loadAppState();
             applyTheme(appState.theme);
+            applyBar('board');
+            applyBar('reader');
             applyProfile();
             applyGradeNames();
             initDash();
