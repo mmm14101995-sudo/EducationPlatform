@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import shutil
+import socket
 import subprocess
 import threading
 import urllib.parse
@@ -585,7 +586,57 @@ def player_main(path, title, key="", start=0.0):
     root.after(250, tick)
     root.mainloop()
 
+# ---------- نسخة واحدة بس من البرنامج ----------
+SINGLE_PORT = 47391   # منفذ ثابت: النسخة الأولى بتحجزه، والنسخ اللي بعدها بتبعتله إشارة وتقفل
+
+
+def claim_single_instance():
+    """يرجّع (الحالة، السوكت). الحالة: primary = النسخة الأولى، secondary = فيه نسخة شغالة (نقفل),
+    standalone = المنفذ مشغول ببرنامج تاني (نشغّل عادي من غير قفل)."""
+    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # ملحوظة: ما نستخدمش SO_REUSEADDR على ويندوز، عشان ما يسمحش بحجز نفس المنفذ مرتين
+    try:
+        srv.bind(("127.0.0.1", SINGLE_PORT))
+        srv.listen(5)
+        return "primary", srv
+    except OSError:
+        srv.close()
+    try:
+        with socket.create_connection(("127.0.0.1", SINGLE_PORT), timeout=2) as c:
+            c.sendall(b"show")
+        return "secondary", None
+    except OSError:
+        return "standalone", None
+
+
+def bring_to_front(win):
+    for fn in (win.restore, win.show):
+        try:
+            fn()
+        except Exception:
+            pass
+
+
+def watch_for_others(srv, win):
+    while True:
+        try:
+            conn, _ = srv.accept()
+        except OSError:
+            break
+        try:
+            conn.settimeout(2)
+            conn.recv(16)
+        except OSError:
+            pass
+        finally:
+            conn.close()
+        bring_to_front(win)
+
+
 def main():
+    mode, srv = claim_single_instance()
+    if mode == "secondary":
+        return   # النسخة الأولى اتظهرت، والنسخة دي بتقفل
     update_ui()
     # منفذ عشوائي حر، فلا يتعارض مع أي برنامج آخر
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -606,6 +657,9 @@ def main():
             w.maximize()
         except Exception:
             pass
+
+    if srv is not None:
+        threading.Thread(target=watch_for_others, args=(srv, win), daemon=True).start()
 
     webview.start(_maximize, win)
     httpd.shutdown()
