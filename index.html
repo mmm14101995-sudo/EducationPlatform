@@ -2095,7 +2095,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
             <!-- الرئيسية -->
             <section id="view-home" class="view active">
-                <div class="home-theme-row"><button class="btn-ghost" id="home-theme-btn" onclick="toggleTheme()" aria-label="تبديل الوضع الليلي والنهاري"></button></div>
                 <div class="dash">
                     <div class="dash-main">
                         <div class="hero">
@@ -3086,7 +3085,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('inp-simple').checked = document.body.classList.contains('simple');
             $('inp-clock').value = mode2pref();
             $('inp-lang').value = appLang;
-            renderPresets();
+            if ($('presets')) renderPresets();   // خلفية التطبيق اتشالت
             $('settings').classList.add('open');
         }
 
