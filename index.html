@@ -2183,6 +2183,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on .reader-bar > :not([onclick*="closeReader"]) { display: none !important; }
         body.split-on .reader-notes > :not(.rd-pen-wrap):not(#tool-eraser):not([onclick="undoNote()"]):not([onclick="redoNote()"]):not(.bar-ctl2) { display: none !important; }
         body.split-on .reader-notes .bar-ctl2 .bar-orient, body.split-on .reader-notes .bar-ctl2 .bar-lock { display: none !important; }
+
+        /* الوضع المزدوج: شريط السبورة العائم على قد الأدوات (4 أزرار) زي شريط القارئ */
+        body.split-on #board:not(.fs) #board-float {
+            width: max-content !important; min-width: 0 !important; max-width: calc(100% - 16px) !important;
+            padding: 5px 8px !important; gap: 4px !important; border-radius: 999px !important;
+        }
+        body.split-on #board:not(.fs) #board-float .bgrp { padding: 0 !important; gap: 4px !important; background: transparent !important; border: 0 !important; width: auto !important; }
+        body.split-on #board:not(.fs) #board-float .bar-ctl2 { gap: 0 !important; }
+        body.split-on #board:not(.fs) #board-float .bar-handle { width: 18px !important; height: 30px !important; }
+        body.split-on #board:not(.fs) #board-float .ibtn { width: 34px !important; height: 34px !important; min-width: 34px !important; padding: 0 !important; border-radius: 10px !important; }
+        body.split-on #board:not(.fs) #board-float .ibtn svg, body.split-on #board:not(.fs) #board-float .ibtn [data-icon] svg { width: 17px !important; height: 17px !important; }
+        body.split-on #board:not(.fs) #board-float.bar-vert { width: max-content !important; }
     </style>
 </head>
 <body data-theme="dark">
