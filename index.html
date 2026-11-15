@@ -2242,6 +2242,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on .reader-overlay.split-reader .reader-foot { min-height: 0 !important; height: 26px !important; padding: 0 8px !important; font-size: 11px !important; }
         body.split-on .reader-overlay.split-reader #reader-info { font-size: 11px !important; gap: 4px !important; }
         body.split-on .reader-overlay.split-reader .page-jump { width: 40px !important; height: 20px !important; font-size: 11px !important; padding: 0 4px !important; }
+
+        /* الوضع المزدوج (القارئ): الصفحة بتملى الجزء كله، والأدوات والإغلاق ورقم الصفحة عايمين فوقها */
+        body.split-on .reader-overlay.split-reader #reader-stage { position: absolute !important; inset: 0 !important; height: auto !important; margin: 0 !important; }
+        body.split-on .reader-overlay.split-reader .reader-bar { position: absolute !important; top: 8px !important; left: 8px !important; right: auto !important; z-index: 320 !important; background: rgba(20,24,33,0.55) !important; border: 0 !important; border-radius: 14px !important; padding: 4px 6px !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); width: auto !important; }
+        body.split-on .reader-overlay.split-reader .reader-foot { position: absolute !important; bottom: 8px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 320 !important; border-radius: 12px !important; background: rgba(20,24,33,0.55) !important; border: 0 !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); width: auto !important; }
+        body.split-on .reader-overlay.split-reader .rd-vscroll { top: 56px !important; }
+        body.split-on .reader-overlay.split-reader .rd-vscroll.show { bottom: 44px !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -4192,6 +4199,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 else return toast('افتح كتاب الأول');
             }
             if (rd.classList.contains('fs')) setReaderFs(false);
+            { const bst0 = barState('board'); bst0.sx = null; bst0.sy = null; }
             document.body.classList.add('split-on');
             document.body.classList.toggle('split-rev', origin === 'reader');
             rd.classList.add('split-reader');
@@ -4228,6 +4236,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const sb = $('rd-split-btn'); if (sb) sb.classList.remove('active');
             if (closeBoard) switchView('home', document.querySelector('.nav[data-view="home"]'));
             rdSplitZ = 0;
+            const bst = barState('board'); bst.sx = null; bst.sy = null;
             syncSplitPenBtn();
             if (reader.doc && $('reader').classList.contains('open')) renderReader(false);
             setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); if (typeof requestRender === 'function') requestRender(); }, 80);
@@ -7132,8 +7141,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 el.style.height = ''; el.style.maxHeight = Math.max(160, ph - top0 - 24) + 'px';
                 const bw = el.offsetWidth, bh = Math.min(el.offsetHeight, Math.max(160, ph - top0 - 24));
                 let bx, by;
-                if (st.x == null) { bx = 12; by = top0 + Math.round((ph - top0 - bh) / 2); }
-                else { bx = st.x; by = st.y; }
+                if (st.sx == null) { bx = Math.round((pw - bw) / 2); by = top0 + Math.round((ph - top0 - bh) / 2); }
+                else { bx = st.sx; by = st.sy; }
                 bx = Math.min(Math.max(0, bx), Math.max(0, pw - bw));
                 by = Math.min(Math.max(top0, by), Math.max(top0, ph - bh));
                 el.style.left = bx + 'px'; el.style.top = by + 'px';
@@ -7237,7 +7246,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (!drag || e.pointerId !== drag.id) return;
                 if (key === 'board' && drag.x != null) {
                     const st = barState(key);
-                    st.x = drag.x; st.y = drag.y;
+                    st.sx = drag.x; st.sy = drag.y;   // في الوضع المزدوج بنحفظ مكانه هنا
                     applyBar(key);
                     scheduleSave();
                 } else if (drag.x != null) { const st = barState(key); st.x = drag.x; st.y = drag.y; scheduleSave(); }
