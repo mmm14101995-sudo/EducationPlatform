@@ -2225,6 +2225,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         /* الوضع المزدوج: رقم الصفحة في سطر واحد متوسط، والمسافة بين الأجزاء ثابتة */
         body.split-on .reader-foot { justify-content: center !important; }
         body.split-on #reader-info { display: inline-flex !important; align-items: center; gap: 8px; }
+
+        /* الوضع المزدوج: الكتاب بياخد عرض الجزء كله، والشريط الجانبي عايم فوقه */
+        body.split-on .reader-overlay.split-reader:not(.bars-hidden) #reader-stage { margin-left: 0 !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -4199,7 +4202,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!$('view-board').classList.contains('active')) switchView('board', document.querySelector('.nav[data-view="board"]'));
             const sb = $('rd-split-btn'); if (sb) sb.classList.add('active');
             const bsb = $('board-split-btn'); if (bsb) bsb.classList.add('active');
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); syncSplitPenBtn(); if (typeof requestRender === 'function') requestRender(); }, 80);
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); syncSplitPenBtn(); if (typeof requestRender === 'function') requestRender(); if (reader.doc) renderReader(false); }, 80);
         }
         function exitSplit(closeBoard) {
             if (!document.body.classList.contains('split-on')) return;
@@ -9469,7 +9472,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!reader.doc || !stage || !$('reader').classList.contains('open')) return;
             if (readerTouches.size > 0 || readerPinch) { readerResizeTimer = setTimeout(readerAfterResize, 300); return; }
             if (Math.abs(stage.clientWidth - readerRendered.w) < 3 && Math.abs(stage.clientHeight - readerRendered.h) < 3) return;
-            renderReader(readerView.z > 1.05).catch(() => {});
+            renderReader(readerView.z > 1.05 && !document.body.classList.contains('split-on')).catch(() => {});
         }
 
         let rdSplitZ = 0;   // مقاس الكتاب في الوضع المزدوج (مقفول: مفيش تكبير ولا تصغير)
