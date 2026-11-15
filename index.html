@@ -2228,6 +2228,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         /* الوضع المزدوج: الكتاب بياخد عرض الجزء كله، والشريط الجانبي عايم فوقه */
         body.split-on .reader-overlay.split-reader:not(.bars-hidden) #reader-stage { margin-left: 0 !important; }
+
+        body.split-on #board:not(.fs) #board-float.bar-vert .bgrp, body.split-on #board:not(.fs) #board-float.bar-vert .pen-more-wrap,
+        body.split-on #board:not(.fs) #board-float.bar-vert .bar-ctl2 { width: 100% !important; box-sizing: border-box !important; align-items: center !important; justify-items: center !important; margin: 0 !important; }
+        body.split-on #board:not(.fs) #board-float.bar-vert .ibtn, body.split-on #board:not(.fs) #board-float.bar-vert .pen-more-wrap > .ibtn { margin: 0 auto !important; }
+        body.split-on #board:not(.fs) #board-float.bar-vert .pen-group { justify-content: center !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -9647,9 +9652,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!document.body.classList.contains('split-on')) rdSplitZ = 0;
             if (document.body.classList.contains('split-on') && !keepView) {
                 // الوضع المزدوج: الصفحة بتملى عرض الجزء اللي فيه القارئ
-                const pg1 = await reader.doc.getPage(1);
-                if (token !== reader.token) return;
-                const b1 = pg1.getViewport({ scale: 1 });
+                if (!reader.base1 || reader.base1.doc !== reader.doc) {
+                    const pg1 = await reader.doc.getPage(1);
+                    if (token !== reader.token) return;
+                    const v1 = pg1.getViewport({ scale: 1 });
+                    reader.base1 = { doc: reader.doc, w: v1.width, h: v1.height };
+                }
+                const b1 = { width: reader.base1.w, height: reader.base1.h };
                 const cssH0 = H - 2 * RD_PAD, cssW0 = W - 2 * RD_PAD;
                 const fit0 = Math.min(cssW0 / b1.width, cssH0 / b1.height);
                 const zFill = Math.min(4, Math.max(1, cssW0 / (b1.width * fit0)));
@@ -9766,7 +9775,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 inner.appendChild(wrap);
                 rdWraps.set(m, wrap);
             } catch (e) { /* تجاهل: هنحاول تاني مع التمرير */ }
-            finally { rdPending.delete(m); }
+            finally { if (token === reader.token) rdPending.delete(m); }
         }
 
         // التمرير بيغيّر الصفحة الحالية حسب الصفحة اللي في نص الشاشة، والصفحات الجديدة بتتجهّز
