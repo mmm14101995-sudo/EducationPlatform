@@ -2168,6 +2168,21 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on .reader-overlay.split-reader .reader-notes { border-radius: 24px; background: rgba(24,28,38,0.7) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
         body.split-on #split-board-close { width: 30px; height: 30px; background: rgba(20,24,33,0.6); border: 0; color: #fff; top: 16px; right: 16px; }
         body.split-on.split-rev #split-board-close { right: auto; left: 16px; }
+
+        /* ===== الوضع المزدوج: أقل أدوات في الجزئين: قلم (يفتح الأقلام)، ممحاة، تراجع، إعادة ===== */
+        /* السبورة: الشريط العلوي يتشال، والشريط العائم يفضل بالأربعة دول */
+        body.split-on #board > .board-bar:not(#board-float) { display: none !important; }
+        body.split-on #board-float > .bgrp:not(.pen-group) { display: none !important; }
+        body.split-on #board-float .bar-orient, body.split-on #board-float .bar-lock { display: none !important; }
+        body.split-on #board-float .pen-group > * { display: none !important; }
+        body.split-on #board-float .pen-group > .pen-more-wrap,
+        body.split-on #board-float #eraser-btn,
+        body.split-on #board-float #undo-btn,
+        body.split-on #board-float #redo-btn { display: inline-flex !important; }
+        /* القارئ: الشريط العلوي يفضل زرار الرجوع بس، والشريط الجنبي يفضل الأربعة دول */
+        body.split-on .reader-bar > :not([onclick*="closeReader"]) { display: none !important; }
+        body.split-on .reader-notes > :not(.rd-pen-wrap):not(#tool-eraser):not([onclick="undoNote()"]):not([onclick="redoNote()"]):not(.bar-ctl2) { display: none !important; }
+        body.split-on .reader-notes .bar-ctl2 .bar-orient, body.split-on .reader-notes .bar-ctl2 .bar-lock { display: none !important; }
     </style>
 </head>
 <body data-theme="dark">
