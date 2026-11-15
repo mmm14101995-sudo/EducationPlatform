@@ -2236,6 +2236,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         body.split-on #board:not(.fs) #board-float.bar-vert { background: rgba(24,28,38,0.7) !important; border: 0 !important; }
         body.split-on #board:not(.fs) #board-float.bar-vert .ibtn { background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: #e8edf5 !important; }
+
+        /* الوضع المزدوج: شريط الأدوات فوق الكتاب، ورقم الصفحة صغير */
+        body.split-on .reader-overlay.split-reader .reader-notes { z-index: 300 !important; }
+        body.split-on .reader-overlay.split-reader .reader-foot { min-height: 0 !important; height: 26px !important; padding: 0 8px !important; font-size: 11px !important; }
+        body.split-on .reader-overlay.split-reader #reader-info { font-size: 11px !important; gap: 4px !important; }
+        body.split-on .reader-overlay.split-reader .page-jump { width: 40px !important; height: 20px !important; font-size: 11px !important; padding: 0 4px !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -9663,7 +9669,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     reader.base1 = { doc: reader.doc, w: v1.width, h: v1.height };
                 }
                 const b1 = { width: reader.base1.w, height: reader.base1.h };
-                const cssH0 = H - 2 * RD_PAD, cssW0 = W - 2 * RD_PAD;
+                const Hv = stage.clientHeight;
+                const cssH0 = Hv - 2 * RD_PAD, cssW0 = W - 2 * RD_PAD;
                 const fit0 = Math.min(cssW0 / b1.width, cssH0 / b1.height);
                 const zFill = Math.min(4, Math.max(1, cssW0 / (b1.width * fit0)));
                 // الكتاب متوسط في الجزء اللي فيه (أفقياً ورأسياً) على مستوى التكبير ده
