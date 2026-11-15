@@ -2233,6 +2233,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on #board:not(.fs) #board-float.bar-vert .bar-ctl2 { width: 100% !important; box-sizing: border-box !important; align-items: center !important; justify-items: center !important; margin: 0 !important; }
         body.split-on #board:not(.fs) #board-float.bar-vert .ibtn, body.split-on #board:not(.fs) #board-float.bar-vert .pen-more-wrap > .ibtn { margin: 0 auto !important; }
         body.split-on #board:not(.fs) #board-float.bar-vert .pen-group { justify-content: center !important; }
+
+        body.split-on #board:not(.fs) #board-float.bar-vert { background: rgba(24,28,38,0.7) !important; border: 0 !important; }
+        body.split-on #board:not(.fs) #board-float.bar-vert .ibtn { background: rgba(255,255,255,0.06) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: #e8edf5 !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -9481,11 +9484,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         let rdSplitZ = 0;   // مقاس الكتاب في الوضع المزدوج (مقفول: مفيش تكبير ولا تصغير)
+        let rdSplitDx = 0;  // تصحيح التوسيط الأفقي بعد ما الصفحة تترسم فعلاً
         function clampReaderView() {
             const { W, H } = rdMetrics();
             if (document.body.classList.contains('split-on') && rdSplitZ) {
                 readerView.z = rdSplitZ;
-                readerView.tx = (W - W * rdSplitZ) / 2;   // متوسط أفقياً
+                readerView.tx = (W - W * rdSplitZ) / 2 + rdSplitDx;   // متوسط أفقياً
             } else {
                 if (readerView.z <= 1) { readerView.z = 1; readerView.tx = 0; }
                 const z = readerView.z;
@@ -9664,7 +9668,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const zFill = Math.min(4, Math.max(1, cssW0 / (b1.width * fit0)));
                 // الكتاب متوسط في الجزء اللي فيه (أفقياً ورأسياً) على مستوى التكبير ده
                 const Hs = stage.clientHeight;
-                rdSplitZ = zFill;
+                rdSplitZ = zFill; rdSplitDx = 0;
                 readerView = {
                     z: zFill,
                     tx: (W - W * zFill) / 2,
@@ -9682,6 +9686,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             updateReaderInfo();
             syncAnnotateUI();
             await updateStrip(token);
+            if (document.body.classList.contains('split-on') && token === reader.token) {
+                // نقيس مكان الصفحة على الشاشة ونصحح التوسيط لو لزم
+                const pg = stage.querySelector('.rslot .rpage');
+                if (pg) {
+                    const sr = stage.getBoundingClientRect(), pr = pg.getBoundingClientRect();
+                    const dx = (sr.left + sr.width / 2) - (pr.left + pr.width / 2);
+                    if (Math.abs(dx) > 1) { rdSplitDx += dx; readerView.tx += dx; applyReaderView(); }
+                }
+            }
         }
 
         function rdVisible() {
