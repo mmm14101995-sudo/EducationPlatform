@@ -1928,19 +1928,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         /* ملء الشاشة: شريط مصغر بالأقلام والممحاة والتراجع ووضع اليد بس */
         .reader-overlay.fs .reader-notes > :not(.rn-mini) { display: none !important; }
     
-        /* أدوات الكتابة في القارئ: أنحف */
-        .reader-overlay:not(.fs) .reader-notes .rn-tool, .reader-overlay:not(.fs) .reader-notes .nsize { width: 30px; height: 32px; min-width: 30px; }
-        .reader-overlay:not(.fs) .reader-notes .rn-tool svg { width: 13px; height: 22px; }
-        .reader-overlay:not(.fs) .reader-notes .rd-pen-main svg { width: 13px; height: 22px; }
-        .reader-overlay:not(.fs) .reader-notes .rd-pen-main { width: 30px; height: 34px; }
-        .reader-overlay:not(.fs) .reader-notes .rn-tool .ico { width: 14px; height: 14px; }
-        .reader-overlay:not(.fs) #ann-toggle { width: 30px; height: 32px; padding: 0; justify-content: center; }
-        .reader-overlay:not(.fs) #ann-toggle span { display: none; }
-        .reader-overlay:not(.fs) .reader-notes .ncolor { width: 20px; height: 20px; }
-        .reader-overlay:not(.fs) .reader-notes .nsize .dot { width: 3px !important; height: 3px !important; }
-        .reader-overlay:not(.fs) .reader-notes { padding: 8px 5px; gap: 5px; }
-        .reader-overlay:not(.fs) .reader-notes .rn-sep { width: 20px; }
-    
+        /* أدوات الكتابة في القارئ: شريط عريض يملأ الجنب، والأيقونات واضحة، والحجم سلايدر رأسي */
+        .reader-overlay:not(.fs) .reader-notes.bar-vert { width: 60px; }
+        .reader-overlay:not(.fs) .reader-notes .rn-tool, .reader-overlay:not(.fs) .reader-notes .nsize { width: 44px; height: 46px; min-width: 44px; }
+        .reader-overlay:not(.fs) .reader-notes .rn-tool svg { width: 20px; height: 34px; }
+        .reader-overlay:not(.fs) .reader-notes .rd-pen-main { width: 44px; height: 48px; }
+        .reader-overlay:not(.fs) .reader-notes .rd-pen-main svg { width: 20px; height: 34px; }
+        .reader-overlay:not(.fs) .reader-notes .rn-tool .ico { width: 20px; height: 20px; }
+        .reader-overlay:not(.fs) #ann-toggle { width: 44px; height: 46px; }
+        .reader-overlay:not(.fs) .reader-notes .ncolor { width: 32px; height: 32px; }
+        .reader-overlay:not(.fs) .reader-notes { padding: 10px 8px; gap: 6px; }
+        .reader-overlay:not(.fs) .reader-notes .rn-sep { width: 40px; }
+        .rd-size-wrap { position: relative; width: 46px; height: 150px; flex: none; }
+        .rd-size-wrap input { position: absolute; left: 50%; top: 50%; width: 140px; margin: 0; transform: translate(-50%, -50%) rotate(-90deg); accent-color: #60a5fa; cursor: pointer; touch-action: none; }
         /* شريط الأقلام: الأقلام + الألوان */
         .rd-pen-colors { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; width: 100%; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.12); }
         .rd-sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); cursor: pointer; padding: 0; color: #fff; font-weight: 800; line-height: 1; background-clip: padding-box; }
@@ -1996,6 +1996,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         #board:not(.fs) #board-float.bar-vert { width: auto; max-width: 96px; }
         #board:not(.fs) #board-float.bar-vert .bgrp { flex-direction: column; align-items: center; }
         #board:not(.fs) #board-float.bar-vert .bgrp .range { width: 56px; }
+        /* الشريط الرأسي: الأدوات والمجموعات ما تتضغطش ولا تتلفّ لأعمدة، والباقي يظهر بالسكرول */
+        #board:not(.fs) #board-float.bar-vert { flex-wrap: nowrap !important; align-content: flex-start; }
+        #board:not(.fs) #board-float.bar-vert > * { flex: none !important; }
+        #board:not(.fs) #board-float.bar-vert .bgrp { flex: none !important; flex-wrap: nowrap !important; width: auto; }
+        #board:not(.fs) #board-float.bar-vert .bgrp > * { flex: none; }
         /* القارئ: أدوات الكتابة رأسي على اليسار (افتراضياً)، ولو اتقلبت أفقي تحت */
         .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) {
             flex-direction: row; flex-wrap: wrap; top: auto; bottom: 14px; left: 50%; transform: translateX(-50%);
@@ -2682,9 +2687,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <button class="rn-tool sticky-btn" title="ملاحظة لاصقة" onclick="addReaderSticky()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" style="fill:var(--accent)" stroke="#a16207"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
             <button class="ncolor" id="rd-cpick" title="الألوان" onclick="openPalette('reader')" style="background:#dc2626"></button>
             <span class="rn-sep"></span>
-            <button class="nsize" data-size="3" title="صغير" onclick="setNoteSize(3)"><span class="dot" style="width:4px;height:4px"></span></button>
-            <button class="nsize" data-size="7" title="متوسط" onclick="setNoteSize(7)"><span class="dot" style="width:9px;height:9px"></span></button>
-            <button class="nsize" data-size="14" title="كبير" onclick="setNoteSize(14)"><span class="dot" style="width:16px;height:16px"></span></button>
+            <div class="rd-size-wrap" title="حجم القلم"><input type="range" id="rd-size" min="2" max="20" step="0.5" value="7" aria-label="حجم القلم" oninput="setNoteSize(Number(this.value))"></div>
             <span class="rn-sep"></span>
             <button class="rn-tool rn-mini" title="تراجع" onclick="undoNote()"><i data-icon="undo"></i></button>
             <button class="rn-tool rn-mini" title="إعادة" onclick="redoNote()"><i data-icon="redo"></i></button>
@@ -5491,7 +5494,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 g.lineCap = 'butt';
                 const a = -0.6, ux = Math.cos(a), uy = Math.sin(a);
                 g.lineWidth = Math.max(1, w * 0.3);
-                for (let k = -3; k <= 3; k += (strokeFast ? 3 : 1)) {
+                for (let k = -3; k <= 3; k += 1) {
                     const off = (k / 3) * w * 0.9;
                     tracePath(g, pts, ux * off, uy * off);
                 }
@@ -5521,19 +5524,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             } else if (st.s === 'pencil') {
                 // قلم رصاص: خط متقطع بحبيبات (تأثير الورق)
                 g.lineWidth = Math.max(1, w * 0.7);
-                for (let k = 0; k < (strokeFast ? 1 : 3); k++) {
-                    g.globalAlpha = strokeFast ? 0.6 : 0.45;
-                    const jit = pts.map((p, i) => {
-                        const r = Math.sin((i + 1) * (k + 3) * 12.9898) * 43758.5453;
-                        return [p[0] + ((r - Math.floor(r)) - 0.5) * w * 0.9, p[1] + ((Math.sin(r) * 0.5 + 0.5) - 0.5) * w * 0.9];
-                    });
+                // حبيبات ناعمة ثابتة بالترتيب (مش عشوائية): الخط وهو بيترسم وبعد ما يخلص بيبان بنفس الشكل
+                for (let k = 0; k < 2; k++) {
+                    g.globalAlpha = 0.5;
+                    const jit = pts.map((p, i) => [p[0] + Math.sin(i * 0.9 + k * 2.3) * w * 0.22, p[1] + Math.cos(i * 0.7 + k * 1.9) * w * 0.22]);
                     tracePath(g, jit, 0, 0);
                 }
-            } else if (st.s === 'neon' && strokeFast) {
-                g.lineWidth = Math.max(2, w * 1.2);
-                tracePath(g, pts, 0, 0);
-                g.strokeStyle = '#ffffff'; g.lineWidth = Math.max(1, w * 0.4);
-                tracePath(g, pts, 0, 0);
             } else if (st.s === 'neon') {
                 paintNeon(g, pts, w, st.c);
             } else {
@@ -5665,7 +5661,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 liveCtx.clip();
                 liveCtx.clearRect(u.x, u.y, u.w, u.h);
                 liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
-                strokeFast = document.body.classList.contains('lite');
+                strokeFast = false;   // الخط الحي بنفس شكل الخط النهائي
                 drawStroke(liveCtx, cur);
                 strokeFast = false;
                 liveCtx.restore();
@@ -6006,9 +6002,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             if (e.pointerType === 'pen') lastPenAt = Date.now();
             // كف الإيد أثناء الكتابة بالقلم: نتجاهل اللمس لحظة ما القلم يشتغل
-            if (e.pointerType === 'touch' && Date.now() - lastPenAt < 1500) return;
+            // الكف والقلم: بنتجاهل اللمس بس لو مفيش لمسة تانية شغالة، عشان إصبعين التكبير ما يتلغوش
+            if (e.pointerType === 'touch' && touches.size === 0 && Date.now() - lastPenAt < 1500) return;
             // الكف بيبقى مساحته كبيرة على الشاشة: نتجاهله ونسيب الإصبع الصغير بس يرسم
-            if (e.pointerType === 'touch' && ((e.width || 0) > 28 || (e.height || 0) > 28)) return;
+            if (e.pointerType === 'touch' && touches.size === 0 && ((e.width || 0) > 28 || (e.height || 0) > 28)) return;
             try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
 
             if (e.pointerType === 'touch') {
@@ -6025,7 +6022,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 }
             }
 
-            if (handMode) { activeId = e.pointerId; activeMode = 'pan'; panLast = screenPoint(e); return; }
+            // الإصبع الواحد بيحرك الصفحة دايماً، والكتابة بالقلم بس
+            if (e.pointerType === 'touch' || handMode) { activeId = e.pointerId; activeMode = 'pan'; panLast = screenPoint(e); return; }
             if (tool === 'select') { selectDown(e); return; }
             if (tool === 'pen' && penStyle === 'laser' && !(e.pointerType === 'touch' && FINGER_ERASES)) {
                 // مؤشر الليزر: أثر مؤقت بيختفي، ومش بيتحفظ ومش بيدخل في التراجع
@@ -6817,23 +6815,27 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!el) return;
             if (!el.querySelector('.bar-ctl2')) addBarControls(key, el);
             const st = barState(key);
+            // نصفّر الأبعاد القديمة الأول، عشان الشريط الأفقي ما يفضلش بالطول اللي كان للرأسي
+            el.style.height = ''; el.style.maxHeight = ''; el.style.width = '';
             el.classList.toggle('bar-vert', !!st.vert);
             el.classList.toggle('bar-locked', !!st.locked);
             if (!barIsFs(key) && st.x != null) {
                 el.style.left = st.x + 'px'; el.style.top = st.y + 'px';
                 el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
             } else {
-                el.style.left = ''; el.style.top = ''; el.style.right = ''; el.style.bottom = ''; el.style.transform = ''; el.style.maxHeight = '';
+                el.style.left = ''; el.style.top = ''; el.style.right = ''; el.style.bottom = ''; el.style.transform = ''; el.style.maxHeight = ''; el.style.height = '';
                 if (key === 'board' && st.vert && !barIsFs(key)) {
                     const top0 = boardTopH();
                     el.style.top = (top0 + 12) + 'px';
                     el.style.maxHeight = Math.max(80, $('board').clientHeight - top0 - 24) + 'px';
+                    el.style.height = el.style.maxHeight;   // الشريط الرأسي بيتمد لطول السبورة كلها
                 }
             }
             if (key === 'board' && st.x != null && !barIsFs(key) && st.vert) {
                 const top0 = boardTopH();
                 if (parseFloat(el.style.top) < top0) el.style.top = (top0 + 8) + 'px';
                 el.style.maxHeight = Math.max(80, $('board').clientHeight - parseFloat(el.style.top) - 12) + 'px';
+                el.style.height = el.style.maxHeight;
             }
             const lock = el.querySelector('.bar-lock');
             if (lock) { lock.innerHTML = st.locked ? BAR_LOCK_ON : BAR_LOCK_OFF; lock.title = st.locked ? 'فك تثبيت الشريط' : 'تثبيت الشريط'; }
@@ -8759,12 +8761,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 } else if (s.s === 'pencil') {
                     // قلم الرصاص بحبيبات (زي السبورة)
                     g.lineWidth = Math.max(1, w * 0.7);
-                    for (let k = 0; k < 3; k++) {
-                        g.globalAlpha = 0.45;
-                        const jit = pts.map((p, i) => {
-                            const r = Math.sin((i + 1) * (k + 3) * 12.9898) * 43758.5453;
-                            return [p[0] + ((r - Math.floor(r)) - 0.5) * w * 0.9, p[1] + ((Math.sin(r) * 0.5 + 0.5) - 0.5) * w * 0.9];
-                        });
+                    for (let k = 0; k < 2; k++) {
+                        g.globalAlpha = 0.5;
+                        const jit = pts.map((p, i) => [p[0] + Math.sin(i * 0.9 + k * 2.3) * w * 0.22, p[1] + Math.cos(i * 0.7 + k * 1.9) * w * 0.22]);
                         tracePath(g, jit, 0, 0);
                     }
                 } else if (s.s === 'neon') {
@@ -8784,13 +8783,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function liveInkBegin(layer, pageNo, stroke) {
             liveInkStop();
             liveInk.layer = layer; liveInk.stroke = stroke; liveInk.drawn = 0;
-            if (stroke.start) {
-                // الأشكال بتتغير شكلها كل حركة، فبنحتفظ بصورة الصفحة ونعيد رسم الشكل بس
-                const cache = document.createElement('canvas');
-                cache.width = layer.width; cache.height = layer.height;
-                paintNoteStrokes(cache.getContext('2d'), cache, pageStrokes(pageNo).filter(x => x !== stroke));
-                liveInk.cache = cache;
-            }
+            // كل الأقلام: بنحتفظ بصورة الصفحة (من غير الخط الحالي)، ونعيد رسم الخط الحالي كامل كل إطار،
+            // عشان الشكل وهو بيترسم يكون هو نفسه اللي بيفضل بعد ما ترفع القلم (من غير تقطيع أو تغيير)
+            const cache = document.createElement('canvas');
+            cache.width = layer.width; cache.height = layer.height;
+            paintNoteStrokes(cache.getContext('2d'), cache, pageStrokes(pageNo).filter(x => x !== stroke));
+            liveInk.cache = cache;
         }
         // الخط الحر: بنرسم القطعة الجديدة بس فوق الطبقة (من غير مسح ولا نسخ للصفحة كلها)
         function liveInkFrame() {
@@ -8901,7 +8899,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function bindNoteLayer(layer, pageNo) {
             layer.addEventListener('pointerdown', e => {
-                if (!reader.annotate || e.button > 0) return;
+                if (!reader.annotate || e.button > 0 || e.pointerType === 'touch') return;   // الإصبع بيحرك، القلم بيكتب
                 if (e.pointerType === 'touch' && readerTouches.size >= 2) return;
                 if (readerTouches.size >= 2) return;      // إصبعين = تكبير وتحريك مش كتابة
                 e.preventDefault();
@@ -9151,7 +9149,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const old = readerTouches.get(e.pointerId);
             readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
             if (readerTouches.size >= 2) { if (readerPinch) readerPinchMove(); return; }
-            if (reader.annotate || readerPinch) return;   // وضع الكتابة: الإصبع بيكتب، مش بيحرك
+            if (readerPinch) return;
             const dx = e.clientX - old.x, dy = e.clientY - old.y;
             if (Math.abs(dx) + Math.abs(dy) > 3) readerNoTap = true;
             if (!readerAxis && Math.abs(dx) + Math.abs(dy) > 6) readerAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
@@ -9525,6 +9523,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function setNoteSize(v) {
             reader.size = v;
+            const rs = $('rd-size'); if (rs && Number(rs.value) !== Number(v)) rs.value = v;
             syncAnnotateUI();
         }
 
