@@ -213,10 +213,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         if path == "/api/save-pdf":
             name = re.sub(r'[\\/:*?"<>|]', "_", str(payload.get("name", "board.pdf")))
-            os.makedirs(EXPORT_DIR, exist_ok=True)
-            out_path = os.path.join(EXPORT_DIR, name)
+            data = base64.b64decode(payload.get("data", ""))
+            wins = webview.windows
+            if wins:
+                # نافذة حفظ ويندوز: المستخدم يختار المكان والاسم
+                picked = wins[0].create_file_dialog(
+                    webview.SAVE_DIALOG, save_filename=name, file_types=("PDF files (*.pdf)",)
+                )
+                if not picked:
+                    return self.send_json({"ok": False, "cancelled": True})
+                out_path = picked[0] if isinstance(picked, (list, tuple)) else picked
+                if not out_path.lower().endswith(".pdf"):
+                    out_path += ".pdf"
+            else:
+                os.makedirs(EXPORT_DIR, exist_ok=True)
+                out_path = os.path.join(EXPORT_DIR, name)
             with open(out_path, "wb") as f:
-                f.write(base64.b64decode(payload.get("data", "")))
+                f.write(data)
             return self.send_json({"ok": True, "path": out_path})
 
         self.send_error(404)
