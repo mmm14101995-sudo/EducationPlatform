@@ -2181,7 +2181,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on #board-float #redo-btn { display: inline-flex !important; }
         /* القارئ: الشريط العلوي يفضل زرار الرجوع بس، والشريط الجنبي يفضل الأربعة دول */
         body.split-on .reader-bar > :not([onclick*="closeReader"]) { display: none !important; }
-        body.split-on .reader-notes > :not(.rd-pen-wrap):not(#tool-eraser):not([onclick="undoNote()"]):not([onclick="redoNote()"]):not(.bar-ctl2) { display: none !important; }
+        body.split-on .reader-notes > :not(.rd-pen-wrap):not(#tool-eraser):not(#crop-btn):not([onclick="undoNote()"]):not([onclick="redoNote()"]):not(.bar-ctl2) { display: none !important; }
+        body.split-on #crop-go { display: none !important; }
+        body.split-on #crop-layer .crop-bar { bottom: 16px; }
         body.split-on .reader-notes .bar-ctl2 .bar-orient, body.split-on .reader-notes .bar-ctl2 .bar-lock { display: none !important; }
 
         /* الوضع المزدوج: شريط السبورة العائم على قد الأدوات (4 أزرار) زي شريط القارئ */
@@ -2195,6 +2197,22 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on #board:not(.fs) #board-float .ibtn { width: 34px !important; height: 34px !important; min-width: 34px !important; padding: 0 !important; border-radius: 10px !important; }
         body.split-on #board:not(.fs) #board-float .ibtn svg, body.split-on #board:not(.fs) #board-float .ibtn [data-icon] svg { width: 17px !important; height: 17px !important; }
         body.split-on #board:not(.fs) #board-float.bar-vert { width: max-content !important; }
+
+        /* الوضع المزدوج: شريط السبورة بنفس شكل شريط الكتاب بالظبط */
+        body.split-on #board:not(.fs) #board-float.bar-vert {
+            width: 60px !important; max-width: 60px !important; min-width: 0 !important;
+            padding: 8px 5px !important; gap: 5px !important; border-radius: 24px !important;
+            background: rgba(24,28,38,0.7) !important; border: 0 !important;
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+            flex-direction: column !important; align-items: center !important;
+        }
+        body.split-on #board:not(.fs) #board-float .bar-ctl2 { flex-direction: column !important; gap: 4px !important; }
+        body.split-on #board:not(.fs) #board-float .bgrp { flex-direction: column !important; align-items: center !important; gap: 5px !important; }
+        body.split-on #board:not(.fs) #board-float .ibtn { width: 44px !important; height: 46px !important; min-width: 44px !important; border-radius: 12px !important; }
+        body.split-on #board:not(.fs) #board-float .ibtn svg { width: 20px !important; height: 34px !important; }
+        body.split-on #board:not(.fs) #board-float .ibtn [data-icon] svg { width: 20px !important; height: 20px !important; }
+        body.split-on #board:not(.fs) #board-float .bar-handle { width: 44px !important; height: 22px !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -4169,7 +4187,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!$('view-board').classList.contains('active')) switchView('board', document.querySelector('.nav[data-view="board"]'));
             const sb = $('rd-split-btn'); if (sb) sb.classList.add('active');
             const bsb = $('board-split-btn'); if (bsb) bsb.classList.add('active');
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); if (typeof requestRender === 'function') requestRender(); }, 80);
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); if (typeof requestRender === 'function') requestRender(); }, 80);
         }
         function exitSplit(closeBoard) {
             if (!document.body.classList.contains('split-on')) return;
@@ -4180,7 +4198,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const bc = $('split-board-close'); if (bc) bc.style.display = 'none';
             const sb = $('rd-split-btn'); if (sb) sb.classList.remove('active');
             if (closeBoard) switchView('home', document.querySelector('.nav[data-view="home"]'));
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); if (typeof requestRender === 'function') requestRender(); }, 80);
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); if (typeof requestRender === 'function') requestRender(); }, 80);
         }
         function bindSplitDivider(div) {
             let dragging = false;
@@ -7060,6 +7078,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function applyBoardBarSnap(el, st) {
             const board = $('board'), top0 = boardTopH();
             const pw = board.clientWidth, ph = board.clientHeight;
+            if (document.body.classList.contains('split-on')) {
+                // الوضع المزدوج: نفس شكل شريط الكتاب بالظبط (عمودي على الشمال في النص)
+                el.classList.add('bar-vert');
+                el.style.transform = 'none'; el.style.right = 'auto'; el.style.bottom = 'auto';
+                el.style.height = ''; el.style.maxHeight = Math.max(160, ph - 140) + 'px';
+                el.style.left = '12px';
+                const hh = Math.min(el.offsetHeight, Math.max(160, ph - 140));
+                el.style.top = Math.max(0, Math.round((ph - hh) / 2)) + 'px';
+                return;
+            }
             el.style.transform = 'none'; el.style.height = ''; el.style.maxHeight = '';
             el.style.right = 'auto'; el.style.bottom = 'auto';
             const w = el.offsetWidth, h0 = el.offsetHeight;
@@ -8862,7 +8890,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         let cropState = null;
         function startCrop() {
             if (!reader.doc) return;
-            cropState = { drawing: false, pid: null, x1: 0, y1: 0, x2: 0, y2: 0 };
+            cropState = { drawing: false, pid: null, x1: 0, y1: 0, x2: 0, y2: 0, instant: document.body.classList.contains('split-on') };
             $('crop-box').style.display = 'none';
             $('crop-go').disabled = true;
             $('crop-hint').innerText = 'اسحب على الجزء اللي عايزه من الصفحة';
@@ -8904,6 +8932,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 cropState.drawing = false;
                 const w = Math.abs(cropState.x2 - cropState.x1), h = Math.abs(cropState.y2 - cropState.y1);
                 const ok = w >= 2 && h >= 2;
+                if (ok && cropState.instant) { cropState.drawing = false; confirmCrop(); return; }   // الوضع المزدوج: الجزء بيتنقل للسبورة على طول
                 $('crop-go').disabled = !ok;
                 $('crop-hint').innerText = ok ? 'تمام، اضغط "إضافة للسبورة"' : 'اسحب على الجزء اللي عايزه من الصفحة';
             };
@@ -8929,7 +8958,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const iy = Math.max(0, Math.min(b, wr.bottom) - Math.max(t, wr.top));
                 if (ix * iy > bestArea) { bestArea = ix * iy; best = { w, wr, ix, iy }; }
             });
-            if (!best || bestArea <= 0) { toast('المساحة دي مش على الصفحة'); return; }
+            if (!best || bestArea <= 0) { toast('المساحة دي مش على الصفحة'); if (cropState && cropState.instant) cancelCrop(); return; }
             const src = best.w.querySelector('canvas');
             const wr = best.wr;
             // نِسَب المنطقة المقصوصة من الصفحة (0..1)
@@ -9579,7 +9608,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const cssH0 = H - 2 * RD_PAD, cssW0 = W - 2 * RD_PAD;
                 const fit0 = Math.min(cssW0 / b1.width, cssH0 / b1.height);
                 const zFill = Math.min(4, Math.max(1, cssW0 / (b1.width * fit0)));
-                readerView = { z: zFill, tx: 0, ty: -rdSlotOf(reader.page) * step * zFill };
+                // الكتاب متوسط في الجزء اللي فيه (أفقياً ورأسياً) على مستوى التكبير ده
+                const Hs = stage.clientHeight;
+                readerView = {
+                    z: zFill,
+                    tx: (W - W * zFill) / 2,
+                    ty: Hs / 2 - (RD_PAD + rdSlotOf(reader.page) * step + cssH0 / 2) * zFill
+                };
             }
             stage.innerHTML = '';
             rdWraps.clear(); rdPending.clear();
