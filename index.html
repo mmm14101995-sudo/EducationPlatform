@@ -1334,7 +1334,7 @@
         .acc-row { display: flex; gap: 10px; }
         .acc-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: var(--r-md); border: 1px solid var(--line-strong); background: var(--hover); color: var(--text); font-weight: 700; cursor: pointer; }
         .acc-btn i { width: 16px; height: 16px; border-radius: 50%; display: block; }
-        .acc-btn[data-accent="calm"] i { background: #5fb7a8; } .acc-btn[data-accent="blue"] i { background: #4f8cff; } .acc-btn[data-accent="amber"] i { background: #d9a45b; }
+        .acc-btn[data-accent="calm"] i { background: #5fb7a8; } .acc-btn[data-accent="silver"] i { background: #c3cad4; } .acc-btn[data-accent="gold"] i { background: #e3b94f; } .acc-btn[data-accent="blue"] i { background: #4f8cff; } .acc-btn[data-accent="amber"] i { background: #d9a45b; }
         .acc-btn.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.35); }
         .field-row { display: flex; gap: 8px; }
         .field-row input { flex: 1; }
@@ -1954,7 +1954,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             transition: none !important; animation: none !important; scroll-behavior: auto !important;
         }
         /* الحالة النشطة بتتعلّم بحد (outline) بدل الظل */
-        body.lite .active, body.lite .rn-tool.active, body.lite .ibtn.active, body.lite .rd-pen-main.active,
+        body.lite button.active, body.lite .nav.active, body.lite .rn-tool.active, body.lite .ibtn.active, body.lite .rd-pen-main.active,
         body.lite .board-bar .pen-3d.active, body.lite .rd-sw.active {
             outline: 2px solid var(--accent, #2563eb); outline-offset: 0;
         }
@@ -2009,6 +2009,34 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) .rn-sep { width: 1px; height: 22px; }
         .reader-overlay:not(.fs) .reader-notes.bar-vert .bar-ctl2 { flex-direction: column; }
         .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) .bar-ctl2 { flex-direction: row; }
+    
+        /* نافذة الأقلام والألوان في العرض التقديمي */
+        .pb-pen-pop { display: none; position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 4010; flex-direction: column; gap: 10px; padding: 12px; border-radius: 18px; background: rgba(24,28,38,0.96); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 12px 34px rgba(0,0,0,0.4); max-width: min(560px, 96vw); }
+        .pb-pen-pop.open { display: flex; }
+        .pb-pen-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .pb-pen { width: 56px; height: 60px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); display: grid; place-items: center; cursor: pointer; padding: 0; }
+        .pb-pen svg { width: 26px; height: 40px; }
+        .pb-pen:active { background: rgba(255,255,255,0.22); }
+        .pb-pen-row .pb-sw { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); cursor: pointer; padding: 0; }
+
+        /* ===== الوضع النهاري: الخلفية كلها فاتحة (من غير صورة الليل) ===== */
+        /* الوضع النهاري بيفضل بيعرض الخلفية اللي المستخدم اختارها، بس بطبقة فاتحة عشان الكلام يفضل واضح */
+        body[data-theme="light"] #bg-layer { background-color: #eef1f8; }
+        body[data-theme="light"] #bg-layer::after { background: rgba(255,255,255,0.62) !important; }
+        body[data-theme="light"] { background: #eef1f8; }
+        html:has(body[data-theme="light"]) { background: #eef1f8; }
+        .home-theme-row { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+        /* شريط العرض التقديمي الواحد */
+        .pb-pens { display: inline-flex; gap: 6px; }
+        .pb-pen-btn svg { width: 20px; height: 32px; }
+        .pb-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.85); }
+        #pb-color { min-width: 30px; width: 30px; height: 30px; padding: 0; border-radius: 9px; display: grid; place-items: center; }
+
+        /* ثيمات إضافية: فضي وذهبي (ليلي ونهاري) */
+        html[data-accent="silver"] { --accent: #c3cad4; --accent-strong: #a7b0bc; --accent-rgb: 195,202,212; --accent2: #94a3b8; }
+        html[data-accent="gold"] { --accent: #e3b94f; --accent-strong: #c79b2f; --accent-rgb: 227,185,79; --accent2: #f3d98b; }
+        html[data-accent="silver"] body[data-theme="light"] { --accent: #5b6573; --accent-strong: #434c5a; --accent-rgb: 91,101,115; --accent2: #8a96a6; --text: #1d232b; --muted: #556070; --bg: #f2f4f7; --overlay: rgba(242,244,247,0.78); }
+        html[data-accent="gold"] body[data-theme="light"] { --accent: #b8860b; --accent-strong: #94690a; --accent-rgb: 184,134,11; --accent2: #d9a93b; --text: #2a2110; --muted: #6b5b33; --bg: #faf6ea; --overlay: rgba(250,246,234,0.78); }
     </style>
 </head>
 <body data-theme="dark">
@@ -2031,6 +2059,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="gs-results" id="gs-results" role="listbox"></div>
         </div>
         <button class="btn-ghost" id="theme-btn" onclick="toggleTheme()" aria-label="تبديل الوضع الليلي والنهاري"><i data-icon="sun"></i><span>نهاري</span></button>
+        <button class="btn-ghost" id="header-settings-btn" onclick="openSettings()" aria-label="الإعدادات" title="الإعدادات"><i data-icon="settings"></i><span>الإعدادات</span></button>
     </header>
 
     <div class="app">
@@ -2066,6 +2095,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
             <!-- الرئيسية -->
             <section id="view-home" class="view active">
+                <div class="home-theme-row"><button class="btn-ghost" id="home-theme-btn" onclick="toggleTheme()" aria-label="تبديل الوضع الليلي والنهاري"></button></div>
                 <div class="dash">
                     <div class="dash-main">
                         <div class="hero">
@@ -2430,6 +2460,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         <button class="acc-btn" data-accent="calm" onclick="setAccent('calm')"><i></i>هادئ</button>
                         <button class="acc-btn" data-accent="amber" onclick="setAccent('amber')"><i></i>دافئ</button>
                         <button class="acc-btn" data-accent="blue" onclick="setAccent('blue')"><i></i>أزرق</button>
+                        <button class="acc-btn" data-accent="silver" onclick="setAccent('silver')"><i></i>فضي</button>
+                        <button class="acc-btn" data-accent="gold" onclick="setAccent('gold')"><i></i>ذهبي</button>
                     </div>
                 </div>
                 <div class="set-block">
@@ -2440,23 +2472,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         <button type="button" class="sw-btn" data-c="#4f8cff" style="--c:#4f8cff" onclick="setAccentColor('#4f8cff')" aria-label="أزرق"></button>
                         <button type="button" class="sw-btn" data-c="#d9a45b" style="--c:#d9a45b" onclick="setAccentColor('#d9a45b')" aria-label="ذهبي"></button>
                         <button type="button" class="sw-btn" data-c="#818cf8" style="--c:#818cf8" onclick="setAccentColor('#818cf8')" aria-label="بنفسجي"></button>
-                        <button type="button" class="sw-btn" data-c="#f472b6" style="--c:#f472b6" onclick="setAccentColor('#f472b6')" aria-label="وردي"></button>
-                        <button type="button" class="sw-btn" data-c="#34d399" style="--c:#34d399" onclick="setAccentColor('#34d399')" aria-label="أخضر"></button>
-                        <button type="button" class="sw-btn" data-c="#f87171" style="--c:#f87171" onclick="setAccentColor('#f87171')" aria-label="أحمر"></button>
-                        <button type="button" class="sw-btn" data-c="#fb923c" style="--c:#fb923c" onclick="setAccentColor('#fb923c')" aria-label="برتقالي"></button>
-                        <button type="button" class="sw-btn" data-c="#38bdf8" style="--c:#38bdf8" onclick="setAccentColor('#38bdf8')" aria-label="سماوي"></button>
-                        <label class="sw-custom" title="لون مخصص">
-                            <input type="color" id="inp-acc-custom" value="#5fb7a8" oninput="setAccentColor(this.value)" aria-label="لون مخصص">
-                            <span>مخصص</span>
-                        </label>
-                    </div>
-                </div>
-                <div class="set-block">
-                    <span class="set-lbl">خلفية التطبيق</span>
-                    <div class="presets" id="presets"></div>
-                    <div class="set-btns">
-                        <button class="btn-ghost" onclick="pickBackground()"><i data-icon="image"></i><span>صورة من الجهاز</span></button>
-                        <button class="btn-ghost" onclick="resetBg()"><i data-icon="undo"></i><span>الخلفية الافتراضية</span></button>
                     </div>
                 </div>
                 <div class="set-row">
@@ -2648,15 +2663,29 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
     </div>
 
     <!-- شريط العرض التقديمي (للسبورة وللقارئ) -->
-    <div id="present-bar" class="present-bar" dir="rtl">
-        <button class="pb-btn" onclick="presentStep(1)" title="التالي (←)" aria-label="التالي"><i data-icon="chevL"></i></button>
+<div id="present-bar" class="present-bar" dir="rtl">
+        <button class="pb-btn" onclick="presentStep(1)" title="التالي" aria-label="التالي"><i data-icon="chevL"></i></button>
         <span class="pb-count" id="pb-count">1 / 1</span>
-        <button class="pb-btn" onclick="presentStep(-1)" title="السابق (→)" aria-label="السابق"><i data-icon="chevR"></i></button>
+        <button class="pb-btn" onclick="presentStep(-1)" title="السابق" aria-label="السابق"><i data-icon="chevR"></i></button>
         <span class="pb-sep"></span>
-        <button class="pb-btn pb-write" id="pb-write" onclick="presentToggleWrite()" title="الكتابة على العرض"><i data-icon="feather"></i><span>كتابة</span></button>
-        <button class="pb-btn" id="pb-fit" onclick="presentFit()" title="ملاءمة الشاشة"><i data-icon="maximize"></i></button>
+        <span class="pb-pens" id="pb-pens"></span>
+        <button class="pb-btn" id="pb-eraser" onclick="presentEraser()" title="الممحاة" aria-label="الممحاة"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H9L3.5 14.5a2 2 0 0 1 0-2.8L12 3.2a2 2 0 0 1 2.8 0l5 5a2 2 0 0 1 0 2.8L13 20"/><path d="M7 11.5l6 6"/></svg></button>
+        <button class="pb-btn" id="pb-color" onclick="presentColor()" title="اللون" aria-label="اللون"><span class="pb-swatch" id="pb-swatch"></span></button>
         <span class="pb-sep"></span>
-        <button class="pb-btn pb-exit" onclick="endPresent()" title="إنهاء العرض (Esc)"><i data-icon="x"></i><span>إنهاء</span></button>
+        <button class="pb-btn" onclick="presentUndo()" title="تراجع" aria-label="تراجع"><i data-icon="undo"></i></button>
+        <button class="pb-btn" onclick="presentRedo()" title="إعادة" aria-label="إعادة"><i data-icon="redo"></i></button>
+        <span class="pb-sep"></span>
+        <button class="pb-btn pb-exit" onclick="endPresent()" title="الخروج من العرض التقديمي (Esc)"><i data-icon="x"></i><span>خروج</span></button>
+    </div>
+
+    <div id="rd-save-modal" class="modal" onclick="if (event.target === this) closeModal('rd-save-modal')">
+        <div class="modal-head"><h2>حفظ PDF</h2><button class="ibtn" onclick="closeModal('rd-save-modal')"><i data-icon="x"></i></button></div>
+        <p class="exam-empty" style="margin:0 0 14px">تحب تحفظ إيه؟ بعدها هيفتح لك نافذة تختار فيها مكان الحفظ.</p>
+        <div class="modal-actions" style="flex-direction:column;gap:10px">
+            <button class="btn-primary" onclick="exportReaderPdfChoice(true)">حفظ الصفحة الحالية</button>
+            <button class="btn-primary" onclick="exportReaderPdfChoice(false)">حفظ الكتاب كله</button>
+            <button class="btn-ghost" onclick="closeModal('rd-save-modal')">إلغاء</button>
+        </div>
     </div>
 
     <!-- القارئ -->
@@ -2667,15 +2696,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="reader-tools">
                 <button class="reader-btn" id="reader-present-btn" title="عرض تقديمي" onclick="startPresent('reader')">▶ عرض تقديمي</button>
                 <button class="reader-btn" id="spread-btn" onclick="toggleSpread()">صفحتان</button>
+                <button class="reader-btn" id="rtl-btn" title="اتجاه الصفحتين" onclick="toggleReaderRtl()">من اليسار لليمين</button>
                 <button class="reader-btn" onclick="toggleReaderPaper()">الخلفية</button>
-                <button class="reader-btn" id="reader-export-btn" title="حفظ الكتاب مع الكتابة عليه كملف PDF" onclick="exportReaderPdf()">حفظ PDF</button>
+                <button class="reader-btn" id="reader-export-btn" title="حفظ الصفحة أو الكتاب مع الكتابة عليه كملف PDF" onclick="openReaderSave()">حفظ PDF</button>
                 <button class="reader-btn" id="reader-to-board" title="الذهاب للسبورة" onclick="readerToBoard()">السبورة</button>
                 <button class="reader-btn" title="إخفاء الأدوات" onclick="toggleReaderBars()"><i data-icon="eye"></i></button>
                 <button class="reader-btn" id="rd-fs-btn" title="ملء الشاشة" onclick="toggleReaderFs()"><i data-icon="maximize"></i></button>
             </div>
         </div>
         <div class="reader-notes">
-            <button class="reader-btn" id="ann-toggle" onclick="toggleAnnotate()"><i data-icon="feather"></i><span>كتابة</span></button>
             <button class="rn-tool" id="tool-hand" title="وضع اليد: تحريك وتكبير الصفحة بدون كتابة" aria-label="وضع اليد" onclick="readerHand()"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10"/><path d="M12 10V4a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.6 14a1.5 1.5 0 0 1 2.4-1.8L9 15"/></svg></button>
             <span class="rn-sep"></span>
             <div class="rd-pen-wrap">
@@ -2685,7 +2714,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <button class="rn-tool" id="tool-shape" title="الأشكال" onclick="openShapes('reader')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/><circle cx="16.5" cy="16.5" r="4.5"/></svg></button>
             <button class="rn-tool" id="crop-btn" title="قص جزء من الصفحة وإضافته للسبورة" onclick="startCrop()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M8.2 7.6 20 19M8.2 16.4 20 5"/></svg></button>
             <span class="rn-sep"></span>
-            <button class="rn-tool sticky-btn" title="ملاحظة لاصقة" onclick="addReaderSticky()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" style="fill:var(--accent)" stroke="#a16207"/><line x1="8" y1="9" x2="16" y2="9" stroke="#a16207" stroke-width="1.6"/><line x1="8" y1="13" x2="14" y2="13" stroke="#a16207" stroke-width="1.6"/></svg></button>
             <button class="ncolor" id="rd-cpick" title="الألوان" onclick="openPalette('reader')" style="background:#dc2626"></button>
             <span class="rn-sep"></span>
             <div class="rd-size-wrap" title="حجم القلم"><input type="range" id="rd-size" min="2" max="20" step="0.5" value="7" aria-label="حجم القلم" oninput="setNoteSize(Number(this.value))"></div>
@@ -2840,6 +2868,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     body: JSON.stringify({ name, data: base64 })
                 });
                 const out = await res.json();
+                if (out.cancelled) return null;   // المستخدم قفل نافذة الحفظ
                 if (!out.ok) throw new Error('save failed');
                 return out.path;
             },
@@ -2987,6 +3016,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const btn = $('theme-btn');
             const isDark = theme === 'dark';
             btn.innerHTML = icon(isDark ? 'sun' : 'moon') + `<span>${isDark ? 'نهاري' : 'ليلي'}</span>`;
+            const hb = $('home-theme-btn'); if (hb) hb.innerHTML = icon(isDark ? 'sun' : 'moon') + `<span>${isDark ? 'نهاري' : 'ليلي'}</span>`;
         }
 
         function toggleTheme() {
@@ -3028,32 +3058,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             } catch (e) { /* نكمّل */ }
         }
 
+        // إلغاء خلفية التطبيق: الخلفية لون ثابت حسب الوضع (ليلي/نهاري) من غير صور
         function applyBg() {
-            try {
-                const j = JSON.stringify(appState.bg);
-                if (localStorage.getItem(BG_CACHE_KEY) !== j) localStorage.setItem(BG_CACHE_KEY, j);
-            } catch (e) { try { localStorage.removeItem(BG_CACHE_KEY); } catch (_) {} }   // لو الصورة كبيرة، نمسح الكاش القديم عشان ما يرجّعش خلفية قديمة
             const layer = $('bg-layer');
+            if (!layer) return;
             layer.classList.add('ready');
-            const bg = appState.bg;
-            if (bg.type === 'image' && bg.data) {
-                layer.style.backgroundImage = `url("${bg.data}")`;
-                layer.style.backgroundColor = '#0b1020';
-                /* الهوية ثابتة: لون الخلفية ما بيغيرش ألوان الواجهة */
-                return;
-            }
-            if (BG_SCENES[bg.value]) {
-                layer.style.backgroundImage = `url("${BG_SCENES[bg.value]}")`;
-                layer.style.backgroundColor = '#0a0f2c';
-                /* الهوية ثابتة */
-                return;
-            }
-            const p = BG_PRESETS[bg.value] || BG_PRESETS.indigo;
-            layer.style.backgroundImage =
-                `radial-gradient(900px 500px at 85% -10%, ${p[2]}55, transparent 60%), ` +
-                `radial-gradient(700px 500px at 0% 110%, ${p[2]}33, transparent 60%), ` +
-                `linear-gradient(160deg, ${p[0]}, ${p[1]})`;
-            /* الهوية ثابتة */
+            layer.style.backgroundImage = 'none';
+            layer.style.backgroundColor = '';
         }
         if (earlyBgApplied) applyBg();   // نرسم الخلفية فوراً قبل ما الصفحة تظهر
         else if (!NATIVE) {
@@ -4007,7 +4018,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ==========================================
         // لوحة الرئيسية: ساعة + تاريخ + طقس + مهام + جمل تحفيزية + لون الواجهة
         // ==========================================
-        const ACCENTS = ['calm', 'blue', 'amber'];
+        const ACCENTS = ['calm', 'blue', 'amber', 'silver', 'gold'];
         function applyAccent(name) {
             if (!ACCENTS.includes(name)) name = 'calm';
             document.documentElement.setAttribute('data-accent', name);
@@ -8417,7 +8428,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             closeModal('confirm-modal');
         }
 
-        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal', 'quiz-edit-modal', 'quiz-import-modal', 'quiz-start-modal', 'quiz-results-modal', 'quiz-print-modal'];
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'settings', 'rd-save-modal', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal', 'quiz-edit-modal', 'quiz-import-modal', 'quiz-start-modal', 'quiz-results-modal', 'quiz-print-modal'];
 
         function openModal(id) { $(id).classList.add('open'); }
 
@@ -9093,7 +9104,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         // تصدير الكتاب كـ PDF مع الكتابة اللي عليه: كل صفحة بتتحوّل لصورة (الكتاب + الخطوط) وتتجمع في ملف واحد
         let readerExporting = false;
-        async function exportReaderPdf() {
+        function openReaderSave() {
+            if (!reader.doc || !reader.book) return toast('افتح كتاب الأول');
+            openModal('rd-save-modal');
+        }
+        function exportReaderPdfChoice(onlyCurrent) {
+            closeModal('rd-save-modal');
+            exportReaderPdf(onlyCurrent);
+        }
+        async function exportReaderPdf(onlyCurrent) {
             if (!reader.doc || !reader.book) return toast('افتح كتاب الأول');
             if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
             if (readerExporting) return;
@@ -9102,7 +9121,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const { jsPDF } = window.jspdf;
             let pdf = null;
             try {
-                for (let p = 1; p <= reader.total; p++) {
+                const pages = onlyCurrent ? rdSlotPages(rdSlotOf(reader.page)) : Array.from({ length: reader.total }, (_, i) => i + 1);
+                for (const p of pages) {
                     const page = await reader.doc.getPage(p);
                     const base = page.getViewport({ scale: 1 });
                     const scale = Math.min(2, 2000 / Math.max(base.width, base.height));
@@ -9120,12 +9140,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     else pdf.addPage([W, H], orient);
                     pdf.addImage(img, 'JPEG', 0, 0, W, H);
                     c.width = 0; c.height = 0;
-                    if (p % 10 === 0) toast('تم تجهيز ' + p + ' من ' + reader.total);
+                    if (!onlyCurrent && p % 10 === 0) toast('تم تجهيز ' + p + ' من ' + reader.total);
                 }
                 const base64 = pdf.output('datauristring').split(',').pop();
-                const name = String(reader.book.title || 'كتاب').replace(/[\\/:*?"<>|]/g, '') + ' - مع الكتابة.pdf';
+                const baseName = String(reader.book.title || 'كتاب').replace(/[\\/:*?"<>|]/g, '');
+                const name = onlyCurrent ? baseName + ' - صفحة ' + pages.join('-') + '.pdf' : baseName + ' - مع الكتابة.pdf';
                 const path = await api.savePdf(name, base64);
-                toast('تم الحفظ في: ' + path);
+                if (path) toast('تم الحفظ في: ' + path);
             } catch (e) {
                 console.error('تعذر تصدير PDF للقارئ', e);
                 toast('تعذر التصدير، حاول مرة تانية');
@@ -9291,7 +9312,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const rdWraps = new Map();     // الصفحات الظاهرة حالياً (بالفهرس)
         const rdPending = new Set();
         function rdSlots() { return reader.spread ? Math.ceil(reader.total / 2) : reader.total; }
-        function rdSlotPages(m) { return reader.spread ? [2 * m + 1, 2 * m + 2].filter(n => n <= reader.total) : [m + 1]; }
+        function rdSlotPages(m) {
+            if (!reader.spread) return [m + 1];
+            const pair = appState.readerRtl ? [2 * m + 2, 2 * m + 1] : [2 * m + 1, 2 * m + 2];   // العربي: اليمين الأول
+            return pair.filter(n => n <= reader.total);
+        }
         function rdSlotOf(p) { return reader.spread ? Math.floor((p - 1) / 2) : p - 1; }
         function rdMetrics() {
             const stage = $('reader-stage');
@@ -9305,6 +9330,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!reader.doc) return;
             const token = ++reader.token;
             const { stage, W, step } = rdMetrics();
+            const rb = $('rtl-btn'); if (rb) rb.innerText = appState.readerRtl ? 'من اليمين لليسار' : 'من اليسار لليمين';
             readerRendered = { w: stage.clientWidth, h: stage.clientHeight };
             if (!keepView) readerView = { z: 1, tx: 0, ty: -rdSlotOf(reader.page) * step };
             stage.innerHTML = '';
@@ -9401,7 +9427,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     pg.appendChild(layer);
                     bindNoteLayer(layer, it.pageNo);
                     drawNotesOn(layer, pageStrokes(it.pageNo));
-                    renderReaderStickies(pg, it.pageNo);
                     wrap.appendChild(pg);
                     x += it.w + RD_GAP;
                 }
@@ -9489,6 +9514,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             else prevPage();
         }
 
+        function toggleReaderRtl() {
+            appState.readerRtl = !appState.readerRtl;
+            scheduleSave();
+            if (reader.spread) renderReader();
+            const rb = $('rtl-btn'); if (rb) rb.innerText = appState.readerRtl ? 'من اليمين لليسار' : 'من اليسار لليمين';
+        }
         function toggleSpread() {
             reader.spread = !reader.spread;
             resetReaderView();
@@ -9619,7 +9650,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 l.style.pointerEvents = reader.annotate ? 'auto' : 'none';
                 l.style.cursor = reader.annotate ? 'none' : 'default';
             });
-            $('ann-toggle').classList.toggle('active', reader.annotate);
+            const at = $('ann-toggle'); if (at) at.classList.toggle('active', reader.annotate);
             const handBtn = $('tool-hand'); if (handBtn) handBtn.classList.toggle('active', !reader.annotate);   // زر اليد يتعلّم لما يكون هو المختار
             ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon'].forEach(t => {
                 const b = $('tool-' + t);
@@ -9773,7 +9804,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (present.mode === 'board') { cur1 = wbGrade().currentIndex + 1; total = wbGrade().pages.length; }
             else { cur1 = reader.page; total = reader.total || 1; }
             $('pb-count').textContent = cur1 + ' / ' + total;
-            $('pb-write').classList.toggle('active', present.write);
+            presentBuildPens();
+            const sw = $('pb-swatch'); if (sw) sw.style.background = (present.mode === 'reader' ? readerPenColors[reader.tool] : penColor) || '#0f172a';
         }
 
         function boardContentBounds() {
@@ -9821,6 +9853,53 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             presentSync();
         }
 
+        // نافذة الكتابة في العرض: أقلام + ألوان + الممحاة
+        const PB_PENS = ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon'];
+        function presentBuildPens() {
+            const box = $('pb-pens');
+            if (!box || box.childElementCount) return;
+            PB_PENS.forEach(st => {
+                const src = $('tool-' + st);
+                const svg = src && src.querySelector('svg');
+                if (!svg) return;
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'pb-btn pb-pen-btn'; b.dataset.s = st; b.title = src.title || st;
+                b.innerHTML = svg.outerHTML;
+                b.onclick = () => presentPickPen(st);
+                box.appendChild(b);
+            });
+        }
+        function presentClosePens() { }
+        function presentColor() {
+            if (!present.mode) return;
+            openPalette(present.mode === 'reader' ? 'reader' : 'board');
+        }
+        function presentUndo() { if (present.mode === 'reader') undoNote(); else undo(); }
+        function presentRedo() { if (present.mode === 'reader') redoNote(); else redo(); }
+        function presentEnsureWrite() { if (!present.write) presentToggleWrite(); }
+        function presentPickPen(st) {
+            if (present.mode === 'reader') setNoteTool(st);
+            else setPenStyle(st);
+            presentEnsureWrite();
+            presentClosePens();
+        }
+        function presentPickColor(c) {
+            if (present.mode === 'reader') setNoteColor(c);
+            else setPenColor(c);
+            presentEnsureWrite();
+            presentClosePens();
+        }
+        function presentEraser() {
+            if (present.mode === 'reader') setNoteTool('eraser');
+            else setTool('eraser');
+            presentEnsureWrite();
+            presentClosePens();
+        }
+        document.addEventListener('pointerdown', e => {
+            const pop = $('pb-pen-pop');
+            if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !(e.target.closest && e.target.closest('#pb-write'))) presentClosePens();
+        }, true);
+
         function presentToggleWrite() {
             if (!present.mode) return;
             present.write = !present.write;
@@ -9828,13 +9907,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (present.write) {
                     setHand(false);
                     if (!['pen', 'eraser', 'shape'].includes(tool)) setTool('pen');
-                    $('board').classList.remove('bar-hidden');   // الأدوات (ألوان وأقلام) تظهر مع الكتابة
+                    // الأدوات بتظهر في نافذة الأقلام بتاعة العرض بس
                 } else {
                     setHand(true);
                     $('board').classList.add('bar-hidden');
                 }
             } else {
-                $('reader').classList.toggle('bars-hidden', !present.write);   // شريط أدوات الكتابة يظهر مع الكتابة
+                // شريط الأدوات بيفضل مخفي في العرض، والأقلام في نافذة الكتابة
                 reader.annotate = present.write; syncAnnotateUI();
                 if (present.write) { renderReader(); }
             }
@@ -9861,6 +9940,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function endPresent() {
             const m = present.mode;
             if (!m) return;
+            presentClosePens();
             present.mode = null;
             document.body.classList.remove('presenting', 'presenting-reader');
             if (m === 'board') {
