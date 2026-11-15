@@ -2131,6 +2131,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             color: #c9b07a !important; stroke: #c9b07a !important;
         }
         .nav:hover, .ibtn:hover, .btn-ghost:hover, .sc:hover, .rn-tool:hover, .pb-btn:hover { color: #c9b07a; }
+
+        /* ===== الوضع المزدوج: القارئ يمين والسبورة شمال (نفس النافذة) ===== */
+        #split-divider { display: none; position: fixed; top: 0; bottom: 0; left: calc(var(--split-w, 50%) - 4px); width: 8px; cursor: col-resize; z-index: 260; touch-action: none; background: transparent; }
+        #split-divider::after { content: ""; position: absolute; top: 50%; left: 50%; width: 4px; height: 64px; transform: translate(-50%, -50%); border-radius: 4px; background: rgba(var(--accent-rgb), 0.8); }
+        body.split-on .reader-overlay.split-reader { right: auto !important; width: var(--split-w, 50%) !important; }
+        body.split-on #view-board.view.active { position: fixed !important; top: 0; bottom: 0; right: 0; left: calc(var(--split-w, 50%) + 4px) !important; width: auto !important; height: auto !important; z-index: 150; overflow: hidden !important; background: var(--bg); padding: 0 !important; }
+        #split-board-close { display: none; position: fixed; top: 10px; right: 10px; z-index: 270; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; place-items: center; font-size: 15px; line-height: 1; padding: 0; }
+        #rd-split-btn.active, #board-split-btn.active { background: rgba(var(--accent-rgb), 0.22); }
+        #board-split-btn .split-ico { font-size: 16px; line-height: 1; }
+        body.split-on.split-rev .reader-overlay.split-reader { left: calc(var(--split-w, 50%) + 4px) !important; right: 0 !important; width: auto !important; }
+        body.split-on.split-rev #view-board.view.active { left: 0 !important; right: auto !important; width: calc(var(--split-w, 50%) - 4px) !important; }
+        body.split-on.split-rev #split-board-close { right: auto; left: 10px; }
     </style>
 </head>
 <body data-theme="dark">
@@ -2347,6 +2359,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         <div class="bgrp">
                             <button class="ibtn" id="fs-btn" title="ملء الشاشة" onclick="toggleBoardFs()"><i data-icon="maximize"></i></button>
                             <button class="ibtn" id="present-btn" title="عرض تقديمي" aria-label="عرض تقديمي" onclick="startPresent('board')"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+                            <button class="ibtn" id="board-split-btn" title="وضع مزدوج: السبورة مع الكتاب" onclick="toggleSplit('board')"><span class="split-ico">▥</span></button>
                             <button class="ibtn" title="حفظ الصفحة الحالية PDF" onclick="saveBoardAsPDF(true)"><i data-icon="file"></i></button>
                             <button class="ibtn" title="حفظ كل الصفحات PDF" onclick="saveBoardAsPDF(false)"><i data-icon="upload"></i></button>
                             <button class="ibtn" id="board-img-btn" title="إضافة صورة من الجهاز" aria-label="إضافة صورة من الجهاز" onclick="$('board-img-file').click()"><i data-icon="image"></i></button>
@@ -2791,6 +2804,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 <button class="reader-btn" id="spread-btn" onclick="toggleSpread()">صفحتان</button>
                 <button class="reader-btn" id="rtl-btn" title="اتجاه الصفحتين" onclick="toggleReaderRtl()">من اليسار لليمين</button>
                 <button class="reader-btn" onclick="toggleReaderPaper()">الخلفية</button>
+                <button class="reader-btn" id="rd-split-btn" title="فتح السبورة جنب الكتاب في نفس النافذة" onclick="toggleSplit('reader')">وضع مزدوج</button>
                 <button class="reader-btn" id="reader-export-btn" title="حفظ الصفحة أو الكتاب مع الكتابة عليه كملف PDF" onclick="openReaderSave()">حفظ PDF</button>
                 <button class="reader-btn" id="reader-to-board" title="الذهاب للسبورة" onclick="readerToBoard()">السبورة</button>
                 <button class="reader-btn" title="إخفاء الأدوات" onclick="toggleReaderBars()"><i data-icon="eye"></i></button>
@@ -4066,6 +4080,80 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const VIEW_TITLES = { home: 'الرئيسية', board: 'السبورة التفاعلية', books: 'المكتبة الرقمية', exams: 'الاختبارات', ai: 'المساعد الذكي' };
 
         // التنقل بين قارئ الكتب والسبورة من غير ما المستخدم يرجع للقائمة
+        // ---- الوضع المزدوج: القارئ والسبورة جنب بعض في نافذة واحدة، والخط بينهم بيتسحب ----
+        function toggleSplit(origin) {
+            if (document.body.classList.contains('split-on')) { exitSplit(true); return; }
+            enterSplit(origin || 'reader');
+        }
+        // البداية من السبورة: السبورة على اليمين والكتاب على الشمال. البداية من الكتاب: الكتاب على اليمين والسبورة على الشمال
+        function enterSplit(origin) {
+            const rd = $('reader');
+            if (!rd.classList.contains('open')) {
+                if (origin === 'board' && lastReaderBook) openBook(lastReaderBook);
+                else return toast('افتح كتاب الأول');
+            }
+            if (rd.classList.contains('fs')) setReaderFs(false);
+            document.body.classList.add('split-on');
+            document.body.classList.toggle('split-rev', origin === 'reader');
+            rd.classList.add('split-reader');
+            document.documentElement.style.setProperty('--split-w', (appState.splitPct || 50) + '%');
+            let div = $('split-divider');
+            if (!div) {
+                div = document.createElement('div');
+                div.id = 'split-divider'; div.title = 'اسحب لتغيير الحجم';
+                document.body.appendChild(div);
+                bindSplitDivider(div);
+            }
+            div.style.display = 'block';
+            let bc = $('split-board-close');
+            if (!bc) {
+                bc = document.createElement('button');
+                bc.id = 'split-board-close'; bc.className = 'split-close'; bc.title = 'إغلاق السبورة'; bc.setAttribute('aria-label', 'إغلاق السبورة');
+                bc.textContent = '✕';
+                bc.onclick = () => exitSplit(true);
+                document.body.appendChild(bc);
+            }
+            bc.style.display = 'grid';
+            if (!$('view-board').classList.contains('active')) switchView('board', document.querySelector('.nav[data-view="board"]'));
+            const sb = $('rd-split-btn'); if (sb) sb.classList.add('active');
+            const bsb = $('board-split-btn'); if (bsb) bsb.classList.add('active');
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); if (typeof requestRender === 'function') requestRender(); }, 80);
+        }
+        function exitSplit(closeBoard) {
+            if (!document.body.classList.contains('split-on')) return;
+            document.body.classList.remove('split-on', 'split-rev');
+            $('reader').classList.remove('split-reader');
+            const bsb = $('board-split-btn'); if (bsb) bsb.classList.remove('active');
+            const div = $('split-divider'); if (div) div.style.display = 'none';
+            const bc = $('split-board-close'); if (bc) bc.style.display = 'none';
+            const sb = $('rd-split-btn'); if (sb) sb.classList.remove('active');
+            if (closeBoard) switchView('home', document.querySelector('.nav[data-view="home"]'));
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); if (typeof requestRender === 'function') requestRender(); }, 80);
+        }
+        function bindSplitDivider(div) {
+            let dragging = false;
+            div.addEventListener('pointerdown', e => {
+                dragging = true;
+                try { div.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                e.preventDefault();
+            });
+            div.addEventListener('pointermove', e => {
+                if (!dragging) return;
+                const pct = Math.min(80, Math.max(20, e.clientX / window.innerWidth * 100));
+                document.documentElement.style.setProperty('--split-w', pct.toFixed(1) + '%');
+            });
+            const end = () => {
+                if (!dragging) return;
+                dragging = false;
+                appState.splitPct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--split-w')) || 50;
+                scheduleSave();
+                window.dispatchEvent(new Event('resize'));
+                if (typeof requestRender === 'function') requestRender();
+            };
+            div.addEventListener('pointerup', end);
+            div.addEventListener('pointercancel', end);
+        }
+
         function readerToBoard() {
             closeReader();
             switchView('board', document.querySelector('.nav[data-view="board"]'));
@@ -9772,6 +9860,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function closeReader() {
             if (!$('reader').classList.contains('open')) return;
+            exitSplit(false);
             $('reader').classList.remove('open', 'fs', 'bars-hidden');
             api.setFullscreen(false);
             reader.token++;
