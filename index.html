@@ -2139,10 +2139,35 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on #view-board.view.active { position: fixed !important; top: 0; bottom: 0; right: 0; left: calc(var(--split-w, 50%) + 4px) !important; width: auto !important; height: auto !important; z-index: 150; overflow: hidden !important; background: var(--bg); padding: 0 !important; }
         #split-board-close { display: none; position: fixed; top: 10px; right: 10px; z-index: 270; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; place-items: center; font-size: 15px; line-height: 1; padding: 0; }
         #rd-split-btn.active, #board-split-btn.active { background: rgba(var(--accent-rgb), 0.22); }
+        body.split-on .reader-bar { flex-wrap: nowrap !important; overflow-x: auto !important; overflow-y: hidden !important; scrollbar-width: thin; }
+        body.split-on .reader-bar > * { flex: none; }
         #board-split-btn .split-ico { font-size: 16px; line-height: 1; }
         body.split-on.split-rev .reader-overlay.split-reader { left: calc(var(--split-w, 50%) + 4px) !important; right: 0 !important; width: auto !important; }
         body.split-on.split-rev #view-board.view.active { left: 0 !important; right: auto !important; width: calc(var(--split-w, 50%) - 4px) !important; }
         body.split-on.split-rev #split-board-close { right: auto; left: 10px; }
+
+        /* ===== الوضع المزدوج: أدوات أقل + شكل أنظف ومدوّر (زي الآيفون) ===== */
+        body.split-on #reader-to-board, body.split-on button[onclick="toggleReaderPaper()"],
+        body.split-on #board .board-color-group, body.split-on #board #fs-btn,
+        body.split-on #board-float .bgrp:has(#shape-open) { display: none !important; }
+
+        body.split-on .reader-overlay.split-reader, body.split-on #view-board.view.active {
+            top: 8px !important; bottom: 8px !important; border-radius: 26px !important; overflow: hidden !important;
+            box-shadow: 0 18px 44px -22px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        body.split-on .reader-bar, body.split-on #board > .board-bar {
+            background: rgba(20,24,33,0.55) !important; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+            border: 0 !important; border-radius: 0 0 22px 22px; margin: 0 10px 6px; padding: 8px 10px !important; min-height: 0;
+        }
+        body.split-on .reader-btn, body.split-on .board-bar .ibtn, body.split-on .board-bar .bgrp > .ibtn {
+            border-radius: 12px !important; min-height: 34px; font-size: 13px;
+        }
+        body.split-on #board-float { border-radius: 999px !important; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); background: rgba(20,24,33,0.62) !important; border: 0 !important; }
+        body.split-on #board-float .bgrp { border-radius: 999px; }
+        body.split-on #split-divider::after { width: 5px; height: 84px; border-radius: 6px; background: rgba(255,255,255,0.75); box-shadow: 0 0 0 1px rgba(0,0,0,0.12); }
+        body.split-on .reader-overlay.split-reader .reader-notes { border-radius: 24px; background: rgba(24,28,38,0.7) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+        body.split-on #split-board-close { width: 30px; height: 30px; background: rgba(20,24,33,0.6); border: 0; color: #fff; top: 16px; right: 16px; }
+        body.split-on.split-rev #split-board-close { right: auto; left: 16px; }
     </style>
 </head>
 <body data-theme="dark">
@@ -4141,6 +4166,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (!dragging) return;
                 const pct = Math.min(80, Math.max(20, e.clientX / window.innerWidth * 100));
                 document.documentElement.style.setProperty('--split-w', pct.toFixed(1) + '%');
+                applyBar('board');   // الشريط العائم يفضل جوه السبورة وهي بتتصغر
             });
             const end = () => {
                 if (!dragging) return;
@@ -4148,7 +4174,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 appState.splitPct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--split-w')) || 50;
                 scheduleSave();
                 window.dispatchEvent(new Event('resize'));
+                applyBar('board');
                 if (typeof requestRender === 'function') requestRender();
+                if (reader.doc && $('reader').classList.contains('open')) renderReader(false);   // القارئ يتعدل على المساحة الجديدة
             };
             div.addEventListener('pointerup', end);
             div.addEventListener('pointercancel', end);
@@ -9516,6 +9544,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const rb = $('rtl-btn'); if (rb) rb.innerText = appState.readerRtl ? 'من اليمين لليسار' : 'من اليسار لليمين';
             readerRendered = { w: stage.clientWidth, h: stage.clientHeight };
             if (!keepView) readerView = { z: 1, tx: 0, ty: -rdSlotOf(reader.page) * step };
+            if (document.body.classList.contains('split-on') && !keepView) {
+                // الوضع المزدوج: الصفحة بتملى عرض الجزء اللي فيه القارئ
+                const pg1 = await reader.doc.getPage(1);
+                if (token !== reader.token) return;
+                const b1 = pg1.getViewport({ scale: 1 });
+                const cssH0 = H - 2 * RD_PAD, cssW0 = W - 2 * RD_PAD;
+                const fit0 = Math.min(cssW0 / b1.width, cssH0 / b1.height);
+                const zFill = Math.min(4, Math.max(1, cssW0 / (b1.width * fit0)));
+                readerView = { z: zFill, tx: 0, ty: -rdSlotOf(reader.page) * step * zFill };
+            }
             stage.innerHTML = '';
             rdWraps.clear(); rdPending.clear();
             const inner = document.createElement('div');
