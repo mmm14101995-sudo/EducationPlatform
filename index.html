@@ -4821,15 +4821,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (btn) btn.title = (isEn() ? 'Board background: ' : 'خلفية السبورة: ') + (hex || boardBg());
         }
         const BOARD_PAPER_TYPES = ['lined', 'grid', 'dots', 'plain'];
-        // لون التسطير بيتعكس عن لون الحبر: حبر غامق = تسطير فاتح، وحبر فاتح = تسطير غامق
+        // لون التسطير حسب لون خلفية السبورة: الخلفية الفاتحة = تسطير غامق، والغامقة = تسطير فاتح (عشان يفضل ظاهر)
         function paperLineColor() {
-            const hex = String(penColor || '#0f172a').trim();
-            const m = /^#?([0-9a-f]{6})$/i.exec(hex);
-            if (!m) return 'rgba(148,163,184,0.48)';
-            const n = parseInt(m[1], 16);
-            const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-            const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-            return lum < 0.5 ? 'rgba(255,255,255,0.45)' : 'rgba(51,65,85,0.5)';
+            return boardIsDark(boardBg()) ? 'rgba(255,255,255,0.45)' : 'rgba(71,85,105,0.5)';
         }
         function boardPaperPattern() { return BOARD_PAPER_TYPES.includes(appState.boardPaperPattern) ? appState.boardPaperPattern : 'grid'; }
         function boardPaperSize() {
@@ -5586,7 +5580,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (stageEl.dataset.bg !== boardBg()) { stageEl.dataset.bg = boardBg(); applyBoardBgStyles(boardBg()); }
             if (!canvas.width || !canvas.height) return;
             const d = boardDpr();
-            const gesturing = activeMode === 'pan' || !!pinch;
+            // التحريك بس بيستخدم صورة الكاش المتحركة؛ التكبير بيرسم الخطوط بحجمها الصح (عشان الدقة ما تقلش)
+            const gesturing = activeMode === 'pan' && !pinch;
             const cacheOK = cacheView && cacheView.pg === currentPage() && cacheView.w === canvas.width && cacheView.h === canvas.height;
             if (boardDirty && gesturing && cacheOK) {
                 // أثناء التحريك/التكبير: بنحرّك صورة الكاش (بدون إعادة رسم الخطوط)، والرسم الكامل بيتعمل لما الإيد تيجي
@@ -5683,30 +5678,34 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function drawPage() { requestRender(); }
 
         // لون الخلفية والشبكة/المسطرة بيترسموا جوه الكانفاس نفسه، عشان ما يبقاش فيه طبقة سودا تحته (ويندوز / الوضع العادي)
+        // الورق بيتعمل كنقشة (pattern) مرة واحدة وبيتحرك بالإزاحة، بدل ما نرسم آلاف الخطوط كل إطار
+        let paperTile = { key: '', canvas: null };
         function drawBoardPaperOnCanvas(g, d) {
-            const hex = boardBg();
-            const dk = boardIsDark(hex);
-            const line = paperLineColor();
+            const hex = boardBg(), line = paperLineColor(), pat = boardPaperPattern();
             g.save();
             g.setTransform(1, 0, 0, 1, 0, 0);
             g.fillStyle = hex;
             g.fillRect(0, 0, canvas.width, canvas.height);
-            const step = Math.max(2, boardPaperSize() * view.s * d);
-            const ox = ((view.tx * d) % step + step) % step;
-            const oy = ((view.ty * d) % step + step) % step;
-            g.fillStyle = line;
-            const pat = boardPaperPattern();
-            if (pat === 'plain') {
-                // ورقة سادة: لون بس
-            } else if (pat === 'dots') {
+            if (pat !== 'plain') {
+                const S = Math.max(2, Math.round(boardPaperSize() * view.s * d));
                 const dot = Math.max(1.5, 1.6 * d);
-                for (let y = oy; y < canvas.height; y += step)
-                    for (let x = ox; x < canvas.width; x += step) g.fillRect(Math.round(x), Math.round(y), dot, dot);
-            } else if (pat === 'lined') {
-                for (let y = oy; y < canvas.height; y += step) g.fillRect(0, Math.round(y), canvas.width, 1);
-            } else {
-                for (let x = ox; x < canvas.width; x += step) g.fillRect(Math.round(x), 0, 1, canvas.height);
-                for (let y = oy; y < canvas.height; y += step) g.fillRect(0, Math.round(y), canvas.width, 1);
+                const key = [pat, S, dot.toFixed(2), line].join('|');
+                if (paperTile.key !== key) {
+                    const t = document.createElement('canvas');
+                    const lined = pat === 'lined';
+                    t.width = lined ? 4 : S; t.height = S;
+                    const tg = t.getContext('2d');
+                    tg.fillStyle = line;
+                    if (pat === 'dots') tg.fillRect(0, 0, dot, dot);
+                    else if (lined) tg.fillRect(0, 0, 4, 1);
+                    else { tg.fillRect(0, 0, 1, S); tg.fillRect(0, 0, S, 1); }
+                    paperTile = { key, canvas: t };
+                }
+                const pattern = g.createPattern(paperTile.canvas, 'repeat');
+                const ox = ((view.tx * d) % S + S) % S, oy = ((view.ty * d) % S + S) % S;
+                if (pattern.setTransform) pattern.setTransform(new DOMMatrix([1, 0, 0, 1, ox, oy]));
+                g.fillStyle = pattern;
+                g.fillRect(0, 0, canvas.width, canvas.height);
             }
             g.restore();
         }
@@ -6004,8 +6003,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             // كف الإيد أثناء الكتابة بالقلم: نتجاهل اللمس لحظة ما القلم يشتغل
             // الكف والقلم: بنتجاهل اللمس بس لو مفيش لمسة تانية شغالة، عشان إصبعين التكبير ما يتلغوش
             if (e.pointerType === 'touch' && touches.size === 0 && Date.now() - lastPenAt < 1500) return;
-            // الكف بيبقى مساحته كبيرة على الشاشة: نتجاهله ونسيب الإصبع الصغير بس يرسم
-            if (e.pointerType === 'touch' && touches.size === 0 && ((e.width || 0) > 28 || (e.height || 0) > 28)) return;
             try { stageEl.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
 
             if (e.pointerType === 'touch') {
@@ -6810,6 +6807,28 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         // ارتفاع الشريط العلوي للسبورة: الشريط الرأسي بيبدأ تحته ومايغطيهوش
         function boardTopH() { const t = document.querySelector('#board > .board-bar'); return t ? t.offsetHeight : 0; }
+        // شريط السبورة يفضل جوه السبورة: الأفقي فوق أو تحت، والرأسي يمين أو شمال
+        function applyBoardBarSnap(el, st) {
+            const board = $('board'), top0 = boardTopH();
+            const pw = board.clientWidth, ph = board.clientHeight;
+            if (!st.side) st.side = st.vert ? 'left' : 'bottom';
+            if (st.vert && (st.side === 'top' || st.side === 'bottom')) st.side = 'left';
+            if (!st.vert && (st.side === 'left' || st.side === 'right')) st.side = 'bottom';
+            el.style.height = ''; el.style.maxHeight = '';
+            el.style.transform = 'none';
+            if (st.vert) {
+                const h = Math.max(80, ph - top0 - 24);
+                el.style.height = h + 'px'; el.style.maxHeight = h + 'px';
+                el.style.top = (top0 + 12) + 'px'; el.style.bottom = 'auto';
+                if (st.side === 'right') { el.style.left = 'auto'; el.style.right = '12px'; }
+                else { el.style.left = '12px'; el.style.right = 'auto'; }
+            } else {
+                const w = el.offsetWidth;
+                el.style.left = Math.max(12, Math.round((pw - w) / 2)) + 'px'; el.style.right = 'auto';
+                if (st.side === 'top') { el.style.top = (top0 + 8) + 'px'; el.style.bottom = 'auto'; }
+                else { el.style.bottom = '12px'; el.style.top = 'auto'; }
+            }
+        }
         function applyBar(key) {
             const el = barElFor(key);
             if (!el) return;
@@ -6819,7 +6838,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             el.style.height = ''; el.style.maxHeight = ''; el.style.width = '';
             el.classList.toggle('bar-vert', !!st.vert);
             el.classList.toggle('bar-locked', !!st.locked);
-            if (!barIsFs(key) && st.x != null) {
+            if (key === 'board' && !barIsFs(key)) {
+                applyBoardBarSnap(el, st);
+            } else if (!barIsFs(key) && st.x != null) {
                 el.style.left = st.x + 'px'; el.style.top = st.y + 'px';
                 el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
             } else {
@@ -6848,7 +6869,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 '<button type="button" class="bar-orient" title="أفقي / رأسي">↔</button>' +
                 '<button type="button" class="bar-lock" title="تثبيت الشريط"></button>';
             el.insertBefore(wrap, el.firstChild);
-            wrap.querySelector('.bar-orient').onclick = e => { e.stopPropagation(); const st = barState(key); st.vert = !st.vert; applyBar(key); scheduleSave(); };
+            wrap.querySelector('.bar-orient').onclick = e => {
+                e.stopPropagation();
+                const st = barState(key);
+                if (key === 'board') {
+                    const r = el.getBoundingClientRect(), pr = el.parentElement.getBoundingClientRect();
+                    const cx = r.left - pr.left + r.width / 2, cy = r.top - pr.top + r.height / 2;
+                    const nextVert = !st.vert;
+                    st.side = nextVert ? (cx < pr.width / 2 ? 'left' : 'right') : (cy < pr.height / 2 ? 'top' : 'bottom');
+                }
+                st.vert = !st.vert;
+                applyBar(key);
+                scheduleSave();
+            };
             wrap.querySelector('.bar-lock').onclick = e => { e.stopPropagation(); const st = barState(key); st.locked = !st.locked; applyBar(key); scheduleSave(); };
             const handle = wrap.querySelector('.bar-handle');
             let drag = null;
@@ -6871,7 +6904,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
             const end = e => {
                 if (!drag || e.pointerId !== drag.id) return;
-                if (drag.x != null) { const st = barState(key); st.x = drag.x; st.y = drag.y; scheduleSave(); }
+                if (key === 'board' && drag.x != null) {
+                    const st = barState(key);
+                    const pr = el.parentElement.getBoundingClientRect(), r = el.getBoundingClientRect();
+                    const cx = r.left - pr.left + r.width / 2, cy = r.top - pr.top + r.height / 2;
+                    st.side = st.vert ? (cx < pr.width / 2 ? 'left' : 'right') : (cy < pr.height / 2 ? 'top' : 'bottom');
+                    applyBar(key);
+                    scheduleSave();
+                } else if (drag.x != null) { const st = barState(key); st.x = drag.x; st.y = drag.y; scheduleSave(); }
                 drag = null;
             };
             handle.addEventListener('pointerup', end);
