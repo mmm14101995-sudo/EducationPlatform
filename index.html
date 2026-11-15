@@ -738,43 +738,6 @@
         .rd-pen-pop .rn-tool.active { background: rgba(255,255,255,0.18); box-shadow: 0 0 0 2px #60a5fa; }
         #reader-stage { touch-action: none; }
 
-        /* مشغّل الفيديو */
-        .vp-wrap { position: relative; width: min(960px, 96vw); aspect-ratio: 16 / 9; background: #000; border-radius: 14px; overflow: hidden; }
-        .vp-video { width: 100%; height: 100%; display: block; background: #000; object-fit: contain; }
-        .vp-top, .vp-bar {
-            position: absolute; left: 0; right: 0; transition: opacity 0.3s; z-index: 2;
-            background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0));
-        }
-        .vp-top { top: 0; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
-        .vp-bar { bottom: 0; padding: 14px 12px 12px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.75)); }
-        .vp-wrap.idle .vp-top, .vp-wrap.idle .vp-bar { opacity: 0; pointer-events: none; }
-        .vp-msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #fff; background: rgba(0,0,0,0.7); z-index: 3; line-height: 1.9; font-weight: 700; white-space: pre-line; }
-        .vp-msg.show { display: flex; }
-        .vp-title { color: #fff; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vp-seek { width: 100%; accent-color: #38bdf8; margin-bottom: 8px; }
-        .vp-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: #fff; }
-        .vp-btn {
-            min-width: 42px; height: 42px; padding: 0 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25);
-            background: rgba(255,255,255,0.14); color: #fff; display: grid; place-items: center; cursor: pointer; font-weight: 700; font-size: 14px;
-        }
-        .vp-btn .ico { width: 20px; height: 20px; }
-        .vp-play { min-width: 52px; }
-        .vp-time { color: #e5e7eb; font-size: 13px; }
-        .vp-grow { flex: 1; }
-        .vp-speed { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; padding: 9px; font-weight: 700; }
-        .vp-speed option { color: #000; }
-        #player-modal.vp-fs { background: #000; }
-        #player-modal.vp-fs .vp-wrap { width: 100vw; height: 100vh; height: 100dvh; aspect-ratio: auto; border-radius: 0; }
-
-        /* الفيديوهات في الصفحة الرئيسية */
-        .vid-thumb {
-            position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden;
-            background: linear-gradient(135deg, #0f172a, #1e293b) center / cover no-repeat;
-            display: grid; place-items: center;
-        }
-        .vid-play { width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; display: grid; place-items: center; }
-        .vid-play .ico { width: 22px; height: 22px; }
-
         /* لوحة الألوان */
         .pal-modal { z-index: 700; }
         .pal-box { width: min(440px, 94vw); }
@@ -2025,11 +1988,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         .bar-locked .bar-lock { background: rgba(37,99,235,0.25); }
         /* السبورة: الشريط العائم تحت (أفقي افتراضياً) */
         #board:not(.fs) #board-float.bar-vert {
-            flex-direction: column; align-items: center; left: 12px; top: 50%; bottom: auto;
-            transform: translateY(-50%); max-height: calc(100% - 40px); overflow-y: auto !important; overflow-x: hidden !important;
+            flex-direction: column; align-items: center; left: 12px; top: 12px; bottom: auto; box-sizing: border-box;
+            transform: none; max-height: 78vh; max-height: calc(100% - 24px); overflow-y: auto !important; overflow-x: hidden !important;
             border-radius: 22px; padding: 10px 8px;
         }
         #board:not(.fs) #board-float.bar-vert .bar-ctl2 { flex-direction: column; }
+        #board:not(.fs) #board-float.bar-vert { width: auto; max-width: 96px; }
+        #board:not(.fs) #board-float.bar-vert .bgrp { flex-direction: column; align-items: center; }
+        #board:not(.fs) #board-float.bar-vert .bgrp .range { width: 56px; }
         /* القارئ: أدوات الكتابة رأسي على اليسار (افتراضياً)، ولو اتقلبت أفقي تحت */
         .reader-overlay:not(.fs) .reader-notes:not(.bar-vert) {
             flex-direction: row; flex-wrap: wrap; top: auto; bottom: 14px; left: 50%; transform: translateX(-50%);
@@ -2075,7 +2041,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <div class="nav active" data-view="home" onclick="switchView('home', this)"><i data-icon="home"></i><span>الرئيسية</span></div>
             <div class="nav" data-view="board" onclick="switchView('board', this)"><i data-icon="pen"></i><span>السبورة التفاعلية</span></div>
             <div class="nav" data-view="books" onclick="switchView('books', this)"><i data-icon="book"></i><span>الكتب والملازم</span></div>
-            <div class="nav" data-view="videos" onclick="goVideos()"><i data-icon="play"></i><span>الفيديوهات</span></div>
             <div class="nav" data-view="todos" onclick="goTodos()"><i data-icon="check"></i><span>المهام</span></div>
             <div class="nav" data-view="exams" onclick="switchView('exams', this)"><i data-icon="file"></i><span>الاختبارات</span></div>
             <div class="nav" data-view="ai" onclick="switchView('ai', this)"><i data-icon="bot"></i><span>المساعد الذكي</span></div>
@@ -2118,11 +2083,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         <div class="sc-txt"><h3>الكتب والملازم</h3><p>مكتبتك التعليمية</p></div>
                         <span class="sc-go"><i data-icon="chevL"></i></span>
                     </div>
-                    <div class="sc sc-videos" onclick="goVideos()">
-                        <div class="sc-ico"><i data-icon="play"></i></div>
-                        <div class="sc-txt"><h3>الفيديوهات</h3><p>شرح مبسط ومركز</p></div>
-                        <span class="sc-go"><i data-icon="chevL"></i></span>
-                    </div>
                     <div class="sc sc-exams" onclick="switchView('exams', document.querySelector('[data-view=exams]'))">
                         <div class="sc-ico"><i data-icon="file"></i></div>
                         <div class="sc-txt"><h3>الاختبارات</h3><p>اختبر مستواك</p></div>
@@ -2141,18 +2101,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     <div class="stat"><div class="si" data-icon="check"></div><div><b id="st-reading">0</b><span>قيد القراءة</span></div></div>
                 </div>
 
-                <div class="section-title">
-                    <h3>الكورسات والفيديوهات</h3>
-                    <span class="shelf-count" id="courses-count"></span>
-                    <button class="btn-primary" id="add-course-btn" onclick="openNameModal()"><i data-icon="plus"></i><span>كورس جديد</span></button>
-                </div>
-                <div class="courses-grid" id="courses-grid"></div>
 
-                <div class="section-title">
-                    <h3>الفيديوهات</h3>
-                    <span class="shelf-count" id="home-videos-count"></span>
-                </div>
-                <div class="courses-grid" id="home-videos"></div>
 
                 <div id="home-continue-wrap" style="display:none;">
                     <div class="section-title"><h3>متابعة القراءة</h3></div>
@@ -2574,71 +2523,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
     </div>
 
     <!-- اسم الكورس -->
-    <div id="name-modal" class="modal" onclick="if (event.target === this) closeModal('name-modal')">
-        <div class="modal-box">
-            <div class="modal-head"><h2 id="name-title">كورس جديد</h2><button class="ibtn" onclick="closeModal('name-modal')"><i data-icon="x"></i></button></div>
-            <div class="field"><label for="name-input">اسم الكورس</label><input type="text" id="name-input" maxlength="40"></div>
-            <div class="modal-actions"><button class="btn-primary" onclick="saveName()">حفظ</button></div>
-        </div>
-    </div>
 
     <!-- رابط فيديو -->
-    <div id="link-modal" class="modal" onclick="if (event.target === this) closeModal('link-modal')">
-        <div class="modal-box">
-            <div class="modal-head"><h2>رابط فيديو</h2><button class="ibtn" onclick="closeModal('link-modal')"><i data-icon="x"></i></button></div>
-            <div class="field"><label for="link-title-input">العنوان</label><input type="text" id="link-title-input" maxlength="60"></div>
-            <div class="field"><label for="link-url-input">الرابط (يبدأ بـ https://)</label><input type="text" id="link-url-input" dir="ltr"></div>
-            <div class="modal-actions"><button class="btn-primary" onclick="saveLink()">إضافة</button></div>
-        </div>
-    </div>
 
     <!-- تفاصيل الكورس -->
-    <div id="detail-modal" class="modal" onclick="if (event.target === this) closeModal('detail-modal')">
-        <div class="modal-box">
-            <div class="modal-head"><h2 id="detail-title"></h2><button class="ibtn" onclick="closeModal('detail-modal')"><i data-icon="x"></i></button></div>
-            <div class="detail-tools">
-                <button class="btn-primary" onclick="addVideoFromDevice()"><i data-icon="plus"></i><span>فيديو من الجهاز</span></button>
-                <button class="btn-ghost" onclick="openLinkModal()"><i data-icon="external"></i><span>رابط يوتيوب</span></button>
-                <button class="btn-ghost" onclick="renderDetail()"><i data-icon="check"></i><span>تحديث</span></button>
-                <button class="btn-ghost" onclick="openNameModal(detailId)"><i data-icon="feather"></i><span>تعديل الاسم</span></button>
-                <button class="btn-ghost" id="del-course-btn" onclick="deleteCourseArmed(this)"><i data-icon="trash"></i><span>حذف الكورس</span></button>
-            </div>
-            <div id="detail-list" class="detail-list"></div>
-        </div>
-    </div>
 
     <!-- مشغّل الفيديو -->
-    <div id="player-modal" class="modal">
-        <div class="vp-wrap" id="vp-wrap">
-            <video id="player" class="vp-video" playsinline preload="metadata"></video>
-            <div class="vp-msg" id="vp-msg"></div>
-            <div class="vp-top">
-                <button class="vp-btn" title="إغلاق" onclick="closeModal('player-modal')"><i data-icon="x"></i></button>
-                <div class="vp-title" id="player-title"></div>
-            </div>
-            <div class="vp-bar">
-                <input type="range" id="vp-seek" class="vp-seek" min="0" max="1000" value="0">
-                <div class="vp-row">
-                    <button class="vp-btn" title="30 ثانية للخلف" onclick="vpSeek(-30)"><span>-30</span></button>
-                    <button class="vp-btn vp-play" id="vp-play" title="تشغيل/إيقاف" onclick="vpToggle()"><i data-icon="play"></i></button>
-                    <button class="vp-btn" title="30 ثانية للأمام" onclick="vpSeek(30)"><span>+30</span></button>
-                    <span class="vp-time" id="vp-time">0:00 / 0:00</span>
-                    <span class="vp-grow"></span>
-                    <select id="vp-speed" class="vp-speed" title="السرعة" onchange="vpSpeed(this.value)">
-                        <option value="0.5">0.5x</option>
-                        <option value="0.75">0.75x</option>
-                        <option value="1" selected>1x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="2">2x</option>
-                        <option value="2.5">2.5x</option>
-                        <option value="3">3x</option>
-                    </select>
-                    <button class="vp-btn" title="ملء الشاشة" onclick="vpFullscreen()"><i data-icon="maximize"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- قايمة الأشكال -->
     <div id="shape-modal" class="modal pal-modal" onclick="if (event.target === this) closeModal('shape-modal')">
@@ -2985,36 +2875,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 await loadBooks();
                 toast(j.count ? `تمت إضافة ${j.count} ملف PDF إلى المكتبة` : 'لم يتم العثور على ملفات PDF لإضافتها');
                 return j;
-            },
-            async listMedia(cid) {
-                if (NATIVE) return JSON.parse(NATIVE.listMedia(cid));
-                const res = await fetch('/api/media/list?course=' + encodeURIComponent(cid), { cache: 'no-store' });
-                return res.json();
-            },
-            importMedia(cid) {
-                if (NATIVE) { NATIVE.importMedia(cid); return; }
-                // على الويندوز: يختار الفيديو من الجهاز ويتنسخ تلقائياً جوه مجلد الكورس
-                postJson('/api/media/pick', { course: cid })
-                    .then(r => r.json())
-                    .then(j => {
-                        if (j && j.ok && j.count) window.onMediaChanged(cid);
-                        else if (j && !j.ok && !j.cancelled) toast('تعذر إضافة الفيديو');
-                    })
-                    .catch(() => toast('تعذر إضافة الفيديو'));
-            },
-            async deleteMedia(cid, name) {
-                if (NATIVE) return NATIVE.deleteMedia(cid, name);
-                const res = await postJson('/api/media/delete', { course: cid, name });
-                return res.ok;
-            },
-            async deleteCourseFolder(cid) {
-                if (NATIVE) return NATIVE.deleteCourse(cid);
-                const res = await postJson('/api/media/delete-course', { course: cid });
-                return res.ok;
-            },
-            openMediaFolder(cid) {
-                if (NATIVE) return;
-                postJson('/api/media/open-folder', { course: cid }).catch(() => {});
             },
             openFolder(grade) {
                 if (NATIVE) return;
@@ -4633,12 +4493,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ==========================================
         // الشريط العلوي: بحث شامل + آخر ما تم استخدامه
         // ==========================================
-        function goVideos() {
-            switchView('home', document.querySelector('[data-view=home]'));
-            document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === 'videos'));
-            const el = $('home-videos');
-            if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-        }
 
         function timeAgo(ts) {
             if (!ts) return '';
@@ -4691,13 +4545,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!q) { closeSearch(); return; }
             const hits = [];
             booksCache.forEach(b => { if ((b.title || '').toLowerCase().includes(q)) hits.push({ kind: b.kind === 'reviews' ? 'ملزمة' : 'كتاب', title: b.title, sub: gradeName(b.grade), go: () => openBook(b) }); });
-            (appState.courses || []).forEach(c => {
-                if ((c.name || '').toLowerCase().includes(q)) hits.push({ kind: 'كورس', title: c.name, sub: '', go: () => openDetail(c.id) });
-                (courseMedia.get(c.id) || []).forEach(m => {
-                    const title = m.name.replace(/\.[^.]+$/, '');
-                    if (title.toLowerCase().includes(q)) hits.push({ kind: 'فيديو', title, sub: c.name, go: () => playMedia(c.id, m.name, m.url, title) });
-                });
-            });
             box.innerHTML = '';
             if (!hits.length) {
                 const p = document.createElement('p');
@@ -4729,7 +4576,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         });
 
         function renderHome() {
-            renderCourses();
             renderRecent();
             const inGrade = booksCache.filter(b => b.grade === currentGrade);
             const books = inGrade.filter(b => b.kind === 'books').length;
@@ -6964,6 +6810,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             appState.barLayout = appState.barLayout || {};
             return appState.barLayout[key] || (appState.barLayout[key] = { locked: false, vert: key === 'reader', x: null, y: null });
         }
+        // ارتفاع الشريط العلوي للسبورة: الشريط الرأسي بيبدأ تحته ومايغطيهوش
+        function boardTopH() { const t = document.querySelector('#board > .board-bar'); return t ? t.offsetHeight : 0; }
         function applyBar(key) {
             const el = barElFor(key);
             if (!el) return;
@@ -6975,11 +6823,22 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 el.style.left = st.x + 'px'; el.style.top = st.y + 'px';
                 el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
             } else {
-                el.style.left = ''; el.style.top = ''; el.style.right = ''; el.style.bottom = ''; el.style.transform = '';
+                el.style.left = ''; el.style.top = ''; el.style.right = ''; el.style.bottom = ''; el.style.transform = ''; el.style.maxHeight = '';
+                if (key === 'board' && st.vert && !barIsFs(key)) {
+                    const top0 = boardTopH();
+                    el.style.top = (top0 + 12) + 'px';
+                    el.style.maxHeight = Math.max(80, $('board').clientHeight - top0 - 24) + 'px';
+                }
+            }
+            if (key === 'board' && st.x != null && !barIsFs(key) && st.vert) {
+                const top0 = boardTopH();
+                if (parseFloat(el.style.top) < top0) el.style.top = (top0 + 8) + 'px';
+                el.style.maxHeight = Math.max(80, $('board').clientHeight - parseFloat(el.style.top) - 12) + 'px';
             }
             const lock = el.querySelector('.bar-lock');
             if (lock) { lock.innerHTML = st.locked ? BAR_LOCK_ON : BAR_LOCK_OFF; lock.title = st.locked ? 'فك تثبيت الشريط' : 'تثبيت الشريط'; }
         }
+        window.addEventListener('resize', () => applyBar('board'));
         function addBarControls(key, el) {
             const wrap = document.createElement('div');
             wrap.className = 'bar-ctl2';
@@ -7001,8 +6860,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             handle.addEventListener('pointermove', e => {
                 if (!drag || e.pointerId !== drag.id) return;
                 const pr = drag.pr, w = el.offsetWidth, h = el.offsetHeight;
+                const topMin = key === 'board' ? boardTopH() : 0;
                 const x = Math.min(Math.max(0, e.clientX - drag.dx - pr.left), Math.max(0, pr.width - w));
-                const y = Math.min(Math.max(0, e.clientY - drag.dy - pr.top), Math.max(0, pr.height - h));
+                const y = Math.min(Math.max(topMin, e.clientY - drag.dy - pr.top), Math.max(topMin, pr.height - h));
                 el.style.left = x + 'px'; el.style.top = y + 'px';
                 el.style.right = 'auto'; el.style.bottom = 'auto'; el.style.transform = 'none';
                 drag.x = x; drag.y = y;
@@ -8514,35 +8374,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             closeModal('confirm-modal');
         }
 
-        const MAX_COURSES = 20;
-        const courseMedia = new Map();   // cid -> [{name,url}]
-        let detailId = null;
-        let editName = { mode: 'create', id: null };
-        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'player-modal', 'link-modal', 'name-modal', 'detail-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal', 'quiz-edit-modal', 'quiz-import-modal', 'quiz-start-modal', 'quiz-results-modal', 'quiz-print-modal'];
-
-        function findCourse(id) {
-            return (appState.courses || []).find(c => c.id === id) || null;
-        }
-
-        function newCourseId() {
-            return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        }
+        const MODAL_IDS = ['shape-modal', 'palette-modal', 'confirm-modal', 'settings', 'page-name-modal', 'mindmap-modal', 'sticky-picker-modal', 'board-bg-modal', 'board-paper-style-modal', 'ink-modal', 'quiz-edit-modal', 'quiz-import-modal', 'quiz-start-modal', 'quiz-results-modal', 'quiz-print-modal'];
 
         function openModal(id) { $(id).classList.add('open'); }
 
         function closeModal(id) {
             const el = $(id);
             if (!el) return;
-            if (id === 'player-modal') {
-                saveVpPos(true);
-                const v = $('player');
-                v.pause();
-                v.removeAttribute('src');
-                v.load();
-                clearTimeout(vpTimer);
-                $('player-modal').classList.remove('vp-fs');
-                api.setFullscreen(false);
-            }
             el.classList.remove('open');
         }
 
@@ -8570,64 +8408,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             loadBooks();
         }
 
-        async function renderCourses() {
-            const grid = $('courses-grid');
-            if (!grid) return;
-            const courses = appState.courses || [];
-            $('courses-count').innerText = `${courses.length} / ${MAX_COURSES}`;
-            $('add-course-btn').disabled = courses.length >= MAX_COURSES;
-
-            await Promise.all(courses.map(async c => {
-                try { courseMedia.set(c.id, await api.listMedia(c.id)); }
-                catch (e) { courseMedia.set(c.id, []); }
-            }));
-
-            renderHomeVideos();
-            grid.innerHTML = '';
-            if (!courses.length) {
-                const p = document.createElement('p');
-                p.className = 'exam-empty';
-                p.style.gridColumn = '1 / -1';
-                p.innerText = 'لا توجد كورسات بعد. اضغط "كورس جديد" وابدأ بإنشاء أول مجلد.';
-                grid.appendChild(p);
-                return;
-            }
-            courses.forEach(c => {
-                const vids = (courseMedia.get(c.id) || []).length;
-                const links = (c.links || []).length;
-                const card = document.createElement('div');
-                card.className = 'course-card';
-                card.innerHTML = `<div class="folder">${icon('book')}</div><h3>${esc(c.name)}</h3><p>${vids} فيديو · ${links} رابط</p>`;
-                card.addEventListener('click', () => openDetail(c.id));
-                grid.appendChild(card);
-            });
-        }
-
-        function openNameModal(id) {
-            const courses = appState.courses || [];
-            if (!id && courses.length >= MAX_COURSES) return toast(`وصلت للحد الأقصى (${MAX_COURSES} كورس)`);
-            editName = { mode: id ? 'rename' : 'create', id: id || null };
-            $('name-title').innerText = id ? 'تعديل اسم الكورس' : 'كورس جديد';
-            $('name-input').value = id ? ((findCourse(id) || {}).name || '') : '';
-            openModal('name-modal');
-            setTimeout(() => $('name-input').focus(), 80);
-        }
-
-        function saveName() {
-            const name = $('name-input').value.trim();
-            if (!name) return toast('اكتب اسم الكورس');
-            if (editName.mode === 'create') {
-                appState.courses.push({ id: newCourseId(), name, links: [] });
-            } else {
-                const c = findCourse(editName.id);
-                if (c) c.name = name;
-            }
-            scheduleSave();
-            closeModal('name-modal');
-            renderCourses();
-            if ($('detail-modal').classList.contains('open')) renderDetail();
-        }
-
         // الحذف بضغطتين: النوافذ المنبثقة للتأكيد ما بتشتغلش جوه WebView
         function armable(btn, action) {
             if (btn.dataset.armed === '1') {
@@ -8644,101 +8424,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 btn.classList.remove('armed');
             }, 3000);
             toast('اضغط مرة أخرى للتأكيد');
-        }
-
-        async function openDetail(id) {
-            detailId = id;
-            openModal('detail-modal');
-            await renderDetail();
-        }
-
-        function deleteCourseArmed(btn) {
-            armable(btn, async () => {
-                const id = detailId;
-                if (!id) return;
-                try { await api.deleteCourseFolder(id); } catch (e) { /* نكمل الحذف من الحالة */ }
-                appState.courses = (appState.courses || []).filter(c => c.id !== id);
-                courseMedia.delete(id);
-                scheduleSave();
-                detailId = null;
-                closeModal('detail-modal');
-                renderCourses();
-            });
-        }
-
-        async function renderDetail() {
-            const c = findCourse(detailId);
-            if (!c) { closeModal('detail-modal'); return; }
-            $('detail-title').innerText = c.name;
-            const list = $('detail-list');
-            list.innerHTML = '<p class="exam-empty">جارٍ التحميل...</p>';
-
-            let media = [];
-            try { media = await api.listMedia(c.id); } catch (e) { media = []; }
-            courseMedia.set(c.id, media);
-
-            list.innerHTML = '';
-            const links = c.links || [];
-            if (!media.length && !links.length) {
-                const p = document.createElement('p');
-                p.className = 'exam-empty';
-                p.innerText = NATIVE
-                    ? 'الكورس فاضي. اضغط "فيديو من الجهاز" أو أضف رابط يوتيوب.'
-                    : 'الكورس فاضي. اضغط "فيديو من الجهاز" لفتح المجلد وضع الفيديو فيه، ثم "تحديث".';
-                list.appendChild(p);
-            }
-            media.forEach(m => {
-                const title = m.name.replace(/\.[^.]+$/, '');
-                list.appendChild(detailItem({
-                    title, sub: 'فيديو من الجهاز', thumbUrl: m.url,
-                    onOpen: () => playMedia(c.id, m.name, m.url, title),
-                    onDelete: async () => {
-                        await api.deleteMedia(c.id, m.name);
-                        renderDetail();
-                        renderCourses();
-                    }
-                }));
-            });
-            links.forEach(l => {
-                list.appendChild(detailItem({
-                    title: l.title, sub: 'رابط خارجي',
-                    onOpen: () => api.openExternal(l.url),
-                    onDelete: () => {
-                        c.links = (c.links || []).filter(x => x.id !== l.id);
-                        scheduleSave();
-                        renderDetail();
-                        renderCourses();
-                    }
-                }));
-            });
-        }
-
-        function detailItem({ title, sub, onOpen, onDelete, thumbUrl }) {
-            const row = document.createElement('div');
-            row.className = 'detail-item';
-            row.innerHTML = `<div class="di-info"><b>${esc(title)}</b><span>${esc(sub)}</span></div>`;
-            if (thumbUrl) {
-                const th = document.createElement('div');
-                th.className = 'di-thumb';
-                th.innerHTML = '<div class="vid-play">' + icon('play') + '</div>';
-                row.insertBefore(th, row.firstChild);
-                makeThumb(thumbUrl).then(img => {
-                    if (img) th.style.backgroundImage = 'url(' + img + ')';
-                });
-            }
-            const openBtn = document.createElement('button');
-            openBtn.className = 'ibtn';
-            openBtn.title = 'تشغيل';
-            openBtn.innerHTML = icon('external');
-            openBtn.addEventListener('click', onOpen);
-            const delBtn = document.createElement('button');
-            delBtn.className = 'ibtn danger';
-            delBtn.title = 'حذف';
-            delBtn.innerHTML = icon('trash');
-            delBtn.addEventListener('click', () => armable(delBtn, onDelete));
-            row.appendChild(openBtn);
-            row.appendChild(delBtn);
-            return row;
         }
 
         // ---- لوحة الألوان ----
@@ -8782,299 +8467,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // ---- مشغّل الفيديو: سرعة لحد 3، تقديم وتأخير 30 ثانية، ملء الشاشة، وشريط يختفي بعد 10 ثواني ----
-        const vpVideo = $('player');
-        let vpTimer = null;
-        let vpLoadTimer = null;
-        function vpCheckLoad() {
-            clearTimeout(vpLoadTimer);
-            vpLoadTimer = setTimeout(() => {
-                if (vpVideo.readyState === 0 && !vpVideo.error) {
-                    $('vp-msg').innerText = 'الفيديو لسه ما اتحملش.\nتأكد إن الملف مش تالف، والأفضل يكون MP4.';
-                    $('vp-msg').classList.add('show');
-                }
-            }, 8000);
-        }
-
-
-
-        function vpFmt(t) {
-            if (!isFinite(t) || t < 0) t = 0;
-            const m = Math.floor(t / 60), s = Math.floor(t % 60);
-            return m + ':' + String(s).padStart(2, '0');
-        }
-
-        // يظهر الشريط، ويختفي بعد 10 ثواني (في ملء الشاشة دايماً، وفي العادي لو الفيديو شغّال)
-        function vpWake() {
-            $('vp-wrap').classList.remove('idle');
-            clearTimeout(vpTimer);
-            vpTimer = setTimeout(() => {
-                const fs = $('player-modal').classList.contains('vp-fs');
-                if (fs || !vpVideo.paused) $('vp-wrap').classList.add('idle');
-            }, 10000);
-        }
-
-        function vpUpdate() {
-            const d = isFinite(vpVideo.duration) ? vpVideo.duration : 0;
-            $('vp-time').innerText = vpFmt(vpVideo.currentTime) + ' / ' + vpFmt(d);
-            $('vp-seek').value = d ? Math.round(vpVideo.currentTime / d * 1000) : 0;
-            $('vp-play').innerHTML = icon(vpVideo.paused ? 'play' : 'pause');
-        }
-
-        function vpSeek(sec) {
-            const dur = isFinite(vpVideo.duration) ? vpVideo.duration : Infinity;
-            vpVideo.currentTime = Math.max(0, Math.min(dur, vpVideo.currentTime + sec));
-            vpWake();
-        }
-
-        function vpToggle() {
-            if (vpVideo.paused) vpVideo.play().catch(() => {});
-            else vpVideo.pause();
-            vpWake();
-        }
-
-        function vpSpeed(v) {
-            vpVideo.playbackRate = Math.min(3, Math.max(0.25, Number(v)));
-            vpWake();
-        }
-
-        function vpFullscreen() {
-            const on = !$('player-modal').classList.contains('vp-fs');
-            $('player-modal').classList.toggle('vp-fs', on);
-            api.setFullscreen(on);
-            if (!NATIVE) {
-                try {
-                    if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen().catch(() => {});
-                    } else if (!on && document.fullscreenElement && document.exitFullscreen) {
-                        document.exitFullscreen().catch(() => {});
-                    }
-                } catch (e) { /* تجاهل */ }
-            }
-            vpWake();
-        }
-
-        vpVideo.addEventListener('timeupdate', vpUpdate);
-        vpVideo.addEventListener('loadedmetadata', () => {
-            vpUpdate();
-            if (vpResumeDone || !vpResumeKey) return;
-            vpResumeDone = true;
-            const sp = (appState.videoPos || {})[vpResumeKey];
-            if (sp && sp.t >= 5 && sp.t < vpVideo.duration - 10) {
-                vpVideo.currentTime = sp.t;
-                toast('استكملنا الفيديو من ' + vpFmt(sp.t));
-            }
-        });
-        vpVideo.addEventListener('timeupdate', () => saveVpPos(false));
-        window.addEventListener('pagehide', () => saveVpPos(true));
-        document.addEventListener('visibilitychange', () => { if (document.hidden) saveVpPos(true); });
-        vpVideo.addEventListener('play', () => { vpUpdate(); vpWake(); });
-        vpVideo.addEventListener('pause', () => {
-            vpUpdate();
-            $('vp-wrap').classList.remove('idle');
-            clearTimeout(vpTimer);
-        });
-        // الضغطة على الفيديو: لو الشريط مختفي يظهر، ولو ظاهر يشغّل/يوقف
-        $('vp-wrap').addEventListener('click', e => {
-            if (e.target.closest('.vp-bar, .vp-top')) return;
-            if ($('vp-wrap').classList.contains('idle')) vpWake();
-            else vpToggle();
-        });
-        vpVideo.addEventListener('loadeddata', () => { clearTimeout(vpLoadTimer); $('vp-msg').classList.remove('show'); });
-        vpVideo.addEventListener('error', () => {
-            const code = vpVideo.error ? vpVideo.error.code : 0;
-            if (code === 4 && vpCurrent) {
-                playNativeFallback().then(ok => {
-                    if (!ok) {
-                        $('vp-msg').innerText = 'تعذر تشغيل الفيديو (كود 4).\nالصيغة دي مش مدعومة.';
-                        $('vp-msg').classList.add('show');
-                    }
-                });
-                return;
-            }
-            $('vp-msg').innerText = 'تعذر تشغيل الفيديو (كود ' + code + ').\nجرّب ملف MP4 بترميز H.264.';
-            $('vp-msg').classList.add('show');
-        });
-        $('vp-wrap').addEventListener('pointermove', vpWake);
-        $('vp-seek').addEventListener('input', e => {
-            const d = isFinite(vpVideo.duration) ? vpVideo.duration : 0;
-            vpVideo.currentTime = d * Number(e.target.value) / 1000;
-            vpWake();
-        });
-
-        // صورة مصغّرة للفيديو من أول لقطة (بتتعمل مرة واحدة وتتحفظ)
-        const thumbCache = new Map();
-        function makeThumb(url) {
-            return new Promise(resolve => {
-                if (thumbCache.has(url)) return resolve(thumbCache.get(url));
-                if (appState.thumbs && appState.thumbs[url]) {
-                    thumbCache.set(url, appState.thumbs[url]);
-                    return resolve(appState.thumbs[url]);
-                }
-                const v = document.createElement('video');
-                v.muted = true;
-                v.preload = 'metadata';
-                v.playsInline = true;
-                const done = data => {
-                    thumbCache.set(url, data);
-                    if (data) {
-                        appState.thumbs = appState.thumbs || {};
-                        appState.thumbs[url] = data;
-                        scheduleSave();
-                    }
-                    v.removeAttribute('src');
-                    v.load();
-                    resolve(data);
-                };
-                v.onloadeddata = () => {
-                    try { v.currentTime = Math.min(2, (v.duration || 2) / 10); } catch (e) { done(null); }
-                };
-                v.onseeked = () => {
-                    try {
-                        const w = 320, h = Math.round(w * ((v.videoHeight || 9) / (v.videoWidth || 16)));
-                        const c = document.createElement('canvas');
-                        c.width = w;
-                        c.height = h;
-                        c.getContext('2d').drawImage(v, 0, 0, w, h);
-                        done(c.toDataURL('image/jpeg', 0.7));
-                    } catch (e) { done(null); }
-                };
-                v.onerror = () => done(null);
-                v.src = url;
-            });
-        }
-
-        // فيديوهات الصفحة الرئيسية
-        async function renderHomeVideos() {
-            const grid = $('home-videos');
-            if (!grid) return;
-            const items = [];
-            (appState.courses || []).forEach(c => (courseMedia.get(c.id) || []).forEach(m => items.push({ m, course: c.name, cid: c.id })));
-            $('home-videos-count').innerText = items.length ? items.length + ' فيديو' : '';
-            grid.innerHTML = '';
-            if (!items.length) {
-                const p = document.createElement('p');
-                p.className = 'exam-empty';
-                p.style.gridColumn = '1 / -1';
-                p.innerText = 'لا توجد فيديوهات بعد. أضف فيديو من داخل أي كورس.';
-                grid.appendChild(p);
-                return;
-            }
-            items.slice(0, 12).forEach(({ m, course, cid }) => {
-                const title = m.name.replace(/\.[^.]+$/, '');
-                const card = document.createElement('div');
-                card.className = 'course-card vid-card';
-                card.innerHTML = '<div class="vid-thumb"><div class="vid-play">' + icon('play') + '</div></div>' +
-                                 '<h3>' + esc(title) + '</h3><p>' + esc(course) + '</p>';
-                card.addEventListener('click', () => playMedia(cid, m.name, m.url, title));
-                grid.appendChild(card);
-                makeThumb(m.url).then(img => {
-                    if (img) card.querySelector('.vid-thumb').style.backgroundImage = 'url(' + img + ')';
-                });
-            });
-        }
-
-        // على الأندرويد الفيديو بيتفتح في المشغّل الأصلي (بيشغّل أغلب الصيغ)، وغير كده المشغّل اللي في المتصفح
-        // الفيديو بيتشغّل جوه المنصة. على الأندرويد بالمشغّل الأصلي.
-        let vpCurrent = null;
-        async function playMedia(cid, name, url, title) {
-            if (NATIVE && NATIVE.playVideo) {
-                if (NATIVE.playVideo(cid, name)) return;
-            }
-            vpCurrent = NATIVE ? null : { cid, name };
-            openPlayer(url, title);
-        }
-
-        // لو الصفحة ما قدرتش تفك الصيغة (زي MKV) على الكمبيوتر، نفتح المشغّل الأصلي (libmpv)
-        async function playNativeFallback() {
-            if (!vpCurrent) return false;
-            try {
-                const res = await fetch('/api/media/native-play', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ course: vpCurrent.cid, name: vpCurrent.name, start: vpVideo.currentTime || 0 })
-                });
-                const j = await res.json();
-                if (j && j.ok) { closeModal('player-modal'); return true; }
-            } catch (e) { /* نعرض الرسالة */ }
-            return false;
-        }
-
-        // ---- استكمال الفيديو من نفس المكان ----
-        // بنحفظ مكان المشاهدة لكل فيديو (بالرابط) في الحفظ العام، فيفضل محفوظ حتى لو قفلت التطبيق
-        let vpResumeKey = null, vpResumeDone = false, vpSaveAt = 0;
-        function saveVpPos(force) {
-            const v = vpVideo;
-            if (!vpResumeKey || !v.src || !isFinite(v.duration) || v.duration <= 0) return;
-            const now = Date.now();
-            if (!force && now - vpSaveAt < 3000) return;
-            vpSaveAt = now;
-            appState.videoPos ||= {};
-            const t = v.currentTime;
-            if (t < 5 || v.duration - t < 10) {
-                delete appState.videoPos[vpResumeKey];      // بدايته أو خلص: يبدأ من الأول المرة الجاية
-            } else {
-                appState.videoPos[vpResumeKey] = { t: Math.floor(t), d: Math.floor(v.duration), at: now };
-            }
-            const keys = Object.keys(appState.videoPos);
-            if (keys.length > 300) {                         // نحافظ على الحجم: نشيل الأقدم
-                keys.sort((a, b) => (appState.videoPos[a].at || 0) - (appState.videoPos[b].at || 0))
-                    .slice(0, keys.length - 300).forEach(k => delete appState.videoPos[k]);
-            }
-            scheduleSave();
-        }
-
-        function openPlayer(url, title) {
-            $('player-title').innerText = title;
-            vpResumeKey = url;
-            vpResumeDone = false;
-            vpVideo.src = url;
-            vpVideo.playbackRate = 1;
-            $('vp-speed').value = '1';
-            $('vp-wrap').classList.remove('idle');
-            $('vp-msg').classList.remove('show');
-            vpCheckLoad();
-            openModal('player-modal');
-            vpVideo.load();
-            vpUpdate();
-            vpWake();
-        }
-
-        function addVideoFromDevice() {
-            if (!detailId) return;
-            if (NATIVE) {
-                api.importMedia(detailId);
-                return;
-            }
-            api.importMedia(detailId);
-        }
-
-        function openLinkModal() {
-            $('link-title-input').value = '';
-            $('link-url-input').value = '';
-            openModal('link-modal');
-            setTimeout(() => $('link-url-input').focus(), 80);
-        }
-
-        function saveLink() {
-            const c = findCourse(detailId);
-            if (!c) return;
-            const title = $('link-title-input').value.trim() || 'فيديو';
-            const url = $('link-url-input').value.trim();
-            if (!/^https?:\/\//i.test(url)) return toast('اكتب رابط يبدأ بـ https://');
-            c.links = c.links || [];
-            c.links.push({ id: 'l' + Date.now().toString(36), title, url });
-            scheduleSave();
-            closeModal('link-modal');
-            renderDetail();
-            renderCourses();
-        }
-
-        // يُستدعى من تطبيق الأندرويد بعد إضافة فيديو
-        window.onMediaChanged = cid => {
-            if (cid === detailId && $('detail-modal').classList.contains('open')) renderDetail();
-            renderCourses();
-        };
-
         function openAi(url) {
             api.openAi(url);
         }
@@ -9727,6 +9119,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const readerStage = $('reader-stage');
         // وضع اليد: أي لمس (قلم أو إصبع) بيحرك الصفحة، وإصبعين للتكبير والتصغير.
         // لو الصفحة مش مكبّرة، أو وصلنا لحدها والسحب/السكرول مستمر لبره الصفحة، بننتقل للصفحة اللي فوق أو تحت.
+        let readerAxis = null;    // اتجاه الحركة الحالية: 'x' (يمين/شمال، للتكبير بس) أو 'y' (فوق/تحت، لتقليب الصفحات)
         let readerEdge = 0;       // مسافة السحب لبره حدود الصفحة
         let readerWheelEdge = 0;  // مسافة السكرول لبره حدود الصفحة
         let readerWheelLock = 0;  // مهلة قصيرة بعد التقليب بالسكرول عشان ما يقلبش صفحتين مرة واحدة
@@ -9751,7 +9144,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
             try { readerStage.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
             if (readerTouches.size >= 2) readerPinchStart();
-            else readerEdge = 0;
+            else { readerEdge = 0; readerAxis = null; }
         }, true);
         readerStage.addEventListener('pointermove', e => {
             if (!readerTouches.has(e.pointerId)) return;
@@ -9761,8 +9154,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (reader.annotate || readerPinch) return;   // وضع الكتابة: الإصبع بيكتب، مش بيحرك
             const dx = e.clientX - old.x, dy = e.clientY - old.y;
             if (Math.abs(dx) + Math.abs(dy) > 3) readerNoTap = true;
-            const oldTy = readerView.ty;
-            readerView.tx += dx; readerView.ty += dy;
+            if (!readerAxis && Math.abs(dx) + Math.abs(dy) > 6) readerAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+            if (readerAxis === 'x') { if (readerView.z > 1.001) readerView.tx += dx; }   // يمين/شمال: تحريك الصفحة المكبّرة بس، ومايغيّرش الصفحة
+            else if (readerAxis === 'y') readerView.ty += dy;                             // فوق/تحت: التمرير بين الصفحات
             clampReaderView(); applyReaderView();
             rdOnMove();
         }, true);
@@ -9771,7 +9165,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             readerTouches.delete(e.pointerId);
             if (readerTouches.size < 2 && readerPinch) readerPinch = null;
             if (readerTouches.size === 0) {
-                readerEdge = 0;
+                readerEdge = 0; readerAxis = null;
                 setTimeout(() => { if (readerTouches.size === 0) readerNoTap = false; }, 300);
             }
         }
@@ -9794,8 +9188,12 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 return;
             }
             // السكرول لفوق وتحت بس (السكرول الجانبي بيتجاهل)، والصفحات بتكمّل ورا بعض
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                if (readerView.z > 1.001) { readerView.tx -= e.deltaX; clampReaderView(); applyReaderView(); }
+                return;
+            }
             const dy = e.deltaY;
-            if (!dy || Math.abs(e.deltaX) > Math.abs(dy)) return;
+            if (!dy) return;
             readerView.ty -= dy;
             clampReaderView();
             applyReaderView();

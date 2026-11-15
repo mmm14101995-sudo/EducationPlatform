@@ -6,7 +6,6 @@ import re
 import sys
 import shutil
 import socket
-import subprocess
 import threading
 import urllib.parse
 import urllib.request
@@ -25,7 +24,6 @@ BOOKS_DIR = os.path.join(APP_DIR, "books")
 DATA_DIR = os.path.join(APP_DIR, "data")
 EXPORT_DIR = os.path.join(APP_DIR, "exports")
 STATE_FILE = os.path.join(DATA_DIR, "state.json")
-VIDEO_POS_FILE = os.path.join(DATA_DIR, "video_pos.json")   # مكان المشاهدة في مشغّل mpv
 
 # الواجهة تتحدث تلقائياً من GitHub: تعدّل index.html على GitHub مرة واحدة ويتطبق على الكمبيوتر
 UI_URL = "https://raw.githubusercontent.com/mmm14101995-sudo/EducationPlatform/main/index.html"
@@ -36,32 +34,9 @@ GRADES = {"sec2", "sec3", "y3", "y4"}   # السنة الثالثة والراب
 REVIEW_FOLDERS = {"reviews", "review", "ملازم", "مراجعات"}
 EXAM_FOLDERS = {"exams", "exam", "اختبارات", "اختبار"}
 
-# فيديوهات الكورسات: كل كورس مجلد اسمه معرّفه (حروف إنجليزية وأرقام فقط)
-MEDIA_DIR = os.path.join(DATA_DIR, "videos")
-COURSE_RE = re.compile(r"^[a-z0-9]{1,40}$")
-VIDEO_EXT = (".mp4", ".webm", ".mkv", ".mov", ".m4v", ".3gp")
-
 os.makedirs(BOOKS_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 state_lock = threading.Lock()
-
-
-# ---------- فيديوهات الكورسات ----------
-def course_dir(cid):
-    if not COURSE_RE.match(cid or ""):
-        return None
-    return os.path.join(MEDIA_DIR, cid)
-
-
-def list_media(cid):
-    d = course_dir(cid)
-    if not d or not os.path.isdir(d):
-        return []
-    out = []
-    for name in sorted(os.listdir(d), key=str.lower):
-        if os.path.isfile(os.path.join(d, name)) and name.lower().endswith(VIDEO_EXT):
-            out.append({"name": name, "url": f"/media/{cid}/{urllib.parse.quote(name)}"})
-    return out
 
 
 # ---------- الكتب ----------
@@ -112,25 +87,6 @@ def load_state():
             return json.load(f)
     except (OSError, ValueError):
         return {}
-
-
-def load_video_pos():
-    try:
-        with open(VIDEO_POS_FILE, encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, dict) else {}
-    except (OSError, ValueError):
-        return {}
-
-
-def save_video_pos(data):
-    try:
-        tmp = VIDEO_POS_FILE + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False)
-        os.replace(tmp, VIDEO_POS_FILE)
-    except OSError:
-        pass
 
 
 def save_state(data):
@@ -188,11 +144,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
-        if path == "/api/media/list":
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            return self.send_json(list_media(query.get("course", [""])[0]))
-        if path.startswith("/media/"):
-            return self.serve_media(path)
         if path == "/api/books":
             return self.send_json(scan_books())
         if path == "/api/state":
@@ -213,23 +164,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         if path == "/api/state":
             save_state(payload)
-            return self.send_json({"ok": True})
-
-        if path == "/api/media/delete":
-            d = course_dir(str(payload.get("course", "")))
-            name = str(payload.get("name", ""))
-            if not d or not name or os.path.basename(name) != name:
-                return self.send_json({"ok": False}, 400)
-            target = os.path.join(d, name)
-            if os.path.isfile(target):
-                os.remove(target)
-            return self.send_json({"ok": True})
-
-        if path == "/api/media/delete-course":
-            d = course_dir(str(payload.get("course", "")))
-            if not d:
-                return self.send_json({"ok": False}, 400)
-            shutil.rmtree(d, ignore_errors=True)
             return self.send_json({"ok": True})
 
         if path == "/api/books/pick":
@@ -261,63 +195,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     ids.append("/".join([grade.upper()] + ([folder] if folder else []) + [name]))
             return self.send_json({"ok": True, "count": count, "ids": ids})
 
-        if path == "/api/media/native-play":
-            d = course_dir(str(payload.get("course", "")))
-            name = str(payload.get("name", ""))
-            if not d or not name or os.path.basename(name) != name:
-                return self.send_json({"ok": False}, 400)
-            target = os.path.join(d, name)
-            if not os.path.isfile(target):
-                return self.send_json({"ok": False}, 404)
-            key = f"{payload.get('course', '')}/{name}"
-            try:
-                start = float(payload.get("start") or 0)
-            except (TypeError, ValueError):
-                start = 0.0
-            if start < 5:
-                start = float(load_video_pos().get(key, 0) or 0)
-            try:
-                subprocess.Popen(
-                    native_player_cmd(target, os.path.splitext(name)[0], key, start),
-                    creationflags=getattr(subprocess, "DETACHED_PROCESS", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
-                )
-            except OSError:
-                return self.send_json({"ok": False}, 500)
-            return self.send_json({"ok": True})
-
-        if path == "/api/media/pick":
-            # يفتح نافذة اختيار الفيديوهات، وينسخها تلقائياً جوه مجلد الكورس
-            d = course_dir(str(payload.get("course", "")))
-            if not d:
-                return self.send_json({"ok": False}, 400)
-            wins = webview.windows
-            if not wins:
-                return self.send_json({"ok": False}, 500)
-            picked = wins[0].create_file_dialog(
-                webview.OPEN_DIALOG,
-                allow_multiple=True,
-                file_types=("Video files (*.mp4;*.webm;*.mkv;*.mov;*.m4v;*.3gp)",),
-            )
-            if not picked:
-                return self.send_json({"ok": False, "cancelled": True})
-            os.makedirs(d, exist_ok=True)
-            count = 0
-            for src in picked:
-                name = os.path.basename(src)
-                if name.lower().endswith(VIDEO_EXT):
-                    shutil.copy2(src, os.path.join(d, name))
-                    count += 1
-            return self.send_json({"ok": True, "count": count})
-
-        if path == "/api/media/open-folder":
-            d = course_dir(str(payload.get("course", "")))
-            if not d:
-                return self.send_json({"ok": False}, 400)
-            os.makedirs(d, exist_ok=True)
-            if hasattr(os, "startfile"):
-                os.startfile(d)
-            return self.send_json({"ok": True, "path": d})
-
         if path == "/api/open-folder":
             grade = str(payload.get("grade", "sec3")).lower()
             if grade not in GRADES:
@@ -344,56 +221,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         self.send_error(404)
 
-    def serve_media(self, path):
-        """يخدم الفيديو مع دعم Range عشان التقديم والترجيع يشتغلوا."""
-        parts = path[len("/media/"):].split("/", 1)
-        if len(parts) != 2:
-            return self.send_error(404)
-        cid, name = urllib.parse.unquote(parts[0]), urllib.parse.unquote(parts[1])
-        d = course_dir(cid)
-        if not d or not name or os.path.basename(name) != name:
-            return self.send_error(404)
-        full = os.path.join(d, name)
-        if not os.path.isfile(full):
-            return self.send_error(404)
-
-        size = os.path.getsize(full)
-        start, end, status = 0, size - 1, 200
-        rng = self.headers.get("Range")
-        if rng and rng.startswith("bytes="):
-            spec = rng[len("bytes="):].split(",")[0].split("-")
-            try:
-                if spec[0]:
-                    start = int(spec[0])
-                else:
-                    start = max(0, size - int(spec[1]))
-                if len(spec) > 1 and spec[1]:
-                    end = int(spec[1])
-            except ValueError:
-                return self.send_error(416)
-            end = min(end, size - 1)
-            if start > end or start >= size:
-                return self.send_error(416)
-            status = 206
-
-        length = end - start + 1
-        self.send_response(status)
-        self.send_header("Content-Type", "video/webm" if name.lower().endswith(".webm") else "video/mp4")
-        self.send_header("Accept-Ranges", "bytes")
-        self.send_header("Content-Length", str(length))
-        if status == 206:
-            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
-        self.end_headers()
-        with open(full, "rb") as f:
-            f.seek(start)
-            remaining = length
-            while remaining > 0:
-                chunk = f.read(min(65536, remaining))
-                if not chunk:
-                    break
-                self.wfile.write(chunk)
-                remaining -= len(chunk)
-
     def serve_book(self, rel):
         base = os.path.abspath(BOOKS_DIR)
         full = os.path.abspath(os.path.join(base, rel))
@@ -407,230 +234,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-
-
-# ---------- المشغّل الأصلي للفيديو (libmpv + شريط تحكم) ----------
-SPEEDS = ["0.5x", "0.75x", "1x", "1.25x", "1.5x", "2x", "2.5x", "3x"]
-
-def native_player_cmd(path, title, key="", start=0):
-    args = ["--player", path, title, key, str(start)]
-    if IS_FROZEN:
-        return [sys.executable, *args]
-    return [sys.executable, os.path.abspath(__file__), *args]
-
-def player_main(path, title, key="", start=0.0):
-    import time
-    import tkinter as tk
-    from tkinter import ttk, messagebox
-    try:
-        start = float(start or 0)
-    except ValueError:
-        start = 0.0
-    if start < 5:
-        start = 0.0
-    root = tk.Tk()
-    root.title(title or "مشغّل الفيديو")
-    root.geometry("1280x720")
-    root.configure(bg="black")
-    video = tk.Frame(root, bg="black")
-    video.pack(fill="both", expand=True)
-    root.update()
-    try:
-        import mpv
-        mpv_opts = {"start": str(start)} if start else {}
-        player = mpv.MPV(
-            wid=str(video.winfo_id()),
-            keep_open=True,
-            **mpv_opts,
-            input_default_bindings=False,
-            input_vo_keyboard=False,
-            osc=False,
-            ytdl=False,
-            hr_seek="yes",
-        )
-        player.play(path)
-    except Exception as e:
-        messagebox.showerror("مشغّل الفيديو", "تعذر تشغيل الفيديو:\n" + str(e))
-        root.destroy()
-        return
-
-    st = {"drag": False, "last": time.time(), "visible": True}
-    seek_var = tk.DoubleVar(value=0)
-    bar = tk.Frame(root, bg="#0f172a")
-    bstyle = dict(bg="#1e293b", fg="white", activebackground="#334155", activeforeground="white",
-                  bd=0, padx=12, pady=6, font=("Segoe UI", 11, "bold"), cursor="hand2")
-
-    def fmt(t):
-        t = max(0, int(t or 0))
-        return "%d:%02d" % (t // 60, t % 60)
-
-    def show_bar():
-        st["last"] = time.time()
-        if not st["visible"]:
-            bar.place(relx=0, rely=1, anchor="sw", relwidth=1)
-            st["visible"] = True
-
-    def hide_bar():
-        if st["visible"]:
-            bar.place_forget()
-            st["visible"] = False
-
-    def toggle():
-        player.pause = not player.pause
-        show_bar()
-
-    def rel(sec):
-        player.seek(sec, reference="relative")
-        show_bar()
-
-    def on_speed(_=None):
-        try:
-            player.speed = float(speed.get().replace("x", ""))
-        except ValueError:
-            pass
-        show_bar()
-
-    def seek_abs(v):
-        dur = player.duration or 0
-        if dur:
-            player.seek(dur * float(v) / 1000.0, reference="absolute")
-
-    def toggle_full(_=None):
-        on = not bool(root.attributes("-fullscreen"))
-        root.attributes("-fullscreen", on)
-        b_full.config(text="خروج من ملء الشاشة" if on else "ملء الشاشة")
-        show_bar()
-
-    def on_video_click(_=None):
-        if not st["visible"]:
-            show_bar()
-        else:
-            toggle()
-
-    row1 = tk.Frame(bar, bg="#0f172a")
-    row1.pack(fill="x", padx=14, pady=(10, 2))
-    scale = ttk.Scale(row1, from_=0, to=1000, orient="horizontal", variable=seek_var)
-    scale.pack(fill="x")
-    scale.bind("<ButtonPress-1>", lambda e: st.update(drag=True))
-    scale.bind("<ButtonRelease-1>", lambda e: (seek_abs(seek_var.get()), st.update(drag=False)))
-
-    row2 = tk.Frame(bar, bg="#0f172a")
-    row2.pack(fill="x", padx=14, pady=(2, 12))
-    b_back = tk.Button(row2, text="−30 ث", command=lambda: rel(-30), **bstyle)
-    b_play = tk.Button(row2, text="إيقاف", command=toggle, width=7, **bstyle)
-    b_fwd = tk.Button(row2, text="+30 ث", command=lambda: rel(30), **bstyle)
-    time_lbl = tk.Label(row2, text="0:00 / 0:00", fg="#e2e8f0", bg="#0f172a", font=("Segoe UI", 11))
-    b_back.pack(side="left")
-    b_play.pack(side="left", padx=6)
-    b_fwd.pack(side="left")
-    time_lbl.pack(side="left", padx=14)
-    b_full = tk.Button(row2, text="ملء الشاشة", command=toggle_full, **bstyle)
-    b_full.pack(side="right")
-    speed = ttk.Combobox(row2, values=SPEEDS, state="readonly", width=6)
-    speed.set("1x")
-    speed.pack(side="right", padx=8)
-    speed.bind("<<ComboboxSelected>>", on_speed)
-
-    bar.place(relx=0, rely=1, anchor="sw", relwidth=1)
-    video.bind("<Button-1>", on_video_click)
-    root.bind_all("<Motion>", lambda e: show_bar())
-    root.bind("<space>", lambda e: toggle())
-    root.bind("<Left>", lambda e: rel(-30))
-    root.bind("<Right>", lambda e: rel(30))
-    root.bind("<f>", toggle_full)
-    root.bind("<Escape>", lambda e: root.attributes("-fullscreen", False))
-
-    def tick():
-        try:
-            pos = player.time_pos or 0
-            dur = player.duration or 0
-            time_lbl.config(text=fmt(pos) + " / " + fmt(dur))
-            if int(time.time()) % 5 == 0 and not st.get("saved_at") == int(time.time()):
-                st["saved_at"] = int(time.time())
-                save_pos()
-            if dur and not st["drag"]:
-                seek_var.set(pos / dur * 1000)
-            b_play.config(text="تشغيل" if player.pause else "إيقاف")
-            # الشريط يختفي بعد 10 ثواني لو الفيديو شغّال
-            if st["visible"] and not player.pause and time.time() - st["last"] > 10:
-                hide_bar()
-        except Exception:
-            pass
-        root.after(250, tick)
-
-    def save_pos(final=False):
-        # نحفظ مكان المشاهدة عشان لما نفتح الفيديو تاني يكمّل من نفس المكان
-        if not key:
-            return
-        try:
-            pos = float(player.time_pos or 0)
-            dur = float(player.duration or 0)
-        except Exception:
-            return
-        data = load_video_pos()
-        if pos < 5 or (dur and dur - pos < 10):
-            data.pop(key, None)
-        else:
-            data[key] = pos
-        save_video_pos(data)
-
-    def close():
-        save_pos(True)
-        try:
-            player.terminate()
-        except Exception:
-            pass
-        root.destroy()
-
-    root.protocol("WM_DELETE_WINDOW", close)
-    root.after(250, tick)
-    root.mainloop()
-
-# ---------- نسخة واحدة بس من البرنامج ----------
-SINGLE_PORT = 47391   # منفذ ثابت: النسخة الأولى بتحجزه، والنسخ اللي بعدها بتبعتله إشارة وتقفل
-
-
-def claim_single_instance():
-    """يرجّع (الحالة، السوكت). الحالة: primary = النسخة الأولى، secondary = فيه نسخة شغالة (نقفل),
-    standalone = المنفذ مشغول ببرنامج تاني (نشغّل عادي من غير قفل)."""
-    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # ملحوظة: ما نستخدمش SO_REUSEADDR على ويندوز، عشان ما يسمحش بحجز نفس المنفذ مرتين
-    try:
-        srv.bind(("127.0.0.1", SINGLE_PORT))
-        srv.listen(5)
-        return "primary", srv
-    except OSError:
-        srv.close()
-    try:
-        with socket.create_connection(("127.0.0.1", SINGLE_PORT), timeout=2) as c:
-            c.sendall(b"show")
-        return "secondary", None
-    except OSError:
-        return "standalone", None
-
-
-def bring_to_front(win):
-    for fn in (win.restore, win.show):
-        try:
-            fn()
-        except Exception:
-            pass
-
-
-def watch_for_others(srv, win):
-    while True:
-        try:
-            conn, _ = srv.accept()
-        except OSError:
-            break
-        try:
-            conn.settimeout(2)
-            conn.recv(16)
-        except OSError:
-            pass
-        finally:
-            conn.close()
-        bring_to_front(win)
 
 
 def main():
@@ -666,14 +269,4 @@ def main():
 
 
 if __name__ == "__main__":
-    if "--player" in sys.argv:
-        i = sys.argv.index("--player")
-        rest = sys.argv[i + 1:]
-        player_main(
-            rest[0],
-            rest[1] if len(rest) > 1 else "",
-            rest[2] if len(rest) > 2 else "",
-            rest[3] if len(rest) > 3 else 0,
-        )
-    else:
-        main()
+    main()
