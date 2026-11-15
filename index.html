@@ -2668,6 +2668,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 <button class="reader-btn" id="reader-present-btn" title="عرض تقديمي" onclick="startPresent('reader')">▶ عرض تقديمي</button>
                 <button class="reader-btn" id="spread-btn" onclick="toggleSpread()">صفحتان</button>
                 <button class="reader-btn" onclick="toggleReaderPaper()">الخلفية</button>
+                <button class="reader-btn" id="reader-export-btn" title="حفظ الكتاب مع الكتابة عليه كملف PDF" onclick="exportReaderPdf()">حفظ PDF</button>
                 <button class="reader-btn" id="reader-to-board" title="الذهاب للسبورة" onclick="readerToBoard()">السبورة</button>
                 <button class="reader-btn" title="إخفاء الأدوات" onclick="toggleReaderBars()"><i data-icon="eye"></i></button>
                 <button class="reader-btn" id="rd-fs-btn" title="ملء الشاشة" onclick="toggleReaderFs()"><i data-icon="maximize"></i></button>
@@ -5429,7 +5430,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function addReaderSticky() {
             if (!reader.book) return;
-            stickiesFor(reader.page).push({ id: 'n' + Date.now().toString(36), x: 0.3, y: 0.3, w: 0.4, h: 0.28, text: '', mode: 'draw', ink: [] });
+            stickiesFor(reader.page).push({ id: 'n' + Date.now().toString(36), x: 0.38, y: 0.36, w: 0.22, h: 0.15, text: '', mode: 'draw', ink: [] });
             scheduleSave();
             renderReader();
         }
@@ -9089,6 +9090,49 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             bindBar($('rd-vscroll'), false);
             bindBar($('rd-hscroll'), true);
         })();
+
+        // تصدير الكتاب كـ PDF مع الكتابة اللي عليه: كل صفحة بتتحوّل لصورة (الكتاب + الخطوط) وتتجمع في ملف واحد
+        let readerExporting = false;
+        async function exportReaderPdf() {
+            if (!reader.doc || !reader.book) return toast('افتح كتاب الأول');
+            if (!window.jspdf) return toast('المكتبة ما زالت تحمل، حاول بعد لحظات');
+            if (readerExporting) return;
+            readerExporting = true;
+            toast('جاري تجهيز الـPDF... ممكن ياخد شوية وقت');
+            const { jsPDF } = window.jspdf;
+            let pdf = null;
+            try {
+                for (let p = 1; p <= reader.total; p++) {
+                    const page = await reader.doc.getPage(p);
+                    const base = page.getViewport({ scale: 1 });
+                    const scale = Math.min(2, 2000 / Math.max(base.width, base.height));
+                    const vp = page.getViewport({ scale });
+                    const c = document.createElement('canvas');
+                    c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+                    const g = c.getContext('2d');
+                    g.fillStyle = '#ffffff'; g.fillRect(0, 0, c.width, c.height);
+                    await page.render({ canvasContext: g, viewport: vp }).promise;
+                    paintNoteStrokes(g, c, pageStrokes(p));   // الكتابة فوق الصفحة بنفس الشكل اللي ظاهر
+                    const W = base.width, H = base.height;
+                    const orient = W > H ? 'landscape' : 'portrait';
+                    const img = c.toDataURL('image/jpeg', 0.9);
+                    if (!pdf) pdf = new jsPDF({ orientation: orient, unit: 'px', format: [W, H] });
+                    else pdf.addPage([W, H], orient);
+                    pdf.addImage(img, 'JPEG', 0, 0, W, H);
+                    c.width = 0; c.height = 0;
+                    if (p % 10 === 0) toast('تم تجهيز ' + p + ' من ' + reader.total);
+                }
+                const base64 = pdf.output('datauristring').split(',').pop();
+                const name = String(reader.book.title || 'كتاب').replace(/[\\/:*?"<>|]/g, '') + ' - مع الكتابة.pdf';
+                const path = await api.savePdf(name, base64);
+                toast('تم الحفظ في: ' + path);
+            } catch (e) {
+                console.error('تعذر تصدير PDF للقارئ', e);
+                toast('تعذر التصدير، حاول مرة تانية');
+            } finally {
+                readerExporting = false;
+            }
+        }
 
         function readerSharpen() {
             // لو لسه بيكبّر بإصبعين نستنى، عشان الصفحة ما تتبدلش تحت إيده
