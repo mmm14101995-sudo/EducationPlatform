@@ -2213,6 +2213,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on #board:not(.fs) #board-float .ibtn svg { width: 20px !important; height: 34px !important; }
         body.split-on #board:not(.fs) #board-float .ibtn [data-icon] svg { width: 20px !important; height: 20px !important; }
         body.split-on #board:not(.fs) #board-float .bar-handle { width: 44px !important; height: 22px !important; }
+
+        /* الوضع المزدوج: شريط السبورة متجمع (مش متمدد) وأزراره في نفس الوضع اللي في شريط الكتاب */
+        body.split-on #board:not(.fs) #board-float.bar-vert, body.split-on #board:not(.fs) #board-float.bar-vert .bgrp,
+        body.split-on #board:not(.fs) #board-float.bar-vert .bar-ctl2 {
+            justify-content: flex-start !important; align-content: flex-start !important; flex: 0 0 auto !important; height: auto !important;
+        }
+        body.split-on #board:not(.fs) #board-float.bar-vert { max-height: none !important; overflow: visible !important; }
+        body.split-on #board:not(.fs) #board-float .pen-more-wrap { margin: 0 !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -4198,6 +4206,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const bc = $('split-board-close'); if (bc) bc.style.display = 'none';
             const sb = $('rd-split-btn'); if (sb) sb.classList.remove('active');
             if (closeBoard) switchView('home', document.querySelector('.nav[data-view="home"]'));
+            rdSplitZ = 0;
+            if (reader.doc && $('reader').classList.contains('open')) renderReader(false);
             setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); if (typeof requestRender === 'function') requestRender(); }, 80);
         }
         function bindSplitDivider(div) {
@@ -9438,11 +9448,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             renderReader(readerView.z > 1.05).catch(() => {});
         }
 
+        let rdSplitZ = 0;   // مقاس الكتاب في الوضع المزدوج (مقفول: مفيش تكبير ولا تصغير)
         function clampReaderView() {
             const { W, H } = rdMetrics();
-            if (readerView.z <= 1) { readerView.z = 1; readerView.tx = 0; }
+            if (document.body.classList.contains('split-on') && rdSplitZ) {
+                readerView.z = rdSplitZ;
+                readerView.tx = (W - W * rdSplitZ) / 2;   // متوسط أفقياً
+            } else {
+                if (readerView.z <= 1) { readerView.z = 1; readerView.tx = 0; }
+                const z = readerView.z;
+                readerView.tx = z > 1 ? Math.min(0, Math.max(W - W * z, readerView.tx)) : 0;
+            }
             const z = readerView.z;
-            readerView.tx = z > 1 ? Math.min(0, Math.max(W - W * z, readerView.tx)) : 0;
             const cH = rdContentH() * z;
             readerView.ty = cH <= H ? (H - cH) / 2 : Math.min(0, Math.max(H - cH, readerView.ty));
         }
@@ -9600,6 +9617,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const rb = $('rtl-btn'); if (rb) rb.innerText = appState.readerRtl ? 'من اليمين لليسار' : 'من اليسار لليمين';
             readerRendered = { w: stage.clientWidth, h: stage.clientHeight };
             if (!keepView) readerView = { z: 1, tx: 0, ty: -rdSlotOf(reader.page) * step };
+            if (!document.body.classList.contains('split-on')) rdSplitZ = 0;
             if (document.body.classList.contains('split-on') && !keepView) {
                 // الوضع المزدوج: الصفحة بتملى عرض الجزء اللي فيه القارئ
                 const pg1 = await reader.doc.getPage(1);
@@ -9610,6 +9628,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const zFill = Math.min(4, Math.max(1, cssW0 / (b1.width * fit0)));
                 // الكتاب متوسط في الجزء اللي فيه (أفقياً ورأسياً) على مستوى التكبير ده
                 const Hs = stage.clientHeight;
+                rdSplitZ = zFill;
                 readerView = {
                     z: zFill,
                     tx: (W - W * zFill) / 2,
