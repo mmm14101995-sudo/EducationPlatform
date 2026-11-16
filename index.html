@@ -2283,6 +2283,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.phone-ui #board:not(.fs) > .board-bar [data-tb="pages"] { order: -2; }
         body.phone-ui #board:not(.fs) > .board-bar [data-tb="reader"] { order: -1; }
         body.phone-ui #bar-grip, body.phone-ui #bar-orient-btn { display: none !important; }
+
+        /* ===== لوحة الألوان: صغيرة وبتنبثق جنب الشريط، ومربعات الألوان صغيرة (كل الأوضاع) ===== */
+        #palette-modal.pal-modal { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; pointer-events: none; z-index: 4300 !important; }
+        #palette-modal .pal-box { position: fixed; left: 8px; top: 8px; pointer-events: auto; width: 196px; max-width: calc(100vw - 16px); max-height: none; overflow: visible; padding: 10px !important; border-radius: 14px !important; box-shadow: 0 10px 28px rgba(0,0,0,0.4) !important; }
+        #palette-modal .modal-head { display: none; }
+        #palette-modal .pal-grid { grid-template-columns: repeat(6, 22px); gap: 6px; margin-bottom: 8px; justify-content: center; }
+        #palette-modal .pal-sw { width: 22px; height: 22px; aspect-ratio: auto; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4); box-shadow: none; }
+        #palette-modal .pal-sw:hover { transform: scale(1.12); }
+        #palette-modal .pal-custom { font-size: 11px; gap: 8px; }
+        #palette-modal .pal-custom input { width: 34px; height: 22px; }
     </style>
 </head>
 <body data-theme="dark">
@@ -8960,10 +8970,45 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
         }
 
-        function openPalette(target) {
+        // لوحة الألوان: نافذة صغيرة بتنبثق جنب الزرار اللي فتحها (مش بتغطي الشاشة)
+        let palAnchor = null, palClosedAt = 0, palClosedAnchor = null;
+        document.addEventListener('pointerdown', e => {
+            const t = e.target && e.target.closest ? e.target.closest('button, .cpick-btn') : null;
+            if (t && !t.closest('#palette-modal')) window.__lastTapBtn = t;
+            const m = $('palette-modal');
+            if (m && m.classList.contains('open') && !(e.target.closest && e.target.closest('#palette-modal .pal-box'))) {
+                palClosedAt = Date.now(); palClosedAnchor = palAnchor;   // الضغط على نفس الزرار بيقفلها بدل ما يفتحها تاني
+                closeModal('palette-modal');
+            }
+        }, true);
+        function placePalette(a) {
+            const box = document.querySelector('#palette-modal .pal-box');
+            if (!box) return;
+            let r = a && a.isConnected ? a.getBoundingClientRect() : null;
+            if (!r || (!r.width && !r.height)) {
+                const fb = $(paletteTarget === 'board' ? 'sb-color' : 'tool-pen-main');
+                const fr = fb ? fb.getBoundingClientRect() : null;
+                r = fr && (fr.width || fr.height) ? fr : null;
+            }
+            const bw = box.offsetWidth, bh = box.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+            let x, y;
+            if (!r) { x = (vw - bw) / 2; y = vh - bh - 90; }
+            else {
+                const inVert = a && a.closest && a.closest('#split-board-bar, .reader-notes.bar-vert, #board-float.bar-vert');
+                if (inVert) { x = (r.left + r.width / 2 < vw / 2) ? r.right + 8 : r.left - bw - 8; y = r.top + r.height / 2 - bh / 2; }
+                else { x = r.left + r.width / 2 - bw / 2; y = (r.top > bh + 16) ? r.top - bh - 8 : r.bottom + 8; }
+            }
+            box.style.left = Math.max(8, Math.min(x, vw - bw - 8)) + 'px';
+            box.style.top = Math.max(8, Math.min(y, vh - bh - 8)) + 'px';
+        }
+        function openPalette(target, anchorEl) {
             paletteTarget = target;
+            const a = anchorEl || window.__lastTapBtn || null;
+            if (a && a === palClosedAnchor && Date.now() - palClosedAt < 500) { palClosedAnchor = null; return; }
             $('pal-custom').value = target === 'board' ? penColor : reader.color;
+            palAnchor = a;
             openModal('palette-modal');
+            placePalette(a);
         }
 
         function markCurrentColor(c) {
