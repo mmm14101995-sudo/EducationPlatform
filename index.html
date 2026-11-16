@@ -1967,7 +1967,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         .rd-pen-colors { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; width: 100%; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.12); }
         .rd-sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.7); cursor: pointer; padding: 0; color: #fff; font-weight: 800; line-height: 1; background-clip: padding-box; }
         .rd-sw.active { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.65); }
-        .rd-sw-more { background: rgba(255,255,255,0.12) !important; font-size: 15px; }
+        .rd-sw-more { background: conic-gradient(#ef4444, #f59e0b, #facc15, #22c55e, #06b6d4, #3b82f6, #a855f7, #ef4444) !important; }
     
         /* ===== وضع الأداء: إلغاء كل التأثيرات الثقيلة (تمويه، ظلال، حركات) عشان السبورة والقارئ ===== */
         body.lite *, body.lite *::before, body.lite *::after {
@@ -2293,6 +2293,30 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         #palette-modal .pal-sw:hover { transform: scale(1.12); }
         #palette-modal .pal-custom { font-size: 11px; gap: 8px; }
         #palette-modal .pal-custom input { width: 34px; height: 22px; }
+
+        /* ===== صفحة المهام: ورقة منظمة وملونة جاهزة للكتابة ===== */
+        .ts-wrap { max-width: 820px; margin: 0 auto; padding: 0 8px 24px; }
+        .ts-tools { position: sticky; top: 0; z-index: 8; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px; margin-bottom: 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+        .ts-colors { display: inline-flex; gap: 6px; }
+        .ts-exit { background: rgba(239,68,68,0.16); border-color: rgba(239,68,68,0.5); font-weight: 700; }
+        .ts-sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.75); cursor: pointer; padding: 0; }
+        .ts-sw.active { box-shadow: 0 0 0 2px var(--accent); }
+        .ts-btn { height: 30px; padding: 0 10px; border-radius: 9px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; font-size: 12px; display: inline-grid; place-items: center; }
+        .ts-btn.active { background: rgba(var(--accent-rgb), 0.22); border-color: rgba(var(--accent-rgb), 0.6); }
+        .ts-sheet { position: relative; background: #fffdf8; color: #1f2937; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 40px -22px rgba(0,0,0,0.5); }
+        .ts-head { padding: 16px 20px 14px; background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #fff; }
+        .ts-head h2 { margin: 0 0 2px; font-size: 22px; }
+        .ts-head span { font-size: 12px; opacity: 0.92; }
+        .ts-prog { height: 6px; margin-top: 10px; border-radius: 6px; background: rgba(255,255,255,0.3); overflow: hidden; }
+        .ts-prog i { display: block; height: 100%; width: 0; background: #fff; transition: width 0.25s; }
+        .ts-band { padding: 8px 16px; font-weight: 800; font-size: 14px; color: #fff; background: var(--c); }
+        .ts-row { position: relative; height: 54px; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid rgba(15,23,42,0.13); background: #fffdf8; }
+        .ts-row::before { content: ""; position: absolute; top: 0; bottom: 0; inset-inline-start: 0; width: 5px; background: var(--c); opacity: 0.55; }
+        .ts-row.done { background: rgba(15,23,42,0.04); }
+        .ts-chk { position: relative; z-index: 3; width: 26px; height: 26px; padding: 0; border-radius: 8px; border: 2px solid var(--c); background: #fff; cursor: pointer; display: grid; place-items: center; flex: none; }
+        .ts-chk.on { background: var(--c); }
+        .ts-chk.on::after { content: "✓"; color: #fff; font-weight: 800; font-size: 16px; line-height: 1; }
+        #ts-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; touch-action: none; cursor: crosshair; }
     </style>
 </head>
 <body data-theme="dark">
@@ -2541,6 +2565,25 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             </section>
 
             <!-- المكتبة -->
+            <section id="view-todos" class="view">
+                <div class="ts-wrap">
+                    <div class="ts-tools" id="ts-tools">
+                        <button type="button" class="ts-btn ts-exit" onclick="exitTodos()" title="الخروج من المهام (Esc)" aria-label="خروج من المهام">✕ خروج</button>
+                        <span class="ts-colors" id="ts-colors"></span>
+                        <button type="button" class="ts-btn" id="ts-eraser" onclick="tsEraser()">ممحاة</button>
+                        <button type="button" class="ts-btn" onclick="tsUndo()" aria-label="تراجع"><i data-icon="undo"></i></button>
+                        <button type="button" class="ts-btn" id="ts-clear" onclick="tsClear()">مسح الكتابة</button>
+                    </div>
+                    <div class="ts-sheet" id="ts-sheet">
+                        <div class="ts-head">
+                            <h2>قائمة المهام</h2><span id="ts-date"></span>
+                            <div class="ts-prog"><i id="ts-prog-bar"></i></div>
+                        </div>
+                        <div id="ts-body"></div>
+                        <canvas id="ts-canvas"></canvas>
+                    </div>
+                </div>
+            </section>
             <section id="view-books" class="view">
                 <div class="lib-toolbar">
                     <div class="search">
@@ -4235,7 +4278,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ==========================================
         // التنقل والصفوف
         // ==========================================
-        const VIEW_TITLES = { home: 'الرئيسية', board: 'السبورة التفاعلية', books: 'المكتبة الرقمية', exams: 'الاختبارات', ai: 'المساعد الذكي' };
+        const VIEW_TITLES = { home: 'الرئيسية', board: 'السبورة التفاعلية', books: 'المكتبة الرقمية', todos: 'قائمة المهام', exams: 'الاختبارات', ai: 'المساعد الذكي' };
 
         // التنقل بين قارئ الكتب والسبورة من غير ما المستخدم يرجع للقائمة
         // ---- الوضع المزدوج: القارئ والسبورة جنب بعض في نافذة واحدة، والخط بينهم بيتسحب ----
@@ -4345,6 +4388,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (view === 'books') renderLibrary();
             if (view === 'exams') { renderExams(); renderQuizzes(); }
             if (view === 'home') renderHome();
+            if (view === 'todos') setTimeout(() => { buildTodoSheet(); tsResize(); }, 30);
             const sc = document.querySelector('#view-' + view); if (sc && view !== 'board') sc.scrollTop = 0;
         }
 
@@ -4702,16 +4746,154 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 box.appendChild(li);
             });
         }
-        function goTodos() {
-            switchView('home', document.querySelector('[data-view=home]'));
-            document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.view === 'todos'));
-            const c = $('todo-card');
-            if (c) { setTimeout(() => { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); c.classList.add('flash'); setTimeout(() => c.classList.remove('flash'), 1400); $('todo-input').focus(); }, 60); }
+        function goTodos() { switchView('todos', document.querySelector('.nav[data-view="todos"]')); }
+        function exitTodos() { switchView('home', document.querySelector('.nav[data-view="home"]')); }
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            const v = $('view-todos');
+            if (v && v.classList.contains('active') && !document.querySelector('.modal.open')) exitTodos();
+        });
+
+        // ---- ورقة المهام: منظمة وملونة وجاهزة للكتابة بالقلم (الإصبع بيمرّر الصفحة ومابيكتبش) ----
+        const TS_SECTIONS = [
+            { id: 'imp', title: 'مهم وعاجل', color: '#ef4444', rows: 4, checks: true },
+            { id: 'today', title: 'مهام اليوم', color: '#3b82f6', rows: 6, checks: true },
+            { id: 'week', title: 'هذا الأسبوع', color: '#10b981', rows: 4, checks: true },
+            { id: 'notes', title: 'ملاحظات', color: '#f59e0b', rows: 3, checks: false }
+        ];
+        const TS_COLORS = ['#1d4ed8', '#dc2626', '#16a34a', '#111827', '#9333ea', '#f59e0b'];
+        const ts = { color: TS_COLORS[0], eraser: false, cur: null, undo: [], touches: new Map(), erasing: null, erasePushed: false, clearArm: 0, bound: false, ro: null };
+        function tsState() { appState.todoSheet = appState.todoSheet || { strokes: [], checks: {} }; return appState.todoSheet; }
+        function buildTodoSheet() {
+            const body = $('ts-body'); if (!body) return;
+            const st = tsState();
+            body.innerHTML = '';
+            let total = 0, done = 0;
+            TS_SECTIONS.forEach(sec => {
+                const wrap = document.createElement('div'); wrap.className = 'ts-sec'; wrap.style.setProperty('--c', sec.color);
+                const band = document.createElement('div'); band.className = 'ts-band'; band.textContent = sec.title; wrap.appendChild(band);
+                for (let r = 0; r < sec.rows; r++) {
+                    const row = document.createElement('div'); row.className = 'ts-row';
+                    if (sec.checks) {
+                        const key = sec.id + '-' + r, on = !!st.checks[key];
+                        total++; if (on) done++;
+                        row.classList.toggle('done', on);
+                        const chk = document.createElement('button');
+                        chk.type = 'button'; chk.className = 'ts-chk' + (on ? ' on' : ''); chk.setAttribute('aria-label', 'تم');
+                        chk.onclick = () => { st.checks[key] = !st.checks[key]; scheduleSave(); buildTodoSheet(); };
+                        row.appendChild(chk);
+                    }
+                    wrap.appendChild(row);
+                }
+                body.appendChild(wrap);
+            });
+            $('ts-prog-bar').style.width = total ? Math.round(done / total * 100) + '%' : '0%';
+            try { $('ts-date').textContent = new Intl.DateTimeFormat('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()); } catch (e) { /* تجاهل */ }
+            const cols = $('ts-colors');
+            if (cols && !cols.childElementCount) {
+                TS_COLORS.forEach(c => {
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.className = 'ts-sw'; b.style.background = c; b.dataset.c = c; b.title = c;
+                    b.onclick = () => { ts.color = c; ts.eraser = false; tsSyncTools(); };
+                    cols.appendChild(b);
+                });
+            }
+            tsSyncTools();
+            tsBind();
+        }
+        function tsSyncTools() {
+            document.querySelectorAll('#ts-colors .ts-sw').forEach(b => b.classList.toggle('active', !ts.eraser && b.dataset.c === ts.color));
+            const e = $('ts-eraser'); if (e) e.classList.toggle('active', ts.eraser);
+        }
+        function tsResize() {
+            const c = $('ts-canvas'), sh = $('ts-sheet'); if (!c || !sh) return;
+            const r = sh.getBoundingClientRect(); if (!r.width || !r.height) return;
+            const d = Math.min(2, window.devicePixelRatio || 1);
+            c.width = Math.round(r.width * d); c.height = Math.round(r.height * d);
+            tsRedraw();
+        }
+        function tsTrace(g, pts, W) {
+            g.beginPath();
+            pts.forEach((p, i) => { const x = p[0] * W, y = p[1]; if (!i) g.moveTo(x, y); else { const q = pts[i - 1], mx = (q[0] * W + x) / 2, my = (q[1] + y) / 2; g.quadraticCurveTo(q[0] * W, q[1], mx, my); } });
+            if (pts.length === 1) g.lineTo(pts[0][0] * W + 0.01, pts[0][1]);
+            else { const l = pts[pts.length - 1]; g.lineTo(l[0] * W, l[1]); }
+            g.stroke();
+        }
+        function tsRedraw() {
+            const c = $('ts-canvas'); if (!c) return;
+            const r = c.getBoundingClientRect(); if (!r.width) return;
+            const g = c.getContext('2d'), d = c.width / r.width;
+            g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height);
+            g.setTransform(d, 0, 0, d, 0, 0); g.lineCap = 'round'; g.lineJoin = 'round';
+            [...tsState().strokes, ...(ts.cur ? [ts.cur] : [])].forEach(s => { g.strokeStyle = s.c; g.lineWidth = s.w; tsTrace(g, s.p, r.width); });
+        }
+        function tsScrollBy(dy) {
+            let n = $('ts-sheet').parentElement;
+            while (n && n !== document.body) {
+                const cs = getComputedStyle(n);
+                if (/(auto|scroll)/.test(cs.overflowY) && n.scrollHeight > n.clientHeight + 1) { n.scrollTop += dy; return; }
+                n = n.parentElement;
+            }
+            window.scrollBy(0, dy);
+        }
+        function tsErase(e) {
+            const c = $('ts-canvas'), r = c.getBoundingClientRect(), st = tsState();
+            const x = e.clientX - r.left, y = e.clientY - r.top;
+            const keep = st.strokes.filter(s => !s.p.some(p => Math.hypot(p[0] * r.width - x, p[1] - y) < 14));
+            if (keep.length !== st.strokes.length) {
+                if (!ts.erasePushed) { ts.undo.push(st.strokes.slice()); ts.erasePushed = true; }
+                st.strokes = keep; tsRedraw();
+            }
+        }
+        function tsBind() {
+            const c = $('ts-canvas'); if (!c || ts.bound) return;
+            ts.bound = true;
+            const pt = e => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, e.clientY - r.top]; };
+            c.addEventListener('pointerdown', e => {
+                if (e.pointerType === 'touch') { ts.touches.set(e.pointerId, { y: e.clientY }); return; }   // الإصبع مابيكتبش
+                if (e.button > 0) return;
+                try { c.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
+                e.preventDefault();
+                if (ts.eraser) { ts.erasing = e.pointerId; ts.erasePushed = false; tsErase(e); }
+                else { ts.cur = { c: ts.color, w: 2.6, p: [pt(e)] }; tsRedraw(); }
+            });
+            c.addEventListener('pointermove', e => {
+                if (e.pointerType === 'touch') {
+                    const t = ts.touches.get(e.pointerId); if (!t) return;
+                    if (ts.touches.size === 1) tsScrollBy(t.y - e.clientY);   // إصبع واحد = تمرير الصفحة، وإصبعين = ولا حاجة
+                    t.y = e.clientY; return;
+                }
+                if (ts.erasing === e.pointerId) { tsErase(e); return; }
+                if (!ts.cur) return;
+                const r = c.getBoundingClientRect();
+                (e.getCoalescedEvents ? e.getCoalescedEvents() : [e]).forEach(ev => {
+                    const p = pt(ev), l = ts.cur.p[ts.cur.p.length - 1];
+                    if (Math.hypot((p[0] - l[0]) * r.width, p[1] - l[1]) > 0.8) ts.cur.p.push(p);
+                });
+                tsRedraw();
+            });
+            const end = e => {
+                if (e.pointerType === 'touch') { ts.touches.delete(e.pointerId); return; }
+                if (ts.erasing === e.pointerId) { ts.erasing = null; scheduleSave(); return; }
+                if (ts.cur) { const st = tsState(); ts.undo.push(st.strokes.slice()); st.strokes.push(ts.cur); ts.cur = null; scheduleSave(); tsRedraw(); }
+            };
+            c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+            if (window.ResizeObserver) { ts.ro = new ResizeObserver(() => tsResize()); ts.ro.observe($('ts-sheet')); }
+        }
+        function tsEraser() { ts.eraser = !ts.eraser; tsSyncTools(); }
+        function tsUndo() { const prev = ts.undo.pop(); if (!prev) return; tsState().strokes = prev; scheduleSave(); tsRedraw(); }
+        function tsClear() {
+            const b = $('ts-clear');
+            if (!ts.clearArm || Date.now() - ts.clearArm > 3000) { ts.clearArm = Date.now(); b.textContent = 'تأكيد المسح؟'; setTimeout(() => { if (b) b.textContent = 'مسح الكتابة'; ts.clearArm = 0; }, 3000); return; }
+            ts.clearArm = 0; b.textContent = 'مسح الكتابة';
+            const st = tsState(); if (!st.strokes.length) return;
+            ts.undo.push(st.strokes.slice()); st.strokes = []; scheduleSave(); tsRedraw();
         }
 
         // كتابة المهمة بالقلم
         const ink = { strokes: [], cur: null, color: '#111827', size: 3 };
         function openInk() {
+            goTodos(); return;   // الكتابة دلوقتي على ورقة المهام مش على سبورة
             ink.strokes = []; ink.cur = null;
             openModal('ink-modal');
             setTimeout(() => { inkResize(); inkRedraw(); }, 30);
@@ -5286,11 +5468,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (boardDprCache) return boardDprCache;
             const raw = window.devicePixelRatio || 1;
             const lite = document.body.classList.contains('lite');
-            let d = lite ? Math.min(1.5, raw) : Math.min(3, raw * 1.25);
+            let d = lite ? Math.min(2, raw) : Math.min(3, raw * 1.25);
             const w = (typeof stageEl !== 'undefined' && stageEl.clientWidth) || 0;
             const h = (typeof stageEl !== 'undefined' && stageEl.clientHeight) || 0;
             if (w && h) {
-                const budget = lite ? 3e6 : 4e6;            // أقصى عدد بكسلات للكانفاس (السبورة 4K كانت بتعمل كانفاس 13 مليون بكسل)
+                const budget = lite ? 4e6 : 5e6;            // أقصى عدد بكسلات للكانفاس (السبورة 4K كانت بتعمل كانفاس 13 مليون بكسل)
                 d = Math.min(d, Math.sqrt(budget / (w * h)));
             }
             d = Math.max(1, d);
@@ -6446,7 +6628,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         const last = cur.pts[cur.pts.length - 1];
                         const sm = cur._sm || last;
                         const dist = Math.hypot(x - sm[0], y - sm[1]) * view.s;   // بالبكسل على الشاشة
-                        const a = Math.min(1, 0.3 + dist / 10);                     // الحركة السريعة بتتبع الإيد بدقة
+                        const a = Math.min(1, 0.4 + dist / 10);                     // الحركة السريعة بتتبع الإيد بدقة
                         const fx = sm[0] + (x - sm[0]) * a, fy = sm[1] + (y - sm[1]) * a;
                         cur._sm = [fx, fy];
                         if (Math.hypot(fx - last[0], fy - last[1]) * view.s > 0.8) cur.pts.push([fx, fy]);
@@ -6983,22 +7165,31 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             pop.style.left = left + 'px';
             pop.style.top = top + 'px';
         }
+        // زرار الأقلام الإضافية: مكان علامة الزائد بقى فيه قلم (من الأقلام اللي في القائمة). ضغطة = القلم ده، ضغطتين = القائمة كلها
+        let moreSlotStyle = null;
         function syncSplitPenBtn() {
-            const btn = $('pen-more-btn');
-            if (!btn) return;
-            if (!btn._orig) btn._orig = btn.innerHTML;
-            if (!document.body.classList.contains('split-on')) { btn.innerHTML = btn._orig; return; }
-            const cur = document.querySelector('#board-float .pen-group .pen-3d.active:not(#eraser-btn) svg')
-                     || document.querySelector('#board-float .pen-group .pen-3d:not(#eraser-btn) svg');
-            if (cur) btn.innerHTML = cur.outerHTML;
+            try {
+                const btn = $('pen-more-btn'); if (!btn) return;
+                const extras = [...document.querySelectorAll('button.pen-style-btn')].filter(b => b.closest('#pen-more-pop'));
+                if (!extras.length) return;
+                const styles = extras.map(b => b.dataset.style);
+                moreSlotStyle = styles.includes(penStyle) ? penStyle : (styles.includes(moreSlotStyle) ? moreSlotStyle : styles[0]);
+                if (btn.dataset.cur !== moreSlotStyle) {
+                    const svg = extras.find(b => b.dataset.style === moreSlotStyle).querySelector('svg');
+                    if (svg) { btn.innerHTML = svg.outerHTML; btn.dataset.cur = moreSlotStyle; btn.classList.add('pen-3d'); }
+                }
+                btn.classList.toggle('active', penStyle === moreSlotStyle && tool === 'pen');
+            } catch (e) { /* قبل ما الحالة تتجهز */ }
         }
         function togglePenMore(ev) {
             if (ev) ev.stopPropagation();
-            if (document.body.classList.contains('split-on')) {
-                const now = Date.now();
-                if (now - (togglePenMore._t || 0) > 350) { togglePenMore._t = now; setTool('pen'); return; }   // ضغطة: القلم الحالي
-                togglePenMore._t = 0;   // دبل كليك: المجموعة كلها
+            const now = Date.now();
+            if (now - (togglePenMore._t || 0) > 350) {
+                togglePenMore._t = now;
+                if (moreSlotStyle) setPenStyle(moreSlotStyle);   // ضغطة: القلم اللي على الزرار
+                return;
             }
+            togglePenMore._t = 0;                                 // ضغطتين: القائمة كلها
             const pop = $('pen-more-pop');
             if (pop.parentElement !== document.body) document.body.appendChild(pop);
             if (pop.classList.toggle('open')) placePenPop();
@@ -7269,6 +7460,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const phone = Math.min(window.innerWidth, window.innerHeight) <= 540;
             document.body.classList.toggle('phone-ui', phone);
             tagBoardTopGroups();
+            syncSplitPenBtn();
             applyBar('board');
             applySplitBoardBar();
         }
@@ -7277,6 +7469,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         // ---- شريط السبورة في الوضع المزدوج: نفس شكل شريط الكتاب، وفيه القلم والممحاة واللون والتراجع والإعادة ----
         function syncSplitBoardBar() {
+            syncSplitPenBtn();
             try {
                 const pen = $('sb-pen'); if (!pen) return;
                 const src = document.querySelector('button.pen-style-btn[data-style="' + penStyle + '"] svg');
@@ -9928,8 +10121,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const dpr = lite ? Math.min(1.5, window.devicePixelRatio || 1) : (window.devicePixelRatio || 1);
             // التمرير بجودة معقولة (أسرع)، والتكبير بيرفعها عشان الكتاب يفضل واضح
             const zoomed = readerView.z > 1.05 && !document.body.classList.contains('split-on');
-            const q = zoomed ? (lite ? Math.min(Math.max(dpr, readerQuality), 3) : Math.max(dpr, readerQuality, 3)) : Math.min(Math.max(dpr, 1) * 1.25, lite ? 1.5 : 2.5);
-            const maxPx = lite ? 2400 : 4096;   // حد أقصى لأبعاد الكانفاس (أقل = ذاكرة أقل وتمرير أسرع)
+            const q = zoomed ? (lite ? Math.min(Math.max(dpr, readerQuality), 3) : Math.max(dpr, readerQuality, 3)) : Math.min(Math.max(dpr, 1) * 1.25, lite ? 2 : 2.5);
+            const maxPx = lite ? 3000 : 4096;   // حد أقصى لأبعاد الكانفاس (أقل = ذاكرة أقل وتمرير أسرع)
             const cssW = W - 2 * RD_PAD;
             try {
                 const items = [];
@@ -10097,7 +10290,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const more = document.createElement('button');
             more.className = 'rd-sw rd-sw-more';
             more.title = 'ألوان أكتر';
-            more.textContent = '+';
+            more.textContent = '';
             more.onclick = e => { e.stopPropagation(); $('rd-pen-pop').classList.remove('open'); openPalette('reader'); };
             box.appendChild(more);
         }
