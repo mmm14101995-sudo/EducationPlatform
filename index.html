@@ -1810,7 +1810,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         .sticky-ink-text { pointer-events: none; }
         body.ink-tool .sticky-ink-text { pointer-events: auto; cursor: crosshair; }
         body.ink-tool .sticky textarea { pointer-events: none !important; }
-        body.board-hand .sticky-layer, body.board-hand .sticky, body.board-hand .sticky-ink, body.board-hand canvas.sticky-ink, body.board-hand .sticky textarea, body.board-hand .sticky-head, body.board-hand .science-resize-handle { pointer-events: none !important; }
+        body.board-hand .sticky-layer, body.board-hand .sticky, body.board-hand .sticky-ink, body.board-hand canvas.sticky-ink, body.board-hand .sticky textarea, body.board-hand .sticky-head { pointer-events: none !important; }
         body.board-hand #hand-btn.active { background: rgba(var(--accent-rgb),0.22); box-shadow: 0 0 0 2px var(--accent); }
 
         /* ===== Sticky Notes: شريط النقل والإغلاق مخفي لحد ما تقف عليه ===== */
@@ -1858,22 +1858,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             .board:not(.fs) .board-bar .bgrp { gap: 2px; padding: 3px 5px; }
         }
         /* إضافة صور المستخدم للمكتبة */
-        .science-upload-toggle{flex:0 0 auto;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-        .science-upload-panel{flex-direction:column;gap:9px;padding:12px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,.04)}
-        .science-upload-target{font-size:12px;color:var(--muted);font-weight:700}
-        .science-upload-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-        .science-upload-row input{flex:1;min-width:160px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font:inherit;font-size:13px}
-        .science-upload-status{font-size:12px;color:var(--muted);min-height:16px}
-        .science-remove-btn{margin-top:6px;width:100%;padding:7px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:12px;cursor:pointer}
         /* Integrated scientific library */
-#science-library-modal{z-index:1600}body.board-fs #science-library-modal{z-index:1400!important}
-.science-box{width:min(1100px,96vw);max-height:91vh;padding:18px;display:flex;flex-direction:column;gap:12px}
-.science-headline{display:flex;align-items:center;justify-content:space-between;gap:12px}.science-headline p{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.6}
-.science-tabs{display:flex;flex-wrap:wrap;gap:7px;padding:3px 1px 8px}.science-tab{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--text);padding:9px 14px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}.science-tab.active{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--accent),var(--accent2))}
-.science-searchrow{display:flex;gap:8px;align-items:center}.science-searchrow input{flex:1;min-width:0;padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line);font:inherit}.science-searchrow button{flex:0 0 auto;border:0;border-radius:11px;padding:10px 13px;background:var(--accent);color:white;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
-.science-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;overflow-y:auto;overscroll-behavior:contain;align-content:start;grid-auto-rows:max-content;padding:2px 2px 10px;min-height:150px;flex:1;min-height:0}.science-card{min-width:0;flex:none;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:rgba(255,255,255,.035);display:flex;flex-direction:column}.science-thumb{width:100%;height:auto;aspect-ratio:1200/780;object-fit:contain;display:block;background:#f8fafc}.science-card-body{display:flex;flex-direction:column;gap:6px;padding:10px;flex:1}.science-card h3{font-size:14px;font-weight:800;line-height:1.5}.science-card p{font-size:11px;color:var(--muted);line-height:1.65;flex:1}.science-credit{font-size:10px;color:var(--muted);line-height:1.4}.science-add{border:0;border-radius:10px;padding:8px 10px;width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.science-add:disabled{opacity:.5}.science-empty{grid-column:1/-1;text-align:center;padding:30px 12px;color:var(--muted);line-height:1.8}.science-foot{border-top:1px solid var(--line);padding-top:9px;color:var(--muted);font-size:11px;line-height:1.7}.science-quick{display:none;flex-wrap:wrap;gap:6px}.science-quick button{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:var(--text);padding:6px 10px;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
-.sticky.science-note{overflow:visible}.sticky.science-note .sticky-head{gap:5px}.sticky.science-note .science-note-name{min-width:0;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.sticky.science-note .science-source-btn{border:0;border-radius:6px;background:rgba(15,23,42,.12);color:inherit;min-width:24px;min-height:24px;font-size:13px;font-weight:900;cursor:pointer}.science-resize-handle{position:absolute;z-index:18;right:-4px;bottom:-4px;width:27px;height:27px;border:2px solid #fff;border-radius:8px;background:#2563eb;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:nwse-resize;touch-action:none;opacity:0}.science-resize-handle:before{content:'';position:absolute;inset:6px;border-right:2px solid #fff;border-bottom:2px solid #fff}.sticky.science-note.head-on .science-resize-handle,.sticky.science-note:hover .science-resize-handle{opacity:1}
-@media(max-width:600px){.science-box{width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding:13px}.science-grid{grid-template-columns:minmax(0,1fr);gap:14px}.science-thumb{height:auto;aspect-ratio:1200/780}.science-searchrow button{padding:10px}}
 
 
         /* إصلاح الشاشة السوداء في الوضع العادي للسبورة (ويندوز): إلغاء blur فوق الكانفاس */
@@ -3979,12 +3964,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             "اكتب اسم الصفحة (مثلاً: المحاضرة الأولى)": "Enter a page name (for example: First lecture)",
             "اختار هتكتب نص ولا ترسم بالقلم.": "Choose a shape, then choose whether to type text or draw with the pen.",
             "شارة": "Badge",
-            "المكتبة العلمية": "Science library",
             "اختر رسمًا تعليميًا أو صورة موثقة، وستُضاف مباشرة إلى صفحة السبورة الحالية.": "Choose an educational diagram or a verified image. It will be added directly to the current board page.",
             "+ إضافة صور": "+ Add images",
             "اختيار من الجهاز": "Choose from device",
             "إضافة من الرابط": "Add from link",
-            "الرسوم التخطيطية للتوضيح التعليمي. صور NASA تتطلب اتصالًا بالإنترنت.": "Diagrams are for educational illustration. NASA images need an internet connection.",
             "شكل الصفحة: ": "Page style: ", "اختار شكل الورقة، ثم المسافة بين السطور أو المربعات.": "Choose the page style, then the spacing between lines or squares.",
             "السبورة": "Board",
             "قارئ الكتب": "Book reader",
@@ -3992,7 +3975,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             "باقي الأقلام": "More pens",
             "وضع اليد: حرّك الشاشة بالقلم أو بأي إصبع": "Hand mode: move the screen with the pen or any finger",
             "وضع اليد": "Hand mode",
-            "المكتبة العلمية": "Science library",
             "السمك": "Thickness",
             "1. سؤال ...\nأ) ...  ب) ...  ج) ...  د) ...\nالإجابة: ب": "1. Question ...\nA) ...  B) ...  C) ...  D) ...\nAnswer: B",
             "افتراضي": "Default",
@@ -4005,7 +3987,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             "سماوي": "Sky blue",
             "سهم": "Arrow",
             "إغلاق المكتبة": "Close library",
-            "ابحث في الرسوم العلمية...": "Search science diagrams...",
             "اسم الصورة (اختياري)": "Image name (optional)",
             "أو الصق رابط صورة من الإنترنت (https://...)": "Or paste an image link from the internet (https://...)",
             "الذهاب للسبورة": "Go to board",
@@ -4046,8 +4027,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             "تم ضبط المدينة: ": "City set: ",
             "تمت إضافة الرسم إلى السبورة": "Diagram added to the board",
             "تمت إضافة الصورة إلى السبورة": "Image added to the board",
-            "تمت إضافة صورة NASA إلى السبورة": "NASA image added to the board",
-            "جارٍ تجهيز صورة NASA...": "Preparing the NASA image...",
             "حدّد الإجابة الصحيحة للسؤال: ": "Select the correct answer for question: ",
             "راجع الأسئلة وحدّد الإجابات الصحيحة قبل الحفظ": "Review the questions and select the correct answers before saving",
             "رجعت الخلفية الافتراضية": "Default background restored",
@@ -5751,24 +5730,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
             if (n.mode === 'image') {
                 el.classList.add('sh-image'); el.querySelector('textarea').remove();
-                const im = document.createElement('img'); im.className = 'sticky-img'; if (n.src) im.src = n.src; else if (false && n.srcRef) sciUrlFor({ id: n.srcRef }).then(u => { if (u) im.src = u; }).catch(() => {}); im.alt = n.scientificMeta?.title || 'صورة على السبورة'; im.title = n.scientificMeta?.title || ''; im.draggable = false;
+                const im = document.createElement('img'); im.className = 'sticky-img'; if (n.src) im.src = n.src; im.alt = n.scientificMeta?.title || 'صورة على السبورة'; im.title = n.scientificMeta?.title || ''; im.draggable = false;
                 if (n.scientificMeta?.previewUrl) im.onerror = () => { if (im.src !== n.scientificMeta.previewUrl) { im.src=n.scientificMeta.previewUrl; n.src=n.scientificMeta.previewUrl; scheduleSave(); } };
                 el.appendChild(im);
                 const icv = document.createElement('canvas'); icv.className = 'sticky-ink'; el.appendChild(icv); bindInk(icv,n,el);
-                if (n.scientificMeta) {
-                    el.classList.add('science-note'); const head=el.querySelector('.sticky-head'); const label=head.querySelector('span:first-child');
-                    label.className='science-note-name'; label.textContent='⋮⋮ '+(n.scientificMeta.title||'عنصر علمي');
-                    label.title=[n.scientificMeta.title,n.scientificMeta.description,n.scientificMeta.credit].filter(Boolean).join(' — ');
-                    if (n.scientificMeta.sourceUrl) { const srcBtn=document.createElement('button'); srcBtn.type='button'; srcBtn.className='science-source-btn'; srcBtn.textContent='↗'; srcBtn.title='فتح مصدر الصورة'; srcBtn.onclick=ev=>{ev.preventDefault();ev.stopPropagation();window.open(n.scientificMeta.sourceUrl,'_blank','noopener,noreferrer')}; head.querySelector('.sticky-tools').prepend(srcBtn); }
-                    const handle=document.createElement('button'); handle.type='button'; handle.className='science-resize-handle'; handle.title='اسحب لتغيير حجم الصورة'; handle.setAttribute('aria-label','تغيير حجم الصورة');
-                    handle.addEventListener('pointerdown',ev=>{
-                        ev.preventDefault();ev.stopPropagation();const sx=ev.clientX,sy=ev.clientY,sw=n.w,sh=n.h,ratio=Math.max(.2,Math.min(5,Number(n.scientificMeta.ratio)||(sw/Math.max(1,sh))));
-                        try{handle.setPointerCapture(ev.pointerId)}catch(_){}
-                        const move=mv=>{if(mv.pointerId!==ev.pointerId)return;mv.preventDefault();const dx=(mv.clientX-sx)/view.s,dy=(mv.clientY-sy)/view.s;const delta=Math.abs(dx)>=Math.abs(dy*ratio)?dx:dy*ratio;const nw=Math.max(90,Math.min(1800,sw+delta));n.w=nw;n.h=nw/ratio;renderStickies()};
-                        const end=up=>{if(up.pointerId!==ev.pointerId)return;handle.removeEventListener('pointermove',move);handle.removeEventListener('pointerup',end);handle.removeEventListener('pointercancel',end);scheduleSave();boardDirty=true};
-                        handle.addEventListener('pointermove',move);handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
-                    }); el.appendChild(handle);
-                }
             } else if (n.mode === 'draw') {
                 el.querySelector('textarea').remove();
                 const cv = document.createElement('canvas');
@@ -9433,15 +9398,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 pg.notes.push(note); scheduleSave(); renderStickies();
             };
             // الصور الكبيرة بتتخزن في التخزين الداخلي، والسبورة بتحتفظ بمرجع خفيف بس
-            if (false && typeof src === 'string' && src.startsWith('data:') && src.length > 60000) {   // التخزين الخارجي مش متعرّف: الصور بتتحفظ inline
-                const ref = 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-                (async () => {
-                    try { await sciPut(ref, await (await fetch(src)).blob()); finish({ srcRef: ref }); }
-                    catch (e) { console.warn('تعذر حفظ الصورة في التخزين الداخلي', e); finish({ src }); }
-                })();
-            } else {
-                finish({ src });
-            }
+            finish({ src });
         }
 
         function drawNotesOn(layer, strokes) {
@@ -10023,7 +9980,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // ---- القارئ: الصفحات بتتعرض في شريط متصل رأسي، والتمرير لفوق ولتحت بيكمّل من صفحة لصفحة ----
-        const RD_GAP = 18, RD_PAD = 12;
+        const RD_GAP = 0, RD_SIDE_GAP = 8, RD_PAD = 12;   // الصفحات متلاصقة رأسياً؛ المسافة بين صفحتين جنب بعض (الصفحات المزدوجة) بس
         const rdWraps = new Map();     // الصفحات الظاهرة حالياً (بالفهرس)
         const rdPending = new Set();
         function rdSlots() { return reader.spread ? Math.ceil(reader.total / 2) : reader.total; }
@@ -10098,8 +10055,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const z = readerView.z;
             const y0 = -readerView.ty / z, y1 = (H - readerView.ty) / z;
             const n = rdSlots();
-            const first = Math.max(0, Math.floor((y0 - RD_PAD) / step) - 1);
-            const last = Math.min(n - 1, Math.floor((y1 - RD_PAD) / step) + 1);
+            const first = Math.max(0, Math.floor((y0 - RD_PAD) / step) - 2);
+            const last = Math.min(n - 1, Math.floor((y1 - RD_PAD) / step) + 2);
             const out = [];
             for (let m = first; m <= last; m++) out.push(m);
             return out;
@@ -10134,6 +10091,25 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const q = zoomed ? (lite ? Math.min(Math.max(dpr, readerQuality), 3) : Math.max(dpr, readerQuality, 3)) : Math.min(Math.max(dpr, 1) * 1.25, lite ? 2 : 2.5);
             const maxPx = lite ? 3000 : 4096;   // حد أقصى لأبعاد الكانفاس (أقل = ذاكرة أقل وتمرير أسرع)
             const cssW = W - 2 * RD_PAD;
+            // مكان مؤقت أبيض بمقاس الصفحة، عشان ما يبانش فراغ أسود وإحنا بنجهز الصفحة
+            let ph = null, built = false;
+            if (reader.base1) {
+                const b = reader.base1;
+                const fitP = Math.min((cssW / count) / b.w, cssH / b.h);
+                const pwP = b.w * fitP, phP = b.h * fitP;
+                let xP = (W - (pwP * count + RD_SIDE_GAP * (count - 1))) / 2;
+                ph = document.createElement('div');
+                ph.className = 'rslot rslot-ph';
+                ph.style.cssText = 'position:absolute;left:0;top:' + (RD_PAD + m * step) + 'px;width:' + W + 'px;height:' + cssH + 'px;';
+                for (let k = 0; k < count; k++) {
+                    const d = document.createElement('div');
+                    d.style.cssText = 'position:absolute;left:' + xP + 'px;top:' + ((cssH - phP) / 2) + 'px;width:' + pwP + 'px;height:' + phP + 'px;background:#ffffff;border-radius:3px;';
+                    ph.appendChild(d);
+                    xP += pwP + RD_SIDE_GAP;
+                }
+                inner.appendChild(ph);
+                rdWraps.set(m, ph);
+            }
             try {
                 const items = [];
                 for (const pageNo of pages) {
@@ -10157,7 +10133,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     items.push({ pageNo, pc, w: base.width * fit, h: base.height * fit });
                 }
                 if (token !== reader.token) return;
-                const slotW = items.reduce((acc, it) => acc + it.w, 0) + RD_GAP * (count - 1);
+                const slotW = items.reduce((acc, it) => acc + it.w, 0) + RD_SIDE_GAP * (count - 1);
                 const wrap = document.createElement('div');
                 wrap.className = 'rslot';
                 wrap.style.cssText = 'position:absolute;left:0;top:' + (RD_PAD + m * step) + 'px;width:' + W + 'px;height:' + cssH + 'px;';
@@ -10179,12 +10155,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     bindNoteLayer(layer, it.pageNo);
                     drawNotesOn(layer, pageStrokes(it.pageNo));
                     wrap.appendChild(pg);
-                    x += it.w + RD_GAP;
+                    x += it.w + RD_SIDE_GAP;
                 }
+                if (ph && ph.parentNode) ph.remove();   // الصفحة الحقيقية اتجهزت: نشيل المكان المؤقت
                 inner.appendChild(wrap);
                 rdWraps.set(m, wrap);
+                built = true;
             } catch (e) { /* تجاهل: هنحاول تاني مع التمرير */ }
-            finally { if (token === reader.token) rdPending.delete(m); }
+            finally {
+                if (token === reader.token) rdPending.delete(m);
+                // لو الصفحة ما اتجهزتش، المكان المؤقت يتشال عشان ما يفضلش فاضي
+                if (!built && ph && ph.parentNode) { ph.remove(); if (rdWraps.get(m) === ph) rdWraps.delete(m); }
+            }
         }
 
         // التمرير بيغيّر الصفحة الحالية حسب الصفحة اللي في نص الشاشة، والصفحات الجديدة بتتجهّز
