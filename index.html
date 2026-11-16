@@ -2249,6 +2249,40 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on .reader-overlay.split-reader .reader-foot { position: absolute !important; bottom: 8px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 320 !important; border-radius: 12px !important; background: rgba(20,24,33,0.55) !important; border: 0 !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); width: auto !important; }
         body.split-on .reader-overlay.split-reader .rd-vscroll { top: 56px !important; }
         body.split-on .reader-overlay.split-reader .rd-vscroll.show { bottom: 44px !important; }
+
+        /* ===== شريط السبورة في الوضع المزدوج: نفس شكل شريط الكتاب (قلم، ممحاة، لون، تراجع، إعادة) ===== */
+        .split-board-bar, .sb-pen-pop { display: none; }
+        body.split-on #board-float, body.phone-ui #board:not(.fs) #board-float { display: none !important; }
+        body.split-on .split-board-bar, body.phone-ui #board:not(.fs) .split-board-bar {
+            display: flex; position: absolute; z-index: 6; flex-direction: column; align-items: center; gap: 6px;
+            width: 60px; box-sizing: border-box; padding: 10px 8px; border-radius: 24px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+            background: rgba(24,28,38,0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+        .sb-btn {
+            width: 44px; height: 46px; min-width: 44px; flex: none; box-sizing: border-box; padding: 0; margin: 0;
+            display: grid; place-items: center; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06); color: #e8edf5; cursor: pointer;
+        }
+        .sb-btn svg { display: block; margin: 0 auto; width: 20px; height: 34px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4)); }
+        #sb-undo svg, #sb-redo svg, #sb-undo .ico, #sb-redo .ico { width: 20px; height: 20px; filter: none; }
+        .sb-btn:disabled { opacity: 0.35; cursor: default; }
+        .sb-btn.active { background: rgba(var(--accent-rgb), 0.22); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.65); }
+        .sb-swatch { display: block; width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.85); }
+        .split-board-bar .bar-ctl2 { display: flex; justify-content: center; width: 100%; }
+        .split-board-bar .bar-orient, .split-board-bar .bar-lock { display: none !important; }
+        body.split-on .split-board-bar .bar-handle, body.split-on .reader-notes .bar-handle { width: 44px; height: 24px; }
+        .sb-pen-pop.open { display: grid; grid-template-columns: repeat(3, 44px); gap: 6px; position: fixed; z-index: 4200; padding: 10px; border-radius: 20px; background: rgba(24,28,38,0.94); box-shadow: 0 12px 34px rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.14); }
+
+        .sb-size { grid-column: 1 / -1; width: 100%; margin: 4px 0 0; accent-color: var(--accent); }
+        body.phone-ui .split-board-bar .bar-handle { width: 44px; height: 24px; }
+        /* التليفون: الشريط العلوي يقدّم الرجوع والزوم والصفحات، ومن غير أدوات الشريط القديم */
+        body.phone-ui #board:not(.fs) > .board-bar:not(#board-float) { gap: 6px; padding: 6px 8px; }
+        body.phone-ui #board:not(.fs) > .board-bar [data-tb="back"] { order: -4; }
+        body.phone-ui #board:not(.fs) > .board-bar [data-tb="zoom"] { order: -3; }
+        body.phone-ui #board:not(.fs) > .board-bar [data-tb="pages"] { order: -2; }
+        body.phone-ui #board:not(.fs) > .board-bar [data-tb="reader"] { order: -1; }
+        body.phone-ui #bar-grip, body.phone-ui #bar-orient-btn { display: none !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -2479,6 +2513,14 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     <button class="fs-toggle-bar" title="إظهار/إخفاء الأدوات" onclick="toggleFsBar()"><i data-icon="palette"></i></button>
 
                     <div class="board-bar board-float" id="board-float"></div>
+                    <div class="split-board-bar" id="split-board-bar" dir="rtl">
+                        <button type="button" class="sb-btn" id="sb-pen" title="القلم (اضغط مرتين لكل الأقلام)" aria-label="القلم" onclick="sbPenTap()"></button>
+                        <button type="button" class="sb-btn" id="sb-eraser" title="الممحاة" aria-label="الممحاة" onclick="setEraser()"></button>
+                        <button type="button" class="sb-btn" id="sb-color" title="لون القلم" aria-label="لون القلم" onclick="openPalette('board')"><span class="sb-swatch" id="sb-swatch"></span></button>
+                        <button type="button" class="sb-btn" id="sb-undo" title="تراجع" aria-label="تراجع" onclick="undo()" disabled><i data-icon="undo"></i></button>
+                        <button type="button" class="sb-btn" id="sb-redo" title="إعادة" aria-label="إعادة" onclick="redo()" disabled><i data-icon="redo"></i></button>
+                    </div>
+                    <div class="sb-pen-pop" id="sb-pen-pop"></div>
                     <div class="board-stage" id="board-stage">
                         <div class="board-paper" id="board-paper">
                             <canvas id="custom-canvas"></canvas>
@@ -4224,7 +4266,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!$('view-board').classList.contains('active')) switchView('board', document.querySelector('.nav[data-view="board"]'));
             const sb = $('rd-split-btn'); if (sb) sb.classList.add('active');
             const bsb = $('board-split-btn'); if (bsb) bsb.classList.add('active');
-            setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); syncSplitPenBtn(); if (typeof requestRender === 'function') requestRender(); if (reader.doc) renderReader(false); }, 80);
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); applyBar('board'); applySplitBoardBar(); if (typeof requestRender === 'function') requestRender(); if (reader.doc) renderReader(false); }, 80);
         }
         function exitSplit(closeBoard) {
             if (!document.body.classList.contains('split-on')) return;
@@ -4252,7 +4294,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 if (!dragging) return;
                 const pct = Math.min(80, Math.max(20, e.clientX / window.innerWidth * 100));
                 document.documentElement.style.setProperty('--split-w', pct.toFixed(1) + '%');
-                applyBar('board');   // الشريط العائم يفضل جوه السبورة وهي بتتصغر
+                applyBar('board'); applySplitBoardBar();   // الشريط يفضل جوه السبورة وهي بتتصغر
             });
             const end = () => {
                 if (!dragging) return;
@@ -4260,7 +4302,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 appState.splitPct = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--split-w')) || 50;
                 scheduleSave();
                 window.dispatchEvent(new Event('resize'));
-                applyBar('board');
+                applyBar('board'); applySplitBoardBar();
                 if (typeof requestRender === 'function') requestRender();
                 if (reader.doc && $('reader').classList.contains('open')) renderReader(false);   // القارئ يتعدل على المساحة الجديدة
             };
@@ -4289,7 +4331,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('view-' + view).classList.add('active');
             $('view-title').innerText = viewTitle(view);
             document.body.classList.toggle('board-active', view === 'board');
-            if (view === 'board') setTimeout(resizeCanvas, 50);
+            if (view === 'board') setTimeout(() => { resizeCanvas(); applySplitBoardBar(); }, 50);
             if (view === 'books') renderLibrary();
             if (view === 'exams') { renderExams(); renderQuizzes(); }
             if (view === 'home') renderHome();
@@ -6087,6 +6129,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function updateHistBtns() {
             $('undo-btn').disabled = undoStack.length === 0;
             $('redo-btn').disabled = redoStack.length === 0;
+            syncSplitBoardBar();
         }
         function afterChange(keepCache) {
             if (!keepCache) boardDirty = true;
@@ -6888,6 +6931,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             syncSlider();
             applyToolState();
             refreshToolButtons();
+            syncSplitBoardBar();
         }
 
         function setPenColor(color) {
@@ -7097,6 +7141,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             $('board').classList.toggle('fs', on);
             placeBoardSide();
             applyBar('board');
+            setTimeout(applySplitBoardBar, 60);
             if (!on) $('board').classList.remove('bar-hidden');
             document.body.classList.toggle('board-fs', on);
             $('fs-btn').innerHTML = icon(on ? 'minimize' : 'maximize');
@@ -7122,7 +7167,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const BAR_LOCK_ON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
         const BAR_LOCK_OFF = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-1.8"/></svg>';
         function barElFor(key) { return key === 'board' ? $('board-float') : document.querySelector('#reader .reader-notes'); }
-        function barIsFs(key) { return key === 'board' ? $('board').classList.contains('fs') : $('reader').classList.contains('fs'); }
+        function barIsFs(key) { return (key === 'board' || key === 'splitboard') ? $('board').classList.contains('fs') : $('reader').classList.contains('fs'); }
         function barState(key) {
             appState.barLayout = appState.barLayout || {};
             return appState.barLayout[key] || (appState.barLayout[key] = { locked: false, vert: key === 'reader', x: null, y: null });
@@ -7150,22 +7195,18 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             el.style.transform = 'none'; el.style.height = ''; el.style.maxHeight = '';
             el.style.right = 'auto'; el.style.bottom = 'auto';
+            el.style.left = '0px'; el.style.top = '0px';   // نقيس من غير تأثير مكان قديم (ده كان بيضغط الشريط)
             const w = el.offsetWidth, h0 = el.offsetHeight;
             let x, y;
-            if (st.x == null) {
-                // المكان الافتراضي
-                if (st.vert) { x = 12; y = top0 + 12; }
-                else { x = Math.round((pw - w) / 2); y = ph - h0 - 12; }
-            } else {
-                x = st.x; y = st.y;
-            }
+            if (st.vert) { x = st.x == null ? 12 : st.x; y = st.y == null ? top0 + 12 : st.y; }
+            else { x = st.x == null ? Math.round((pw - w) / 2) : st.x; y = st.y == null ? ph - h0 - 12 : st.y; }
             const maxH = Math.max(80, ph - top0 - 24);
+            let hNow = h0;
             if (st.vert) {
-                const avail = Math.max(80, ph - Math.max(top0, y) - 12);
-                const hh = Math.min(maxH, avail);
-                el.style.height = hh + 'px'; el.style.maxHeight = hh + 'px';
+                // الشريط الرأسي بياخد ارتفاعه الطبيعي (أو أقصى ارتفاع في السبورة) ومابيتقلصش، والباقي بالسكرول
+                hNow = Math.min(el.scrollHeight, maxH);
+                el.style.height = hNow + 'px'; el.style.maxHeight = maxH + 'px';
             }
-            const hNow = st.vert ? parseFloat(el.style.height) || h0 : h0;
             x = Math.min(Math.max(0, x), Math.max(0, pw - w));
             y = Math.min(Math.max(top0, y), Math.max(top0, ph - hNow));
             el.style.left = x + 'px';
@@ -7203,7 +7244,96 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const lock = el.querySelector('.bar-lock');
             if (lock) { lock.innerHTML = st.locked ? BAR_LOCK_ON : BAR_LOCK_OFF; lock.title = st.locked ? 'فك تثبيت الشريط' : 'تثبيت الشريط'; }
         }
-        window.addEventListener('resize', () => applyBar('board'));
+        // التأقلم مع التليفون: الشاشة الصغيرة بتاخد الشريط المصغّر (قلم، ممحاة، لون، تراجع، إعادة)، والشريط العلوي بيقدّم الرجوع والزوم والصفحات
+        function tagBoardTopGroups() {
+            const bar = document.querySelector('#board > .board-bar:not(#board-float)');
+            if (!bar) return;
+            bar.querySelectorAll(':scope > .bgrp').forEach(g => {
+                if (g.querySelector('.back-btn')) g.dataset.tb = 'back';
+                else if (g.querySelector('[onclick^="zoomBy"]')) g.dataset.tb = 'zoom';
+                else if (g.id === 'pages-bar') g.dataset.tb = 'pages';
+                else if (g.querySelector('#board-to-reader')) g.dataset.tb = 'reader';
+            });
+        }
+        function updatePhoneUi() {
+            const phone = Math.min(window.innerWidth, window.innerHeight) <= 540;
+            document.body.classList.toggle('phone-ui', phone);
+            tagBoardTopGroups();
+            applyBar('board');
+            applySplitBoardBar();
+        }
+        window.addEventListener('resize', updatePhoneUi);
+        window.addEventListener('orientationchange', () => setTimeout(updatePhoneUi, 150));
+
+        // ---- شريط السبورة في الوضع المزدوج: نفس شكل شريط الكتاب، وفيه القلم والممحاة واللون والتراجع والإعادة ----
+        function syncSplitBoardBar() {
+            try {
+                const pen = $('sb-pen'); if (!pen) return;
+                const src = document.querySelector('button.pen-style-btn[data-style="' + penStyle + '"] svg');
+                if (src && pen.dataset.cur !== penStyle) { pen.innerHTML = src.outerHTML; pen.dataset.cur = penStyle; }
+                const er = $('sb-eraser');
+                if (er && !er.firstElementChild) { const e0 = document.querySelector('#eraser-btn svg'); if (e0) er.innerHTML = e0.outerHTML; }
+                const sw = $('sb-swatch'); if (sw) sw.style.background = penColor;
+                $('sb-undo').disabled = undoStack.length === 0;
+                $('sb-redo').disabled = redoStack.length === 0;
+                pen.classList.toggle('active', tool === 'pen');
+                if (er) er.classList.toggle('active', tool === 'eraser');
+            } catch (e) { /* قبل ما الحالة تتجهز */ }
+        }
+        function applySplitBoardBar() {
+            const el = $('split-board-bar');
+            const on = document.body.classList.contains('split-on') ||
+                (document.body.classList.contains('phone-ui') && !$('board').classList.contains('fs'));
+            if (!el || !on) return;
+            const board = $('board');
+            const pw = board.clientWidth, ph = board.clientHeight;
+            if (!el.querySelector('.bar-ctl2')) addBarControls('splitboard', el);
+            const st = barState('splitboard');
+            el.style.maxHeight = Math.max(120, ph - 16) + 'px';
+            const w = el.offsetWidth, h = Math.min(el.offsetHeight, Math.max(120, ph - 16));
+            let x = st.x == null ? 12 : st.x;
+            let y = st.y == null ? Math.round((ph - h) / 2) : st.y;
+            x = Math.min(Math.max(0, x), Math.max(0, pw - w));
+            y = Math.min(Math.max(0, y), Math.max(0, ph - h));
+            el.style.left = x + 'px'; el.style.top = y + 'px';
+            syncSplitBoardBar();
+        }
+        function sbPenTap() {
+            const now = Date.now();
+            if (now - (sbPenTap._t || 0) > 350) { sbPenTap._t = now; setTool('pen'); return; }   // ضغطة: القلم الحالي
+            sbPenTap._t = 0;
+            sbOpenPenPop();                                                                          // ضغطتين: كل الأقلام
+        }
+        function sbOpenPenPop() {
+            const pop = $('sb-pen-pop');
+            if (pop.parentElement !== document.body) document.body.appendChild(pop);
+            if (!pop.childElementCount) {
+                document.querySelectorAll('button.pen-style-btn').forEach(src => {
+                    const svg = src.querySelector('svg'); if (!svg) return;
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.className = 'sb-btn'; b.title = src.title || '';
+                    b.innerHTML = svg.outerHTML;
+                    b.onclick = () => { setPenStyle(src.dataset.style); pop.classList.remove('open'); };
+                    pop.appendChild(b);
+                });
+            }
+            if (!pop.querySelector('.sb-size')) {
+                const sz = document.createElement('input');
+                sz.type = 'range'; sz.className = 'sb-size'; sz.min = '1'; sz.max = '60'; sz.title = 'السمك';
+                sz.oninput = () => changeToolSize(sz.value);
+                pop.appendChild(sz);
+            }
+            const szEl = pop.querySelector('.sb-size'); if (szEl) szEl.value = currentSize();
+            if (pop.classList.toggle('open')) {
+                const r = $('sb-pen').getBoundingClientRect();
+                pop.style.left = Math.max(8, Math.min(r.right + 8, window.innerWidth - pop.offsetWidth - 8)) + 'px';
+                pop.style.top = Math.max(8, Math.min(r.top - 6, window.innerHeight - pop.offsetHeight - 8)) + 'px';
+            }
+        }
+        document.addEventListener('pointerdown', e => {
+            const pop = $('sb-pen-pop');
+            if (pop && pop.classList.contains('open') && !pop.contains(e.target) && !(e.target.closest && e.target.closest('#sb-pen'))) pop.classList.remove('open');
+        }, true);
         function addBarControls(key, el) {
             const wrap = document.createElement('div');
             wrap.className = 'bar-ctl2';
@@ -7216,7 +7346,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const st = barState(key);
                 if (key === 'board') {
                     const r = el.getBoundingClientRect(), pr = el.parentElement.getBoundingClientRect();
-                    st.x = r.left - pr.left; st.y = r.top - pr.top;   // نفضل في نفس المكان
+                    const cx = r.left - pr.left + r.width / 2, cy = r.top - pr.top + r.height / 2;
+                    if (!st.vert) { st.x = cx < pr.width / 2 ? 12 : 1e6; st.y = null; }      // أفقي -> رأسي: على أقرب جنب
+                    else { st.x = null; st.y = cy < pr.height / 2 ? 0 : null; }               // رأسي -> أفقي: فوق أو تحت في النص
                 }
                 st.vert = !st.vert;
                 applyBar(key);
@@ -10138,6 +10270,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             applyTheme(appState.theme);
             applyBar('board');
             applyBar('reader');
+            updatePhoneUi();
             applyProfile();
             applyGradeNames();
             initDash();
