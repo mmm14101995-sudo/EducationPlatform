@@ -2317,6 +2317,13 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         .ts-chk.on { background: var(--c); }
         .ts-chk.on::after { content: "✓"; color: #fff; font-weight: 800; font-size: 16px; line-height: 1; }
         #ts-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; touch-action: none; cursor: crosshair; }
+
+        /* الموبايل: شريط السبورة العلوي بيلف على سطرين بدل ما يتقص (الأدوات كلها ظاهرة) */
+        @media (max-width: 599px) {
+            #board:not(.fs) > .board-bar:not(#board-float) { flex-wrap: wrap !important; overflow: visible !important; justify-content: center; row-gap: 6px; }
+            #board:not(.fs) > .board-bar:not(#board-float) .bgrp { flex-wrap: nowrap !important; }
+            #board:not(.fs) > .board-bar:not(#board-float) .ibtn, #board:not(.fs) > .board-bar:not(#board-float) .ts-btn { min-width: 40px; }
+        }
     </style>
 </head>
 <body data-theme="dark">
@@ -2990,6 +2997,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
     </div>
 
     <div id="rd-save-modal" class="modal" onclick="if (event.target === this) closeModal('rd-save-modal')">
+        <div class="modal-box">
         <div class="modal-head"><h2>حفظ PDF</h2><button class="ibtn" onclick="closeModal('rd-save-modal')"><i data-icon="x"></i></button></div>
         <p class="exam-empty" style="margin:0 0 14px">تحب تحفظ إيه؟ بعدها هيفتح لك نافذة تختار فيها مكان الحفظ.</p>
         <div class="modal-actions" style="flex-direction:column;gap:10px">
@@ -2997,7 +3005,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             <button class="btn-primary" onclick="exportReaderPdfChoice(false)">حفظ الكتاب كله</button>
             <button class="btn-ghost" onclick="closeModal('rd-save-modal')">إلغاء</button>
         </div>
-    </div>
+            </div>
+</div>
 
     <!-- القارئ -->
     <div id="reader" class="reader-overlay">
@@ -4183,6 +4192,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function renderPresets() {
             const box = $('presets');
+            if (!box) return;
             box.innerHTML = '';
             Object.keys(BG_PRESETS).forEach(key => {
                 const p = BG_PRESETS[key];
@@ -4201,11 +4211,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             applyBg();
             renderPresets();
             scheduleSave();
-        }
-
-        function resetBg() {
-            setPreset('indigo');
-            toast('رجعت الخلفية الافتراضية');
         }
 
         // ---- صورة المعلم ----
@@ -4239,14 +4244,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         // على الأندرويد الصورة بتتختار من الكود نفسه (أضمن)، وعلى الكمبيوتر من نافذة الملفات
-        function pickBackground() {
-            if (NATIVE && NATIVE.pickBackground) {
-                NATIVE.pickBackground();
-                return;
-            }
-            document.getElementById('bg-file').click();
-        }
-
         // يُستدعى من الأندرويد بعد ما الصورة تتصغّر وتتحوّل
         window.onBackgroundPicked = dataUrl => {
             bgTouchedByUser = true; appState.bg = { type: 'image', data: dataUrl };
@@ -5754,7 +5751,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             });
             if (n.mode === 'image') {
                 el.classList.add('sh-image'); el.querySelector('textarea').remove();
-                const im = document.createElement('img'); im.className = 'sticky-img'; if (n.src) im.src = n.src; else if (n.srcRef) sciUrlFor({ id: n.srcRef }).then(u => { if (u) im.src = u; }).catch(() => {}); im.alt = n.scientificMeta?.title || 'صورة على السبورة'; im.title = n.scientificMeta?.title || ''; im.draggable = false;
+                const im = document.createElement('img'); im.className = 'sticky-img'; if (n.src) im.src = n.src; else if (false && n.srcRef) sciUrlFor({ id: n.srcRef }).then(u => { if (u) im.src = u; }).catch(() => {}); im.alt = n.scientificMeta?.title || 'صورة على السبورة'; im.title = n.scientificMeta?.title || ''; im.draggable = false;
                 if (n.scientificMeta?.previewUrl) im.onerror = () => { if (im.src !== n.scientificMeta.previewUrl) { im.src=n.scientificMeta.previewUrl; n.src=n.scientificMeta.previewUrl; scheduleSave(); } };
                 el.appendChild(im);
                 const icv = document.createElement('canvas'); icv.className = 'sticky-ink'; el.appendChild(icv); bindInk(icv,n,el);
@@ -5881,16 +5878,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             scheduleSave();
             renderStickies();
         }
-        function addBoardSticky(shape) { createBoardSticky(shape || 'rect', 'text'); }
-
-        // ---- الملاحظات اللاصقة في القارئ (مواضعها بالنسبة لحجم الصفحة) ----
-        function stickiesFor(pageNo) {
-            appState.sticky = appState.sticky || {};
-            const bid = reader.book.id;
-            appState.sticky[bid] = appState.sticky[bid] || {};
-            return appState.sticky[bid][pageNo] || (appState.sticky[bid][pageNo] = []);
-        }
-
         function makeReaderSticky(n, wrap, pageNo) {
             const el = makeStickyBase();
             el.style.left = (n.x * 100) + '%';
@@ -5963,21 +5950,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             };
             cv.addEventListener('pointerup', up);
             cv.addEventListener('pointercancel', up);
-        }
-
-        function renderReaderStickies(wrap, pageNo) {
-            stickiesFor(pageNo).forEach(n => {
-                const el = makeReaderSticky(n, wrap, pageNo);
-                wrap.appendChild(el);
-                requestAnimationFrame(() => drawInk(el, n));   // بعد ما الملاحظة تتحط في الصفحة ويبقى ليها حجم
-            });
-        }
-
-        function addReaderSticky() {
-            if (!reader.book) return;
-            stickiesFor(reader.page).push({ id: 'n' + Date.now().toString(36), x: 0.38, y: 0.36, w: 0.22, h: 0.15, text: '', mode: 'draw', ink: [] });
-            scheduleSave();
-            renderReader();
         }
 
         // ---- الرسم ----
@@ -6438,13 +6410,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return Math.hypot(ax + t * dx - px, ay + t * dy - py);
         }
         // أي قطعة بين نقطتين والممحاة لمسّتها، نعلّم الاتنين كمتمسحين
-        function markSegmentHits(pts, hit, px, py, R) {
-            for (let i = 0; i < pts.length - 1; i++) {
-                if (hit[i] && hit[i + 1]) continue;
-                if (distToSeg(px, py, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]) < R) { hit[i] = true; hit[i + 1] = true; }
-            }
-        }
-
         // الممحاة على السبورة: كل ما تحركها أسرع المساحة بتكبر، ولو الحركة سريعة بنمسح الفراغ اللي بين النقط كمان
         let lastErase = null;
         const eraserRing = document.getElementById('eraser-ring');
@@ -7254,14 +7219,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         function setEraser() { setTool('eraser'); }
-        function setShape(kind) { shapeKind = kind; setTool('shape'); }
-
-        function changeToolSize(size) {
-            size = Number(size);
-            if (tool === 'eraser') eraserWidth = size; else penWidth = size;
-            $('penSizeVal').innerText = size + 'px';
-        }
-
         // ---- مسح الصفحة (ضغطتين للتأكيد) ----
         let clearArmed = false;
         let clearTimer = null;
@@ -7700,12 +7657,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         // ---- حفظ PDF: كل صفحة بحجم محتواها ----
         function contentBox(pg) {
             let x0 = 0, y0 = 0, x1 = 800, y1 = 500, first = true;
-            for (const st of pg.strokes) {
-                for (const q of st.pts) {
-                    if (first) { x0 = x1 = q[0]; y0 = y1 = q[1]; first = false; }
-                    x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]);
-                    x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]);
-                }
+            const grow = (x, y) => {
+                if (first) { x0 = x1 = x; y0 = y1 = y; first = false; }
+                x0 = Math.min(x0, x); y0 = Math.min(y0, y);
+                x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+            };
+            for (const st of pg.strokes) for (const q of st.pts) grow(q[0], q[1]);
+            for (const n of (pg.notes || [])) {
+                if (typeof n.x !== 'number' || typeof n.y !== 'number') continue;
+                grow(n.x, n.y); grow(n.x + (n.w || 160), n.y + (n.h || 100));
             }
             return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
         }
@@ -7796,6 +7756,22 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     g.drawImage(img, 0, 0);
                 }
                 for (const st of pg.strokes) drawStroke(g, st);
+                for (const n of (pg.notes || [])) {
+                    if (typeof n.x !== 'number' || typeof n.y !== 'number') continue;
+                    if (n.mode === 'image' && n.src) {
+                        try { const im = await loadImage(n.src); g.drawImage(im, n.x, n.y, n.w || 160, n.h || 100); } catch (e) { /* صورة مش متاحة */ }
+                    } else if (n.text) {
+                        g.save(); g.fillStyle = '#111827'; g.font = '16px sans-serif'; g.textBaseline = 'top';
+                        const maxW = n.w || 160; let line = '', yy = n.y + 6;
+                        for (const word of String(n.text).split(/\s+/)) {
+                            const test = line ? line + ' ' + word : word;
+                            if (g.measureText(test).width > maxW - 12 && line) { g.fillText(line, n.x + 6, yy); line = word; yy += 22; }
+                            else line = test;
+                        }
+                        if (line) g.fillText(line, n.x + 6, yy);
+                        g.restore();
+                    }
+                }
                 images.push({ data: NATIVE ? tmp.toDataURL('image/png') : null, W, H, canvas: tmp });
             }
             if (!images.length) return toast('لا توجد صفحات لحفظها');
@@ -8923,7 +8899,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         function quizSubmit(auto) {
             const q = qr.quiz;
             const un = q.qs.filter(x => qr.ans[x.id] == null || qr.ans[x.id] === '').length;
-            if (!auto && un && !confirm('فيه ' + un + ' سؤال بدون إجابة. تسليم الاختبار؟')) return;
+            if (!auto && un) { askConfirm('فيه ' + un + ' سؤال بدون إجابة. تسليم الاختبار؟', () => quizSubmit(true)); return; }
             clearInterval(qr.timer);
             const a = { id: qid(), quizId: q.id, name: qr.name, at: Date.now(), ans: { ...qr.ans }, ess: {}, score: 0, total: 0, pending: 0 };
             gradeAttempt(a); appState.quizResults = appState.quizResults || []; appState.quizResults.unshift(a); scheduleSave();
@@ -9266,11 +9242,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             applyReaderView();
         }
         // تقليب الصفحة: لو الصفحة مكبّرة نحافظ على التكبير ونبدأ من أول الصفحة الجديدة
-        function keepZoomOnPageChange() {
-            if (readerView.z > 1.05) { readerView.tx = 0; readerView.ty = 0; }
-            else resetReaderView();
-        }
-
         let lastReaderBook = null;   // آخر كتاب اتفتح، عشان زرار "قارئ الكتب" في السبورة يرجعله
         async function openBook(book) {
             lastReaderBook = book;
@@ -9462,7 +9433,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 pg.notes.push(note); scheduleSave(); renderStickies();
             };
             // الصور الكبيرة بتتخزن في التخزين الداخلي، والسبورة بتحتفظ بمرجع خفيف بس
-            if (typeof src === 'string' && src.startsWith('data:') && src.length > 60000) {
+            if (false && typeof src === 'string' && src.startsWith('data:') && src.length > 60000) {   // التخزين الخارجي مش متعرّف: الصور بتتحفظ inline
                 const ref = 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
                 (async () => {
                     try { await sciPut(ref, await (await fetch(src)).blob()); finish({ srcRef: ref }); }
@@ -9957,17 +9928,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             readerEdge = 0; readerWheelEdge = 0;
             if (dir > 0) nextPage(); else prevPage();
         }
-        function readerEdgeMove(dy) {
-            // dy موجب = المستخدم بيسحب لتحت (المحتوى بينزل) فنروح للصفحة اللي فوق
-            const stage = $('reader-stage');
-            const minTy = stage.clientHeight - stage.clientHeight * readerView.z;
-            const atTop = readerView.ty >= -0.5, atBottom = readerView.ty <= minTy + 0.5;
-            if (!((atTop && dy > 0) || (atBottom && dy < 0))) { readerEdge = 0; return; }
-            if (readerEdge && Math.sign(readerEdge) !== Math.sign(dy)) readerEdge = 0;
-            readerEdge += dy;
-            if (readerEdge > 110) readerFlip(-1);
-            else if (readerEdge < -110) readerFlip(1);
-        }
         // سرعة التمرير باللمس: مضاعف على حركة الإصبع + اندفاع بعد الرفع (زي الموبايل)
         const RD_TOUCH_GAIN = 2.4;   // سحب اللمس أسرع
         const rdFling = { raf: 0, v: 0 };
@@ -10385,11 +10345,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             reader.annotate = false;
             syncAnnotateUI();
         }
-        function toggleAnnotate() {
-            reader.annotate = !reader.annotate;
-            syncAnnotateUI();
-        }
-
         let readerLastPen = 'normal';
         const RD_PEN_TOOLS = ['normal', 'feather', 'hl', 'broad', 'pencil', 'striped', 'neon'];
         function setNoteTool(t) {
@@ -10677,12 +10632,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             presentEnsureWrite();
             presentClosePens();
         }
-        function presentPickColor(c) {
-            if (present.mode === 'reader') setNoteColor(c);
-            else setPenColor(c);
-            presentEnsureWrite();
-            presentClosePens();
-        }
         function presentEraser() {
             if (present.mode === 'reader') setNoteTool('eraser');
             else setTool('eraser');
@@ -10726,11 +10675,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 step(dir);
             }
         }
-        function presentFit() {
-            if (present.mode === 'board') boardFitView();
-            else if (present.mode === 'reader') resetReaderView();
-        }
-
         function endPresent() {
             const m = present.mode;
             if (!m) return;
