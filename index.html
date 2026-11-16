@@ -2772,6 +2772,10 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                     </div>
                 </div>
                 <div class="set-block">
+                    <span class="set-lbl">جهاز داعم لراحة اليد (القلم يكتب والصبع يحرك)</span>
+                    <div class="set-row"><button type="button" class="btn-ghost" id="fw-btn" onclick="toggleFingerWrites()">متوقف</button></div>
+                </div>
+                <div class="set-block">
                     <span class="set-lbl">لون التمييز</span>
                     <div class="swatches">
                         <button type="button" class="sw-btn sw-default" data-c="" onclick="setAccentColor('')" title="افتراضي" aria-label="افتراضي">ح</button>
@@ -3382,6 +3386,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
 
         function openSettings() {
+            renderFwState();
             $('inp-name').value = appState.teacher.name;
             $('inp-sub').value = appState.teacher.subtitle;
             $('inp-grade3').value = gradeName('sec3');
@@ -6562,7 +6567,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
 
             // الإصبع الواحد بيحرك الصفحة دايماً، والكتابة بالقلم بس
-            if (e.pointerType === 'touch' || handMode) { activeId = e.pointerId; activeMode = 'pan'; panLast = screenPoint(e); return; }
+            // الإصبع بيحرك الصفحة، إلا لو وضع "الصبع يكتب" شغال (للأجهزة اللي القلم فيها بيتعامل كإصبع)
+            if ((e.pointerType === 'touch' && !fingerWrites()) || handMode) { activeId = e.pointerId; activeMode = 'pan'; panLast = screenPoint(e); return; }
             if (tool === 'select') { selectDown(e); return; }
             if (tool === 'pen' && penStyle === 'laser' && !(e.pointerType === 'touch' && FINGER_ERASES)) {
                 // مؤشر الليزر: أثر مؤقت بيختفي، ومش بيتحفظ ومش بيدخل في التراجع
@@ -6592,7 +6598,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         });
 
         stageEl.addEventListener('pointermove', e => {
-            if (e.pointerType === 'touch') {
+            if (e.pointerType === 'touch' && touches.has(e.pointerId)) touches.set(e.pointerId, screenPoint(e));
+            const writingFinger = e.pointerType === 'touch' && fingerWrites() && e.pointerId === activeId && activeMode === 'draw';
+            if (e.pointerType === 'touch' && !writingFinger) {
                 if (!touches.has(e.pointerId)) return;
                 touches.set(e.pointerId, screenPoint(e));
                 if (pinch && touches.size >= 2) {
@@ -7368,6 +7376,19 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const BAR_LOCK_ON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
         const BAR_LOCK_OFF = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-1.8"/></svg>';
         function barElFor(key) { return key === 'board' ? $('board-float') : document.querySelector('#reader .reader-notes'); }
+        // وضع "الصبع يكتب": للأجهزة اللي القلم فيها بيتعامل كإصبع. الصبع الواحد يكتب، والصباعين يكبّروا ويصغّروا
+        // الافتراضي: الصبع الواحد يكتب، والصباعين يكبّروا ويصغّروا. لو الجهاز داعم لراحة اليد: القلم بس يكتب، والصبع يحرك
+        function fingerWrites() { return !appState.palmDevice; }
+        function toggleFingerWrites() {
+            appState.palmDevice = !appState.palmDevice;
+            scheduleSave();
+            renderFwState();
+        }
+        function renderFwState() {
+            const b = $('fw-btn'); if (!b) return;
+            b.textContent = appState.palmDevice ? 'مفعّل' : 'متوقف';
+            b.classList.toggle('active', !!appState.palmDevice);
+        }
         function barIsFs(key) { return (key === 'board' || key === 'splitboard') ? $('board').classList.contains('fs') : $('reader').classList.contains('fs'); }
         function barState(key) {
             appState.barLayout = appState.barLayout || {};
@@ -9648,7 +9669,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
 
         function bindNoteLayer(layer, pageNo) {
             layer.addEventListener('pointerdown', e => {
-                if (!reader.annotate || e.button > 0 || e.pointerType === 'touch') return;   // الإصبع بيحرك، القلم بيكتب
+                // القلم بيكتب. الإصبع بيحرك، إلا لو "الصبع يكتب" شغال والإصبع لوحده
+                if (!reader.annotate || e.button > 0 || (e.pointerType === 'touch' && !(fingerWrites() && readerTouches.size === 1))) return;
                 if (e.pointerType === 'touch' && readerTouches.size >= 2) return;
                 if (readerTouches.size >= 2) return;      // إصبعين = تكبير وتحريك مش كتابة
                 e.preventDefault();
@@ -9946,9 +9968,31 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (readerEdge > 110) readerFlip(-1);
             else if (readerEdge < -110) readerFlip(1);
         }
+        // سرعة التمرير باللمس: مضاعف على حركة الإصبع + اندفاع بعد الرفع (زي الموبايل)
+        const RD_TOUCH_GAIN = 2.4;   // سحب اللمس أسرع
+        const rdFling = { raf: 0, v: 0 };
+        let rdVel = 0, rdLastT = 0;
+        function rdStopFling() { if (rdFling.raf) cancelAnimationFrame(rdFling.raf); rdFling.raf = 0; rdFling.v = 0; }
+        function rdStartFling(v) {
+            rdStopFling();
+            if (Math.abs(v) < 0.15) return;   // بكسل/مللي ثانية
+            rdFling.v = v;
+            let last = performance.now();
+            const step = now => {
+                const dt = Math.min(40, now - last); last = now;
+                const before = readerView.ty;
+                readerView.ty += rdFling.v * dt;
+                clampReaderView(); applyReaderView(); rdOnMove();
+                rdFling.v *= Math.pow(0.955, dt / 16);   // الاندفاع بعد الرفع بيكمل مسافة أطول
+                if (Math.abs(rdFling.v) < 0.03 || readerView.ty === before) { rdFling.raf = 0; return; }
+                rdFling.raf = requestAnimationFrame(step);
+            };
+            rdFling.raf = requestAnimationFrame(step);
+        }
         readerStage.addEventListener('pointerdown', e => {
             const penHand = e.pointerType === 'pen' && !reader.annotate;   // القلم بيحرك الصفحة في وضع اليد بس
             if (e.pointerType !== 'touch' && !penHand) return;
+            rdStopFling(); rdVel = 0; rdLastT = performance.now();
             readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
             try { readerStage.setPointerCapture(e.pointerId); } catch (err) { /* تجاهل */ }
             if (readerTouches.size >= 2) readerPinchStart();
@@ -9960,11 +10004,16 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             readerTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
             if (readerTouches.size >= 2) { if (readerPinch) readerPinchMove(); return; }
             if (readerPinch) return;
+            if (reader.annotate && fingerWrites()) return;   // الصبع بيكتب: مايحركش الصفحة
             const dx = e.clientX - old.x, dy = e.clientY - old.y;
             if (Math.abs(dx) + Math.abs(dy) > 3) readerNoTap = true;
             if (!readerAxis && Math.abs(dx) + Math.abs(dy) > 6) readerAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
             if (readerAxis === 'x') { if (readerView.z > 1.001) readerView.tx += dx; }   // يمين/شمال: تحريك الصفحة المكبّرة بس، ومايغيّرش الصفحة
-            else if (readerAxis === 'y') readerView.ty += dy;                             // فوق/تحت: التمرير بين الصفحات
+            else if (readerAxis === 'y') {                                                // فوق/تحت: التمرير بين الصفحات (أسرع من حركة الإصبع)
+                const ddy = dy * RD_TOUCH_GAIN, nowT = performance.now();
+                readerView.ty += ddy;
+                rdVel = 0.7 * rdVel + 0.3 * (ddy / Math.max(1, nowT - rdLastT)); rdLastT = nowT;
+            }
             clampReaderView(); applyReaderView();
             rdOnMove();
         }, true);
@@ -9973,6 +10022,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             readerTouches.delete(e.pointerId);
             if (readerTouches.size < 2 && readerPinch) readerPinch = null;
             if (readerTouches.size === 0) {
+                if (readerAxis === 'y' && !readerPinch && performance.now() - rdLastT < 120) rdStartFling(rdVel);   // اندفاع بعد الرفع
                 readerEdge = 0; readerAxis = null;
                 setTimeout(() => { if (readerTouches.size === 0) readerNoTap = false; }, 300);
             }
@@ -10504,7 +10554,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             paintIcons();
             document.querySelectorAll('button[title]:not([aria-label])').forEach(b => b.setAttribute('aria-label', b.getAttribute('title')));
             document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('nav')) { e.preventDefault(); e.target.click(); } });
-            await loadAppState();
+            try { await loadAppState(); }
+            catch (err) { console.warn('تعذر تحميل البيانات، هنكمل بالقيم الافتراضية', err); }
             applyTheme(appState.theme);
             applyBar('board');
             applyBar('reader');
