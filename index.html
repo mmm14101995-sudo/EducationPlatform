@@ -16,6 +16,7 @@
             --muted: rgba(248, 250, 252, 0.68);
             --card: rgba(15, 23, 42, 0.55);
             --line: rgba(255, 255, 255, 0.12);
+            --accent-rgb: 195, 202, 212; /* قيمة احتياطية (silver) لو ما اتحمّل أي ثيم */
             --accent: rgba(var(--accent-rgb), 0.6);
             --accent2: #818cf8;
             --solid: #0f172a;
@@ -243,7 +244,7 @@
             height: 100dvh !important; z-index: 500; border-radius: 0; border: 0; margin: 0;
         }
         .board-bar {
-            position: relative; z-index: 2; flex-shrink: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            position: relative; z-index: 20; flex-shrink: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
             padding: 10px 12px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.04);
         }
         .bgrp { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255,255,255,0.07); }
@@ -2116,6 +2117,31 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             color: #c9b07a !important; stroke: #c9b07a !important;
         }
         .nav:hover, .ibtn:hover, .btn-ghost:hover, .sc:hover, .rn-tool:hover, .pb-btn:hover { color: #c9b07a; }
+
+        /* ===== إصلاح الوضع النهاري: الأيقونات والنصوص على الأزرار بلون واضح وقوي ===== */
+        /* الأزرار في الوضع العادي (من غير hover): نص واضح على الخلفية الفاتحة */
+        body[data-theme="light"] .nav,
+        body[data-theme="light"] .nav .ico { color: #1b2330; }
+        body[data-theme="light"] .nav span { color: #1b2330; }
+        body[data-theme="light"] .btn-ghost,
+        body[data-theme="light"] .btn-ghost svg,
+        body[data-theme="light"] .btn-ghost [data-icon] svg { color: #1b2330; }
+        body[data-theme="light"] .ibtn,
+        body[data-theme="light"] .ibtn svg,
+        body[data-theme="light"] .ibtn [data-icon] svg { color: #1b2330; }
+        /* لون hover أغمق في الوضع النهاري عشان يتباين مع الخلفية الفاتحة */
+        body[data-theme="light"] .nav:hover,
+        body[data-theme="light"] .ibtn:hover,
+        body[data-theme="light"] .btn-ghost:hover,
+        body[data-theme="light"] .sc:hover { color: #7c5c10; }
+        body[data-theme="light"] .nav:hover svg,
+        body[data-theme="light"] .nav:hover [data-icon] svg,
+        body[data-theme="light"] .ibtn:hover svg,
+        body[data-theme="light"] .ibtn:hover [data-icon] svg,
+        body[data-theme="light"] .btn-ghost:hover svg,
+        body[data-theme="light"] .btn-ghost:hover [data-icon] svg,
+        body[data-theme="light"] .sc:hover svg,
+        body[data-theme="light"] .sc:hover [data-icon] svg { color: #7c5c10 !important; stroke: #7c5c10 !important; }
 
         /* ===== الوضع المزدوج: القارئ يمين والسبورة شمال (نفس النافذة) ===== */
         #split-divider { display: none; position: fixed; top: 0; bottom: 0; left: calc(var(--split-w, 50%) - 4px); width: 8px; cursor: col-resize; z-index: 260; touch-action: none; background: transparent; }
