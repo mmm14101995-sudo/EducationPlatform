@@ -16,7 +16,6 @@
             --muted: rgba(248, 250, 252, 0.68);
             --card: rgba(15, 23, 42, 0.55);
             --line: rgba(255, 255, 255, 0.12);
-            --accent-rgb: 195, 202, 212; /* قيمة احتياطية (silver) لو ما اتحمّل أي ثيم */
             --accent: rgba(var(--accent-rgb), 0.6);
             --accent2: #818cf8;
             --solid: #0f172a;
@@ -244,7 +243,7 @@
             height: 100dvh !important; z-index: 500; border-radius: 0; border: 0; margin: 0;
         }
         .board-bar {
-            position: relative; z-index: 20; flex-shrink: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            position: relative; z-index: 2; flex-shrink: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
             padding: 10px 12px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.04);
         }
         .bgrp { display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255,255,255,0.07); }
@@ -2118,31 +2117,6 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         }
         .nav:hover, .ibtn:hover, .btn-ghost:hover, .sc:hover, .rn-tool:hover, .pb-btn:hover { color: #c9b07a; }
 
-        /* ===== إصلاح الوضع النهاري: الأيقونات والنصوص على الأزرار بلون واضح وقوي ===== */
-        /* الأزرار في الوضع العادي (من غير hover): نص واضح على الخلفية الفاتحة */
-        body[data-theme="light"] .nav,
-        body[data-theme="light"] .nav .ico { color: #1b2330; }
-        body[data-theme="light"] .nav span { color: #1b2330; }
-        body[data-theme="light"] .btn-ghost,
-        body[data-theme="light"] .btn-ghost svg,
-        body[data-theme="light"] .btn-ghost [data-icon] svg { color: #1b2330; }
-        body[data-theme="light"] .ibtn,
-        body[data-theme="light"] .ibtn svg,
-        body[data-theme="light"] .ibtn [data-icon] svg { color: #1b2330; }
-        /* لون hover أغمق في الوضع النهاري عشان يتباين مع الخلفية الفاتحة */
-        body[data-theme="light"] .nav:hover,
-        body[data-theme="light"] .ibtn:hover,
-        body[data-theme="light"] .btn-ghost:hover,
-        body[data-theme="light"] .sc:hover { color: #7c5c10; }
-        body[data-theme="light"] .nav:hover svg,
-        body[data-theme="light"] .nav:hover [data-icon] svg,
-        body[data-theme="light"] .ibtn:hover svg,
-        body[data-theme="light"] .ibtn:hover [data-icon] svg,
-        body[data-theme="light"] .btn-ghost:hover svg,
-        body[data-theme="light"] .btn-ghost:hover [data-icon] svg,
-        body[data-theme="light"] .sc:hover svg,
-        body[data-theme="light"] .sc:hover [data-icon] svg { color: #7c5c10 !important; stroke: #7c5c10 !important; }
-
         /* ===== الوضع المزدوج: القارئ يمين والسبورة شمال (نفس النافذة) ===== */
         #split-divider { display: none; position: fixed; top: 0; bottom: 0; left: calc(var(--split-w, 50%) - 4px); width: 8px; cursor: col-resize; z-index: 260; touch-action: none; background: transparent; }
         #split-divider::after { content: ""; position: absolute; top: 50%; left: 50%; width: 4px; height: 64px; transform: translate(-50%, -50%); border-radius: 4px; background: rgba(var(--accent-rgb), 0.8); }
@@ -2157,6 +2131,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         body.split-on.split-rev #view-board.view.active { left: 0 !important; right: auto !important; width: calc(var(--split-w, 50%) - 4px) !important; }
         body.split-on.split-rev #split-board-close { right: auto; left: 10px; }
 
+        /* ===== الأداء: من غير تمويه فوق الكانفاس (بيتعاد رسمه كل حركة قلم وبيبطّأ الكتابة) ===== */
+        .reader-overlay *, #board *, #board-float, .split-board-bar, .split-board-bar * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+        .reader-overlay .reader-bar, .reader-overlay .reader-notes, .reader-overlay .reader-foot, #board-float, .split-board-bar { background-color: rgba(20,24,33,0.92) !important; }
         /* ===== الوضع المزدوج: أدوات أقل + شكل أنظف ومدوّر (زي الآيفون) ===== */
         body.split-on #reader-to-board, body.split-on button[onclick="toggleReaderPaper()"],
         body.split-on #board .board-color-group, body.split-on #board #fs-btn,
@@ -9506,7 +9483,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const liveInk = { layer: null, cache: null, stroke: null, raf: 0, full: null };
         function liveInkBegin(layer, pageNo, stroke) {
             liveInkStop();
-            liveInk.layer = layer; liveInk.stroke = stroke; liveInk.drawn = 0;
+            liveInk.layer = layer; liveInk.stroke = stroke; liveInk.drawn = 0; liveInk.box = null;
             // كل الأقلام: بنحتفظ بصورة الصفحة (من غير الخط الحالي)، ونعيد رسم الخط الحالي كامل كل إطار،
             // عشان الشكل وهو بيترسم يكون هو نفسه اللي بيفضل بعد ما ترفع القلم (من غير تقطيع أو تغيير)
             const cache = document.createElement('canvas');
@@ -9521,9 +9498,28 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (!layer || !st) return;
             const g = layer.getContext('2d');
             if (liveInk.cache) {
-                g.clearRect(0, 0, layer.width, layer.height);
+                // بنحدد مستطيل الخط (زائد هامش بعرض القلم) وبنرسم جواه بس
+                const sc = layer.width / NOTE_W;
+                const pad = (st.w || 6) * sc * 2 + 14;
+                let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+                for (const p of st.pts) {
+                    const x = p[0] * layer.width, y = p[1] * layer.height;
+                    x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+                }
+                const box = liveInk.box ? {
+                    x: Math.min(liveInk.box.x, x0 - pad), y: Math.min(liveInk.box.y, y0 - pad),
+                    w: Math.max(liveInk.box.x + liveInk.box.w, x1 + pad) - Math.min(liveInk.box.x, x0 - pad),
+                    h: Math.max(liveInk.box.y + liveInk.box.h, y1 + pad) - Math.min(liveInk.box.y, y0 - pad)
+                } : { x: x0 - pad, y: y0 - pad, w: x1 - x0 + pad * 2, h: y1 - y0 + pad * 2 };
+                liveInk.box = box;
+                const bx = Math.max(0, Math.floor(box.x)), by = Math.max(0, Math.floor(box.y));
+                const bw = Math.min(layer.width - bx, Math.ceil(box.w) + 2), bh = Math.min(layer.height - by, Math.ceil(box.h) + 2);
+                g.save();
+                g.beginPath(); g.rect(bx, by, bw, bh); g.clip();
+                g.clearRect(bx, by, bw, bh);
                 g.drawImage(liveInk.cache, 0, 0);
                 paintNoteStrokes(g, layer, [st]);
+                g.restore();
                 return;
             }
             const from = Math.max(0, liveInk.drawn - 1);
