@@ -9908,7 +9908,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (dir > 0) nextPage(); else prevPage();
         }
         // سرعة التمرير باللمس: مضاعف على حركة الإصبع + اندفاع بعد الرفع (زي الموبايل)
-        const RD_TOUCH_GAIN = 2.4;   // سحب اللمس أسرع
+        const RD_TOUCH_GAIN = 1.6;   // سرعة متوسطة للسحب
         const rdFling = { raf: 0, v: 0 };
         let rdVel = 0, rdLastT = 0;
         function rdStopFling() { if (rdFling.raf) cancelAnimationFrame(rdFling.raf); rdFling.raf = 0; rdFling.v = 0; }
@@ -9922,7 +9922,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const before = readerView.ty;
                 readerView.ty += rdFling.v * dt;
                 clampReaderView(); applyReaderView(); rdOnMove();
-                rdFling.v *= Math.pow(0.955, dt / 16);   // الاندفاع بعد الرفع بيكمل مسافة أطول
+                rdFling.v *= Math.pow(0.93, dt / 16);   // الاندفاع بعد الرفع أقصر ومتوسط
                 if (Math.abs(rdFling.v) < 0.03 || readerView.ty === before) { rdFling.raf = 0; return; }
                 rdFling.raf = requestAnimationFrame(step);
             };
@@ -10005,13 +10005,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
         const RD_GAP = 0, RD_SIDE_GAP = 8, RD_PAD = 12;   // الصفحات متلاصقة رأسياً؛ المسافة بين صفحتين جنب بعض (الصفحات المزدوجة) بس
         const rdWraps = new Map();     // الصفحات الظاهرة حالياً (بالفهرس)
         const rdPending = new Set();
-        function rdSlots() { return reader.spread ? Math.ceil(reader.total / 2) : reader.total; }
+        // في الوضع المزدوج (السبورة جنب الكتاب) الكتاب بيتعرض صفحة صفحة
+        function rdIsSpread() { return !!reader.spread && !document.body.classList.contains('split-on'); }
+        function rdSlots() { return rdIsSpread() ? Math.ceil(reader.total / 2) : reader.total; }
         function rdSlotPages(m) {
-            if (!reader.spread) return [m + 1];
+            if (!rdIsSpread()) return [m + 1];
             const pair = appState.readerRtl ? [2 * m + 2, 2 * m + 1] : [2 * m + 1, 2 * m + 2];   // العربي: اليمين الأول
             return pair.filter(n => n <= reader.total);
         }
-        function rdSlotOf(p) { return reader.spread ? Math.floor((p - 1) / 2) : p - 1; }
+        function rdSlotOf(p) { return rdIsSpread() ? Math.floor((p - 1) / 2) : p - 1; }
         function rdMetrics() {
             const stage = $('reader-stage');
             const W = stage.clientWidth, H = stage.clientHeight;
