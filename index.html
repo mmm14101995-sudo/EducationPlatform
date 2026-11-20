@@ -2312,6 +2312,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             #board:not(.fs) > .board-bar:not(#board-float) .bgrp { flex-wrap: nowrap !important; }
             #board:not(.fs) > .board-bar:not(#board-float) .ibtn, #board:not(.fs) > .board-bar:not(#board-float) .ts-btn { min-width: 40px; }
         }
+
+        /* زرار الإضافة: + وتحتيه "إضافة قلم"، والخانة الخامسة بتعرض القلم المختار */
+        #pen-more-btn.pen-add { flex-direction: column; height: auto !important; min-height: 44px; padding: 4px 2px !important; gap: 0; }
+        #pen-more-btn .pen-cap { font-size: 9px; line-height: 1.1; display: block; margin-top: 2px; white-space: nowrap; }
+        #pen-slot5 svg { width: 26px; height: 40px; }
     </style>
 </head>
 <body data-theme="dark">
@@ -2479,7 +2484,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                             <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="hl" title="تظليل" onclick="penTap('hl')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" opacity=".9" d="M8.5 14.5 V8 L17.5 4.5 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
                             <button class="ibtn pen-3d pen-style-btn pen-visible" data-style="neon" title="قلم نيون" onclick="penTap('neon')"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M11 14.5 L12.4 4.5 H13.6 L15 14.5Z"/><circle class="nib" cx="13" cy="4" r="1.5"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
                             <div class="pen-more-wrap">
-                                <button class="ibtn" id="pen-more-btn" title="باقي الأقلام" aria-label="باقي الأقلام" onclick="togglePenMore(event)"><span class="pen-plus">+</span></button>
+                                <button class="ibtn pen-3d pen-style-btn pen-visible" id="pen-slot5" title="آخر قلم اخترته من الإضافة" aria-label="القلم الخامس" onclick="penSlot5Tap()"></button>
+                <button class="ibtn pen-add" id="pen-more-btn" title="إضافة قلم" aria-label="إضافة قلم" onclick="togglePenMore(event)"><span class="pen-plus">+</span><span class="pen-cap">إضافة قلم</span></button>
                                 <div class="pen-pop" id="pen-more-pop">
                             <button class="ibtn pen-3d pen-style-btn" data-style="broad" title="ماركر عريض" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path class="nib" d="M8.8 14.5 V9 Q8.8 3.5 13 3.5 Q17.2 3.5 17.2 9 V14.5Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
                             <button class="ibtn pen-3d pen-style-btn" data-style="pencil" title="قلم رصاص" onclick="penPickFromMore(this)"><svg viewBox="0 0 26 40"><use href="#pn-body"/><path d="M8.8 14.5 L13 3 L17.2 14.5Z" fill="#e8c58f"/><path class="nib" d="M11.9 6.2 L13 3 L14.1 6.2Z"/><rect class="nib" x="8" y="20.5" width="10" height="3"/></svg></button>
@@ -7107,30 +7113,28 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             pop.style.top = top + 'px';
         }
         // زرار الأقلام الإضافية: مكان علامة الزائد بقى فيه قلم (من الأقلام اللي في القائمة). ضغطة = القلم ده، ضغطتين = القائمة كلها
-        let moreSlotStyle = null;
+
+        // الخانة الخامسة بتعرض آخر قلم اخترته من قائمة الإضافة (الزرار "+" بيفضل ثابت)
+        let moreSlotStyle = 'broad';   // آخر قلم اتاخد من قائمة الإضافة
         function syncSplitPenBtn() {
             try {
-                const btn = $('pen-more-btn'); if (!btn) return;
-                const extras = [...document.querySelectorAll('button.pen-style-btn')].filter(b => b.closest('#pen-more-pop'));
+                const slot = $('pen-slot5'); if (!slot) return;
+                const extras = [...document.querySelectorAll('#pen-more-pop button.pen-style-btn')];
                 if (!extras.length) return;
                 const styles = extras.map(b => b.dataset.style);
-                moreSlotStyle = styles.includes(penStyle) ? penStyle : (styles.includes(moreSlotStyle) ? moreSlotStyle : styles[0]);
-                if (btn.dataset.cur !== moreSlotStyle) {
-                    const svg = extras.find(b => b.dataset.style === moreSlotStyle).querySelector('svg');
-                    if (svg) { btn.innerHTML = svg.outerHTML; btn.dataset.cur = moreSlotStyle; btn.classList.add('pen-3d'); }
+                if (styles.includes(penStyle)) moreSlotStyle = penStyle;
+                if (!styles.includes(moreSlotStyle)) moreSlotStyle = styles[0];
+                if (slot.dataset.cur !== moreSlotStyle) {
+                    const src = extras.find(b => b.dataset.style === moreSlotStyle);
+                    const svg = src && src.querySelector('svg');
+                    if (svg) { slot.innerHTML = svg.outerHTML; slot.dataset.cur = moreSlotStyle; slot.title = src.title || ''; }
                 }
-                btn.classList.toggle('active', penStyle === moreSlotStyle && tool === 'pen');
+                slot.classList.toggle('active', penStyle === moreSlotStyle && tool === 'pen');
             } catch (e) { /* قبل ما الحالة تتجهز */ }
         }
+        function penSlot5Tap() { setPenStyle(moreSlotStyle); }
         function togglePenMore(ev) {
             if (ev) ev.stopPropagation();
-            const now = Date.now();
-            if (now - (togglePenMore._t || 0) > 350) {
-                togglePenMore._t = now;
-                if (moreSlotStyle) setPenStyle(moreSlotStyle);   // ضغطة: القلم اللي على الزرار
-                return;
-            }
-            togglePenMore._t = 0;                                 // ضغطتين: القائمة كلها
             const pop = $('pen-more-pop');
             if (pop.parentElement !== document.body) document.body.appendChild(pop);
             if (pop.classList.toggle('open')) placePenPop();
@@ -7320,7 +7324,15 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             return appState.barLayout[key] || (appState.barLayout[key] = { locked: false, vert: key === 'reader', x: null, y: null });
         }
         // ارتفاع الشريط العلوي للسبورة: الشريط الرأسي بيبدأ تحته ومايغطيهوش
-        function boardTopH() { const t = document.querySelector('#board > .board-bar'); return t ? t.offsetHeight : 0; }
+        function boardTopH() {
+            const t = document.querySelector('#board > .board-bar:not(#board-float)'), b = $('board');
+            if (!t || !b || !t.offsetHeight) return 0;
+            return Math.ceil(Math.max(0, t.getBoundingClientRect().bottom - b.getBoundingClientRect().top));
+        }
+        (function watchBoardTop() {
+            const t = document.querySelector('#board > .board-bar:not(#board-float)');
+            if (t && window.ResizeObserver) new ResizeObserver(() => { applyBar('board'); applySplitBoardBar(); }).observe(t);
+        })();
         // شريط السبورة يفضل جوه السبورة: الأفقي فوق أو تحت، والرأسي يمين أو شمال
         // الشريط العائم حر في الحركة جوه السبورة، بس ما يعديش حدودها
         function applyBoardBarSnap(el, st) {
@@ -9908,7 +9920,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (dir > 0) nextPage(); else prevPage();
         }
         // سرعة التمرير باللمس: مضاعف على حركة الإصبع + اندفاع بعد الرفع (زي الموبايل)
-        const RD_TOUCH_GAIN = 1.6;   // سرعة متوسطة للسحب
+        const RD_TOUCH_GAIN = 1.0;   // الصفحة بتتحرك بنفس سرعة الإصبع
         const rdFling = { raf: 0, v: 0 };
         let rdVel = 0, rdLastT = 0;
         function rdStopFling() { if (rdFling.raf) cancelAnimationFrame(rdFling.raf); rdFling.raf = 0; rdFling.v = 0; }
@@ -9922,7 +9934,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 const before = readerView.ty;
                 readerView.ty += rdFling.v * dt;
                 clampReaderView(); applyReaderView(); rdOnMove();
-                rdFling.v *= Math.pow(0.93, dt / 16);   // الاندفاع بعد الرفع أقصر ومتوسط
+                rdFling.v *= Math.pow(0.86, dt / 16);   // الاندفاع بعد الرفع قصير
                 if (Math.abs(rdFling.v) < 0.03 || readerView.ty === before) { rdFling.raf = 0; return; }
                 rdFling.raf = requestAnimationFrame(step);
             };
@@ -9991,7 +10003,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             }
             const dy = e.deltaY;
             if (!dy) return;
-            readerView.ty -= dy;
+            readerView.ty -= dy * 0.5;   // عجلة الماوس أبطأ
             clampReaderView();
             applyReaderView();
             rdOnMove();
