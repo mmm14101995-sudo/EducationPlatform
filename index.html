@@ -10091,8 +10091,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const z = readerView.z;
             const y0 = -readerView.ty / z, y1 = (H - readerView.ty) / z;
             const n = rdSlots();
-            const first = Math.max(0, Math.floor((y0 - RD_PAD) / step) - 2);
-            const last = Math.min(n - 1, Math.floor((y1 - RD_PAD) / step) + 2);
+            const first = Math.max(0, Math.floor((y0 - RD_PAD) / step) - 3);
+            const last = Math.min(n - 1, Math.floor((y1 - RD_PAD) / step) + 3);
             const out = [];
             for (let m = first; m <= last; m++) out.push(m);
             return out;
@@ -10105,7 +10105,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             const cur = rdSlotOf(reader.page);
             const list = rdVisible().sort((a, b) => Math.abs(a - cur) - Math.abs(b - cur));
             const want = new Set(list);
-            for (const [m, el] of rdWraps) if (!want.has(m)) { el.remove(); rdWraps.delete(m); }
+            // الصفحات اللي خرجت من الشاشة بتتخبي (مش بتتشال)، فلما ترجع تظهر فوراً من غير إعادة تحميل
+            for (const [m, el] of rdWraps) {
+                if (Math.abs(m - cur) > 8) { el.remove(); rdWraps.delete(m); }
+                else el.style.display = want.has(m) ? '' : 'none';
+            }
             for (const m of list) {
                 if (rdWraps.has(m) || rdPending.has(m)) continue;
                 await rdBuildSlot(m, token);
@@ -10164,7 +10168,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                         await page.render({ canvasContext: pc.getContext('2d'), viewport: vp }).promise;
                         if (token !== reader.token) return;
                         pageCache.set(key, pc);
-                        if (pageCache.size > 10) pageCache.delete(pageCache.keys().next().value);
+                        if (pageCache.size > 24) pageCache.delete(pageCache.keys().next().value);
                     }
                     items.push({ pageNo, pc, w: base.width * fit, h: base.height * fit });
                 }
