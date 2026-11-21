@@ -5458,11 +5458,11 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
             if (boardDprCache) return boardDprCache;
             const raw = window.devicePixelRatio || 1;
             const lite = document.body.classList.contains('lite');
-            let d = lite ? Math.min(2, raw) : Math.min(3, raw * 1.25);
+            let d = lite ? Math.min(1.25, raw) : Math.min(3, raw * 1.25);
             const w = (typeof stageEl !== 'undefined' && stageEl.clientWidth) || 0;
             const h = (typeof stageEl !== 'undefined' && stageEl.clientHeight) || 0;
             if (w && h) {
-                const budget = lite ? 4e6 : 5e6;            // أقصى عدد بكسلات للكانفاس (السبورة 4K كانت بتعمل كانفاس 13 مليون بكسل)
+                const budget = lite ? 1.6e6 : 5e6;            // أقصى عدد بكسلات للكانفاس (السبورة 4K كانت بتعمل كانفاس 13 مليون بكسل)
                 d = Math.min(d, Math.sqrt(budget / (w * h)));
             }
             d = Math.max(1, d);
@@ -5980,7 +5980,7 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 g.lineCap = 'butt';
                 const a = -0.6, ux = Math.cos(a), uy = Math.sin(a);
                 g.lineWidth = Math.max(1, w * 0.3);
-                for (let k = -3; k <= 3; k += 1) {
+                for (let k = -3; k <= 3; k += (strokeFast ? 3 : 1)) {
                     const off = (k / 3) * w * 0.9;
                     tracePath(g, pts, ux * off, uy * off);
                 }
@@ -6114,7 +6114,8 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 liveCtx.clearRect(0, 0, liveCanvas.width, liveCanvas.height);
                 liveBox = null;
             }
-            const plainInk = cur && cur.t !== 'hl' && !['shape', 'feather', 'broad', 'hl', 'striped', 'pencil', 'neon'].includes(cur.s);
+            const perfMode = document.body.classList.contains('lite');
+        const plainInk = cur && (perfMode || (cur.t !== 'hl' && !['shape', 'feather', 'broad', 'hl', 'striped', 'pencil', 'neon'].includes(cur.s)));
             const vkey = view.s + ',' + view.tx + ',' + view.ty;
             if (cur && !laserOn && plainInk && cur._m && liveBoxOK && cur._v === vkey) {
                 // الحبر العادي: نرسم الجزء الجديد بس من الخط (نفس الشكل بالظبط، من غير إعادة رسم الخط كله كل فريم)
@@ -6148,9 +6149,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 liveCtx.clip();
                 liveCtx.clearRect(u.x, u.y, u.w, u.h);
                 liveCtx.setTransform(view.s * d, 0, 0, view.s * d, view.tx * d, view.ty * d);
-                strokeFast = false;   // الخط الحي بنفس شكل الخط النهائي
+                strokeFast = !!document.body.classList.contains('lite');   // وضع الأداء: الخط الحي مبسّط
                 drawStroke(liveCtx, cur);
-                strokeFast = false;
+                strokeFast = !!document.body.classList.contains('lite');
                 liveCtx.restore();
                 if (plainInk) { cur._m = Math.max(1, cur.pts.length - 1); cur._v = vkey; }
                 liveBox = nb; liveBoxOK = true;
