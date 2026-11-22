@@ -5979,8 +5979,9 @@ body[data-theme=light] #quiz-run{background:#f6f4ee;color:#1f2937}
                 // قلم الريشة: سن مايل، فالخط بيطلع عريض في اتجاه ورفيع في التاني (زي الخط العربي)
                 g.lineCap = 'butt';
                 const a = -0.6, ux = Math.cos(a), uy = Math.sin(a);
-                g.lineWidth = Math.max(1, w * 0.3);
-                for (let k = -3; k <= 3; k += (strokeFast ? 3 : 1)) {
+                // وضع الأداء: ضربة واحدة عريضة (من غير الخطوط المتكررة اللي كانت بتطلع الخط مفرّغ)
+                g.lineWidth = Math.max(1, w * (strokeFast ? 0.8 : 0.3));
+                for (let k = strokeFast ? 0 : -3; k <= (strokeFast ? 0 : 3); k += 1) {
                     const off = (k / 3) * w * 0.9;
                     tracePath(g, pts, ux * off, uy * off);
                 }
